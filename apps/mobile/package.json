@@ -1,0 +1,40 @@
+{
+  "name": "mobile",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "dependencies": {
+    "@jiggy/shared": "*",
+    "expo": "~58.0.17",
+    "expo-status-bar": "~58.0.4",
+    "nativewind": "^4",
+    "react": "19.3.0",
+    "react-native": "0.88.0",
+    "react-native-reanimated": "*",
+    "react-native-safe-area-context": "*"
+  },
+  "devDependencies": {
+    "@testing-library/react-native": "*",
+    "@types/jest": "*",
+    "@types/react": "~19.3.0",
+    "jest": "*",
+    "jest-expo": "*",
+    "tailwindcss": "^3.4",
+    "typescript": "~6.0.3"
+  },
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "dev": "expo start",
+    "typecheck": "tsc --noEmit",
+    "test": "jest"
+  },
+  "private": true,
+  "jest": {
+    "preset": "jest-expo",
+    "moduleNameMapper": {
+      "\\.css$": "<rootDir>/css-stub.js"
+    }
+  }
+}
