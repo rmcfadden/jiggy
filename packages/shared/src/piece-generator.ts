@@ -37,7 +37,15 @@ export type PieceParams = {
   /** 0..1, amount of seeded random offset applied to the tab shape. */
   jitter: number;
   seed: number;
+  /**
+   * Optional per-edge seeds. An edge with a seed draws its shape from that seed
+   * alone, so two neighbouring pieces given the same seed (and complementary
+   * edge types) produce exactly mirrored curves along their shared seam.
+   */
+  edgeSeeds?: Partial<Record<keyof PieceEdges, number>>;
 };
+
+const SIDES = ["top", "right", "bottom", "left"] as const;
 
 export const EDGE_TYPES: readonly EdgeType[] = ["flat", "in", "out"];
 
@@ -57,7 +65,7 @@ export function complement(edge: EdgeType): EdgeType {
   return edge === "out" ? "in" : edge === "in" ? "out" : "flat";
 }
 
-function mulberry32(seed: number): () => number {
+export function createRng(seed: number): () => number {
   let a = seed >>> 0;
   return () => {
     a = (a + 0x6d2b79f5) >>> 0;
@@ -103,6 +111,31 @@ function computeBounds(segments: PathSegment[]): Bounds {
   return bounds;
 }
 
+/** Shifts a vector by (dx, dy). */
+export function translateVector(vector: PieceVector, dx: number, dy: number): PieceVector {
+  const move = (p: Point): Point => ({ x: p.x + dx, y: p.y + dy });
+  return {
+    ...vector,
+    segments: vector.segments.map((s) => {
+      switch (s.type) {
+        case "M":
+        case "L":
+          return { type: s.type, to: move(s.to) };
+        case "C":
+          return { type: "C", c1: move(s.c1), c2: move(s.c2), to: move(s.to) };
+        case "Z":
+          return s;
+      }
+    }),
+    bounds: {
+      minX: vector.bounds.minX + dx,
+      minY: vector.bounds.minY + dy,
+      maxX: vector.bounds.maxX + dx,
+      maxY: vector.bounds.maxY + dy,
+    },
+  };
+}
+
 export class PieceGenerator {
   readonly params: PieceParams;
 
@@ -116,8 +149,8 @@ export class PieceGenerator {
 
   /** Builds the piece outline as renderer-agnostic vector data (clockwise from top-left). */
   generate(): PieceVector {
-    const { width, height, edges, jitter, seed } = this.params;
-    const rng = mulberry32(seed);
+    const { width, height, edges, jitter, seed, edgeSeeds } = this.params;
+    const rng = createRng(seed);
     const corners: Point[] = [
       { x: 0, y: 0 },
       { x: width, y: 0 },
@@ -130,8 +163,16 @@ export class PieceGenerator {
     for (let i = 0; i < 4; i++) {
       // Always draw the same number of random values per edge so changing one
       // edge's type does not reshuffle the jitter on the others.
-      const r = [rng(), rng(), rng(), rng()].map((v) => (v * 2 - 1) * jitter);
-      this.appendEdge(segments, corners[i], corners[(i + 1) % 4], order[i], r);
+      const drawn = [rng(), rng(), rng(), rng()];
+      const edgeSeed = edgeSeeds?.[SIDES[i]];
+      const source = edgeSeed === undefined ? drawn : (() => {
+        const edgeRng = createRng(edgeSeed);
+        return [edgeRng(), edgeRng(), edgeRng(), edgeRng()];
+      })();
+      const r = source.map((v) => (v * 2 - 1) * jitter);
+      // Bottom and left edges are walked against the canonical direction
+      // (left->right, top->bottom), so their shape is mirrored.
+      this.appendEdge(segments, corners[i], corners[(i + 1) % 4], order[i], r, i >= 2);
     }
     segments.push({ type: "Z" });
 
@@ -144,6 +185,7 @@ export class PieceGenerator {
     b: Point,
     type: EdgeType,
     r: number[],
+    reversed: boolean,
   ) {
     if (type === "flat") {
       out.push({ type: "L", to: b });
@@ -163,11 +205,16 @@ export class PieceGenerator {
 
     const base = Math.min(width, height);
     const tabH = tabSize * base * (1 + 0.25 * r[0]);
-    const neck = clamp(neckWidth * base * (1 + 0.3 * r[1]), 0.01 * base, 0.45 * len);
+    // Mirror position when walking backwards so both sides of a seam agree.
+    const position = reversed ? 1 - tabPosition : tabPosition;
+    const offset = reversed ? -r[3] : r[3];
+    const center = clamp(position + 0.05 * offset, 0.2, 0.8) * len;
+    // Keep the neck symmetric about the centre so the shape reverses exactly.
+    const neckMax = Math.min(0.45 * len, center - 0.05 * len, 0.95 * len - center);
+    const neck = clamp(neckWidth * base * (1 + 0.3 * r[1]), 0.01 * base, neckMax);
     const bulb = neck * 1.8 * (1 + 0.3 * r[2]);
-    const center = clamp(tabPosition + 0.05 * r[3], 0.2, 0.8) * len;
-    const x1 = clamp(center - neck, 0.05 * len, 0.8 * len);
-    const x2 = clamp(center + neck, x1 + 0.01 * len, 0.95 * len);
+    const x1 = center - neck;
+    const x2 = center + neck;
 
     const pt = (t: number, h: number): Point => ({
       x: a.x + ux * t + nx * h * sign,
