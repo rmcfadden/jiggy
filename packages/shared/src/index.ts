@@ -6,3 +6,6 @@ export function greet(name: string): Greeting {
 
 export * from "./piece-generator";
 export * from "./svg";
+export * from "./jigsaw-template";
+export * from "./jigsaw-vectorizer";
+export * from "./puzzle";

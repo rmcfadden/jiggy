@@ -1,13 +1,18 @@
-import { greet } from '@jiggy/shared'
+import { Navigate, Route, Routes } from 'react-router-dom'
+import Layout from './Layout'
+import Designer from './designer/Designer'
+import Explorer from './views/Explorer'
+import Player from './views/Player'
 
-function App() {
-  const { message } = greet('web')
-
+export default function App() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-900">
-      <h1 className="text-4xl font-bold text-white">{message}</h1>
-    </main>
+    <Routes>
+      <Route element={<Layout />}>
+        <Route index element={<Navigate to="/puzzles" replace />} />
+        <Route path="puzzles" element={<Explorer />} />
+        <Route path="puzzle" element={<Player />} />
+        <Route path="designer" element={<Designer />} />
+      </Route>
+    </Routes>
   )
 }
-
-export default App

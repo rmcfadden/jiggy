@@ -3,12 +3,12 @@ import { DEFAULT_PIECE_PARAMS, PieceGenerator, type PieceParams } from '@jiggy/s
 import { PieceView } from './PieceView'
 import { PropertiesPanel } from './PropertiesPanel'
 
-export default function App() {
+export function PieceTab() {
   const [params, setParams] = useState<PieceParams>(DEFAULT_PIECE_PARAMS)
   const piece = useMemo(() => new PieceGenerator(params).generate(), [params])
 
   return (
-    <div className="flex h-screen">
+    <div className="flex min-h-0 flex-1">
       <main className="flex flex-1 items-center justify-center overflow-hidden bg-white">
         <PieceView piece={piece} />
       </main>
