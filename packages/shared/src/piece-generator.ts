@@ -261,15 +261,15 @@ export class PieceGenerator {
     const sign = type === "out" ? 1 : -1;
 
     const base = Math.min(width, height);
-    const tabH = tabSize * base * (1 + 0.25 * r[0]);
+    const tabH = tabSize * base * (1 + 0.8 * r[0]);
     // Mirror position when walking backwards so both sides of a seam agree.
     const position = reversed ? 1 - tabPosition : tabPosition;
     const offset = reversed ? -r[3] : r[3];
-    const center = clamp(position + 0.05 * offset, 0.2, 0.8) * len;
+    const center = clamp(position + 0.2 * offset, 0.2, 0.8) * len;
     // Keep the neck symmetric about the centre so the shape reverses exactly.
     const neckMax = Math.min(0.45 * len, center - 0.05 * len, 0.95 * len - center);
-    const neck = clamp(neckWidth * base * (1 + 0.3 * r[1]), 0.01 * base, neckMax);
-    const bulb = neck * 1.8 * (1 + 0.3 * r[2]);
+    const neck = clamp(neckWidth * base * (1 + 0.8 * r[1]), 0.01 * base, neckMax);
+    const bulb = neck * 1.8 * (1 + 0.8 * r[2]);
     const x1 = center - neck;
     const x2 = center + neck;
 

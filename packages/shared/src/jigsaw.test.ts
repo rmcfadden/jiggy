@@ -31,6 +31,36 @@ describe("JigsawTemplateGenerator", () => {
     expect(gen({ seed: 10 }).generate()).not.toEqual(gen().generate());
   });
 
+  it("draws a different shape for every seam, within the ranges", () => {
+    const ranges = {
+      tabSize: { min: 0.1, max: 0.3 },
+      neckWidth: { min: 0.04, max: 0.1 },
+      tabPosition: { min: 0.35, max: 0.65 },
+      neckAngle: { min: -15, max: 15 },
+      jitter: { min: 0.1, max: 0.9 },
+    };
+    const m = gen({ cols: 6, rows: 6, ...ranges }).generate();
+    expect(JigsawTemplateGenerator.findMismatches(m)).toEqual([]);
+    const keys = Object.keys(ranges) as (keyof typeof ranges)[];
+    for (const key of keys) {
+      const values = m.flat().flatMap((p) => Object.values(p.sides!).map((s) => s![key]!));
+      values.forEach((v) => {
+        expect(v).toBeGreaterThanOrEqual(ranges[key].min);
+        expect(v).toBeLessThanOrEqual(ranges[key].max);
+      });
+      expect(new Set(values.map((v) => v.toFixed(4))).size).toBeGreaterThan(20);
+    }
+    // Both pieces of a seam hold the same shape.
+    expect(m[2][2].sides!.right).toEqual(m[2][3].sides!.left);
+    expect(m[2][2].sides!.bottom).toEqual(m[3][2].sides!.top);
+  });
+
+  it("collapses to one shape when a range has no spread", () => {
+    const fixed = { min: 0.2, max: 0.2 };
+    const m = gen({ tabSize: fixed }).generate();
+    new Set(m.flat().map((p) => p.sides!.top!.tabSize)).forEach((v) => expect(v).toBe(0.2));
+  });
+
   it("detects a broken seam", () => {
     const m = gen().generate();
     m[0][0].edges.right = m[0][1].edges.left;
@@ -69,7 +99,7 @@ function edgePoints(segments: PathSegment[]): Point[][] {
 }
 
 describe("JigsawVectorizer", () => {
-  const matrix = new JigsawTemplateGenerator({ cols: 3, rows: 3, jitter: 1, seed: 5 }).generate();
+  const matrix = new JigsawTemplateGenerator({ cols: 3, rows: 3, jitter: { min: 1, max: 1 }, seed: 5 }).generate();
   const vec = new JigsawVectorizer().vectorize(matrix);
 
   it("places one piece per cell, offset into puzzle coordinates", () => {

@@ -64,6 +64,53 @@ export function SliderField(props: {
   )
 }
 
+/** A start/end pair of sliders; the two ends never cross. */
+export function RangeField(props: {
+  label: string
+  value: { min: number; max: number }
+  min: number
+  max: number
+  step: number
+  onChange: (value: { min: number; max: number }) => void
+}) {
+  const { value } = props
+  const digits = props.step >= 1 ? 0 : 2
+  return (
+    <fieldset className={field}>
+      <span className="flex justify-between">
+        {props.label}
+        <span className="tabular-nums text-slate-500">
+          {value.min.toFixed(digits)} – {value.max.toFixed(digits)}
+        </span>
+      </span>
+      <input
+        type="range"
+        aria-label={`${props.label} start`}
+        min={props.min}
+        max={props.max}
+        step={props.step}
+        value={value.min}
+        onChange={(e) => {
+          const min = Number(e.target.value)
+          props.onChange({ min, max: Math.max(min, value.max) })
+        }}
+      />
+      <input
+        type="range"
+        aria-label={`${props.label} end`}
+        min={props.min}
+        max={props.max}
+        step={props.step}
+        value={value.max}
+        onChange={(e) => {
+          const max = Number(e.target.value)
+          props.onChange({ min: Math.min(max, value.min), max })
+        }}
+      />
+    </fieldset>
+  )
+}
+
 export function Panel({ children }: { children: ReactNode }) {
   return (
     <aside className="flex w-80 shrink-0 flex-col gap-4 overflow-y-auto border-l border-slate-200 bg-slate-50 p-4">
