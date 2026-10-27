@@ -19,16 +19,17 @@ export function JigsawPanel({ params, onChange, onRandom, gap, onGapChange, matr
   )
 
   const slider = (
-    key: 'tabSize' | 'neckWidth' | 'tabPosition' | 'jitter',
+    key: 'tabSize' | 'neckWidth' | 'tabPosition' | 'neckAngle' | 'jitter',
     label: string,
     min: number,
     max: number,
+    step = 0.01,
   ) => (
     <SliderField
       label={label}
       min={min}
       max={max}
-      step={0.01}
+      step={step}
       value={params[key]}
       onChange={(v) => set(key, v)}
     />
@@ -50,6 +51,7 @@ export function JigsawPanel({ params, onChange, onRandom, gap, onGapChange, matr
       {slider('tabSize', 'Tab size', 0.05, 0.4)}
       {slider('neckWidth', 'Neck width', 0.02, 0.2)}
       {slider('tabPosition', 'Tab position', 0.3, 0.7)}
+      {slider('neckAngle', 'Neck angle (°)', -20, 20, 1)}
       {slider('jitter', 'Jitter', 0, 1)}
       {num('seed', 'Seed', 0)}
 
