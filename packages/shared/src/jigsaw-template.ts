@@ -19,6 +19,7 @@ export type JigsawTemplateParams = {
   tabSize: number;
   neckWidth: number;
   tabPosition: number;
+  neckAngle: number;
   jitter: number;
   seed: number;
 };
@@ -31,6 +32,7 @@ export const DEFAULT_JIGSAW_PARAMS: JigsawTemplateParams = {
   tabSize: DEFAULT_PIECE_PARAMS.tabSize,
   neckWidth: DEFAULT_PIECE_PARAMS.neckWidth,
   tabPosition: DEFAULT_PIECE_PARAMS.tabPosition,
+  neckAngle: DEFAULT_PIECE_PARAMS.neckAngle,
   jitter: DEFAULT_PIECE_PARAMS.jitter,
   seed: 1,
 };
@@ -61,7 +63,7 @@ export class JigsawTemplateGenerator {
   }
 
   generate(): JigsawMatrix {
-    const { cols, rows, width, height, tabSize, neckWidth, tabPosition, jitter, seed } =
+    const { cols, rows, width, height, tabSize, neckWidth, tabPosition, neckAngle, jitter, seed } =
       this.params;
     const rng = createRng(seed);
     const pieceWidth = width / cols;
@@ -98,6 +100,7 @@ export class JigsawTemplateGenerator {
           tabSize,
           neckWidth,
           tabPosition,
+          neckAngle,
           jitter,
           seed,
         };
@@ -132,6 +135,7 @@ export class JigsawTemplateGenerator {
       tabSize: round2(between(0.15, 0.3)),
       neckWidth: round2(between(0.04, 0.12)),
       tabPosition: round2(between(0.4, 0.6)),
+      neckAngle: Math.round(between(-10, 10)),
       jitter: round2(between(0, 1)),
       seed: Math.floor(rng() * 1_000_000),
     };

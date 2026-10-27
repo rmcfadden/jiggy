@@ -24,18 +24,35 @@ export type PieceEdges = {
   left: EdgeType;
 };
 
-export type PieceParams = {
-  width: number;
-  height: number;
-  edges: PieceEdges;
+export type Side = keyof PieceEdges;
+
+/** The numeric shape of one edge's tab. */
+export type EdgeShape = {
   /** Tab height as a fraction of the shorter piece side. */
   tabSize: number;
   /** Half-width of the tab neck as a fraction of the shorter piece side. */
   neckWidth: number;
   /** Tab center along its edge, 0..1. */
   tabPosition: number;
+  /**
+   * Lean of the tab in degrees, positive towards the end of the seam's
+   * canonical direction (left->right for top/bottom, top->bottom for left/right).
+   * It is stored in that canonical frame so both pieces sharing a seam hold the
+   * same value and the generator flips it for whichever side walks backwards.
+   */
+  neckAngle: number;
   /** 0..1, amount of seeded random offset applied to the tab shape. */
   jitter: number;
+};
+
+export const SHAPE_KEYS = ["tabSize", "neckWidth", "tabPosition", "neckAngle", "jitter"] as const;
+
+export type PieceParams = EdgeShape & {
+  width: number;
+  height: number;
+  edges: PieceEdges;
+  /** Per-side overrides of the shape values above. */
+  sides?: Partial<Record<Side, Partial<EdgeShape>>>;
   seed: number;
   /**
    * Optional per-edge seeds. An edge with a seed draws its shape from that seed
@@ -45,7 +62,9 @@ export type PieceParams = {
   edgeSeeds?: Partial<Record<keyof PieceEdges, number>>;
 };
 
-const SIDES = ["top", "right", "bottom", "left"] as const;
+export const SIDES = ["top", "right", "bottom", "left"] as const;
+
+const OPPOSITE: Record<Side, Side> = { top: "bottom", right: "left", bottom: "top", left: "right" };
 
 export const EDGE_TYPES: readonly EdgeType[] = ["flat", "in", "out"];
 
@@ -56,6 +75,7 @@ export const DEFAULT_PIECE_PARAMS: PieceParams = {
   tabSize: 0.22,
   neckWidth: 0.07,
   tabPosition: 0.5,
+  neckAngle: 0,
   jitter: 0.3,
   seed: 1,
 };
@@ -149,7 +169,7 @@ export class PieceGenerator {
 
   /** Builds the piece outline as renderer-agnostic vector data (clockwise from top-left). */
   generate(): PieceVector {
-    const { width, height, edges, jitter, seed, edgeSeeds } = this.params;
+    const { width, height, edges, seed, edgeSeeds } = this.params;
     const rng = createRng(seed);
     const corners: Point[] = [
       { x: 0, y: 0 },
@@ -169,14 +189,49 @@ export class PieceGenerator {
         const edgeRng = createRng(edgeSeed);
         return [edgeRng(), edgeRng(), edgeRng(), edgeRng()];
       })();
-      const r = source.map((v) => (v * 2 - 1) * jitter);
+      const shape = this.shapeOf(SIDES[i]);
+      const r = source.map((v) => (v * 2 - 1) * shape.jitter);
       // Bottom and left edges are walked against the canonical direction
       // (left->right, top->bottom), so their shape is mirrored.
-      this.appendEdge(segments, corners[i], corners[(i + 1) % 4], order[i], r, i >= 2);
+      this.appendEdge(segments, corners[i], corners[(i + 1) % 4], order[i], shape, r, i >= 2);
     }
     segments.push({ type: "Z" });
 
     return { width, height, segments, bounds: computeBounds(segments) };
+  }
+
+  /** The piece-wide shape with this side's overrides applied. */
+  shapeOf(side: Side): EdgeShape {
+    const p = this.params;
+    return {
+      tabSize: p.tabSize,
+      neckWidth: p.neckWidth,
+      tabPosition: p.tabPosition,
+      neckAngle: p.neckAngle,
+      jitter: p.jitter,
+      ...p.sides?.[side],
+    };
+  }
+
+  /**
+   * Params for the piece across `side` so the two fit: the facing edge is the
+   * complement, with the same seed and shape values. Returns both pieces
+   * because the shared edge must have a seed; one is assigned if missing.
+   */
+  static pair(params: PieceParams, side: Side): [PieceParams, PieceParams] {
+    const opposite = OPPOSITE[side];
+    const edgeSeed = params.edgeSeeds?.[side] ?? params.seed + SIDES.indexOf(side) + 1;
+    const shape = new PieceGenerator(params).shapeOf(side);
+    const flat: EdgeType = "flat";
+    const piece: PieceParams = { ...params, edgeSeeds: { ...params.edgeSeeds, [side]: edgeSeed } };
+    const neighbour: PieceParams = {
+      ...params,
+      edges: { top: flat, right: flat, bottom: flat, left: flat, [opposite]: complement(params.edges[side]) },
+      edgeSeeds: { [opposite]: edgeSeed },
+      // The angle is canonical, so it is copied unchanged, not negated.
+      sides: { [opposite]: shape },
+    };
+    return [piece, neighbour];
   }
 
   private appendEdge(
@@ -184,6 +239,7 @@ export class PieceGenerator {
     a: Point,
     b: Point,
     type: EdgeType,
+    shape: EdgeShape,
     r: number[],
     reversed: boolean,
   ) {
@@ -192,7 +248,8 @@ export class PieceGenerator {
       return;
     }
 
-    const { width, height, tabSize, neckWidth, tabPosition } = this.params;
+    const { width, height } = this.params;
+    const { tabSize, neckWidth, tabPosition } = shape;
     const dx = b.x - a.x;
     const dy = b.y - a.y;
     const len = Math.hypot(dx, dy);
@@ -216,9 +273,13 @@ export class PieceGenerator {
     const x1 = center - neck;
     const x2 = center + neck;
 
+    // Shear along the edge in proportion to height. Walking backwards flips
+    // the edge direction, so the canonical lean flips with it.
+    const angle = clamp(shape.neckAngle, -45, 45);
+    const lean = Math.tan((angle * Math.PI) / 180) * (reversed ? -1 : 1);
     const pt = (t: number, h: number): Point => ({
-      x: a.x + ux * t + nx * h * sign,
-      y: a.y + uy * t + ny * h * sign,
+      x: a.x + ux * (t + h * lean) + nx * h * sign,
+      y: a.y + uy * (t + h * lean) + ny * h * sign,
     });
     const shoulder = tabH * 0.3;
     const peak = tabH * 1.35;
@@ -239,6 +300,7 @@ export class PieceGenerator {
       tabSize: round2(between(0.15, 0.3)),
       neckWidth: round2(between(0.04, 0.12)),
       tabPosition: round2(between(0.4, 0.6)),
+      neckAngle: Math.round(between(-10, 10)),
       jitter: round2(between(0, 1)),
       seed: Math.floor(rng() * 1_000_000),
     };

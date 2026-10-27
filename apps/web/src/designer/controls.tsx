@@ -37,7 +37,7 @@ export function SliderField(props: {
     <label className={field}>
       <span className="flex justify-between">
         {props.label}
-        <span className="tabular-nums text-slate-500">{props.value.toFixed(2)}</span>
+        <span className="tabular-nums text-slate-500">{props.value.toFixed(props.step >= 1 ? 0 : 2)}</span>
       </span>
       <input
         type="range"
