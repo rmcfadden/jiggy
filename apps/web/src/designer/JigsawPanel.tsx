@@ -1,5 +1,5 @@
-import { type JigsawTemplateParams, type Range, type VerifyReport } from '@jiggy/shared'
-import { NumberField, Panel, primaryButton, RangeField, SliderField } from './controls'
+import { JIGSAW_PRESETS, type JigsawTemplateParams, type Range, type VerifyReport } from '@jiggy/shared'
+import { field, input, NumberField, Panel, primaryButton, RangeField, SliderField } from './controls'
 
 type Props = {
   params: JigsawTemplateParams
@@ -49,6 +49,25 @@ export function JigsawPanel({ params, onChange, onRandom, gap,
       <button className={primaryButton} onClick={onRandom}>
         Random
       </button>
+
+      <label className={field}>
+        Preset
+        <select
+          className={input}
+          value=""
+          onChange={(e) => {
+            const preset = JIGSAW_PRESETS.find((p) => p.name === e.target.value)
+            if (preset) onChange({ ...params, ...preset.ranges })
+          }}
+        >
+          <option value="">Choose a preset…</option>
+          {JIGSAW_PRESETS.map((p) => (
+            <option key={p.name} value={p.name}>
+              {p.name}
+            </option>
+          ))}
+        </select>
+      </label>
 
       <fieldset className="grid grid-cols-2 gap-3">
         {num('cols', 'Columns', 1, 30)}

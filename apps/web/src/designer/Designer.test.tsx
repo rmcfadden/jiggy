@@ -29,3 +29,12 @@ it('reports a passing verification for the generated jigsaw', () => {
   const section = screen.getByLabelText('Verification')
   expect(section.textContent).toContain('OK')
 })
+
+it('applies a shape preset without touching the grid', () => {
+  render(<Designer />)
+  fireEvent.click(screen.getByRole('tab', { name: 'Jigsaw Template Generator' }))
+  fireEvent.change(screen.getByLabelText('Preset'), { target: { value: 'Subtle' } })
+  expect(screen.getByLabelText('Neck width start')).toHaveProperty('value', '0.1')
+  expect(screen.getByLabelText('Jitter end')).toHaveProperty('value', '0.52')
+  expect(screen.getByLabelText('Columns')).toHaveProperty('value', '4')
+})

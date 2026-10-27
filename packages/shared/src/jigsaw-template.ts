@@ -44,6 +44,35 @@ export const DEFAULT_JIGSAW_PARAMS: JigsawTemplateParams = {
   seed: 1,
 };
 
+export type JigsawShapeRanges = Pick<
+  JigsawTemplateParams,
+  "tabSize" | "neckWidth" | "tabPosition" | "neckAngle" | "jitter"
+>;
+
+/** Named shape ranges; applying one leaves grid size and seed alone. */
+export const JIGSAW_PRESETS: { name: string; ranges: JigsawShapeRanges }[] = [
+  {
+    name: "Varied",
+    ranges: {
+      tabSize: DEFAULT_JIGSAW_PARAMS.tabSize,
+      neckWidth: DEFAULT_JIGSAW_PARAMS.neckWidth,
+      tabPosition: DEFAULT_JIGSAW_PARAMS.tabPosition,
+      neckAngle: DEFAULT_JIGSAW_PARAMS.neckAngle,
+      jitter: DEFAULT_JIGSAW_PARAMS.jitter,
+    },
+  },
+  {
+    name: "Subtle",
+    ranges: {
+      tabSize: { min: 0.16, max: 0.23 },
+      neckWidth: { min: 0.1, max: 0.12 },
+      tabPosition: { min: 0.47, max: 0.52 },
+      neckAngle: { min: -2, max: 5 },
+      jitter: { min: 0.48, max: 0.52 },
+    },
+  },
+];
+
 type Cut = { type: EdgeType; seed: number; shape: EdgeShape };
 
 /**
