@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 
 export const field = 'flex flex-col gap-1 text-sm'
 export const input = 'rounded border border-slate-300 bg-white px-2 py-1'
@@ -10,6 +10,18 @@ export function NumberField(props: {
   max?: number
   onChange: (value: number) => void
 }) {
+  // Keep the raw text so the field can be emptied while typing; only valid,
+  // in-range numbers are committed, and the draft resets on blur.
+  const [draft, setDraft] = useState<string | null>(null)
+
+  const commit = (text: string) => {
+    setDraft(text)
+    const n = Number(text)
+    if (text.trim() === '' || !Number.isFinite(n)) return
+    if (n < props.min || (props.max !== undefined && n > props.max)) return
+    props.onChange(n)
+  }
+
   return (
     <label className={field}>
       {props.label}
@@ -18,8 +30,9 @@ export function NumberField(props: {
         type="number"
         min={props.min}
         max={props.max}
-        value={props.value}
-        onChange={(e) => props.onChange(Number(e.target.value))}
+        value={draft ?? props.value}
+        onChange={(e) => commit(e.target.value)}
+        onBlur={() => setDraft(null)}
       />
     </label>
   )
