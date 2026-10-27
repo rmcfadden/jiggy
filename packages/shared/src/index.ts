@@ -9,3 +9,4 @@ export * from "./svg";
 export * from "./jigsaw-template";
 export * from "./jigsaw-vectorizer";
 export * from "./puzzle";
+export * from "./jigsaw-verifier";

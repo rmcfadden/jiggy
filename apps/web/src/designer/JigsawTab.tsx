@@ -3,6 +3,7 @@ import {
   DEFAULT_JIGSAW_PARAMS,
   JigsawTemplateGenerator,
   JigsawVectorizer,
+  verifyJigsaw,
   type JigsawTemplateParams,
 } from '@jiggy/shared'
 import { JigsawPanel } from './JigsawPanel'
@@ -11,9 +12,11 @@ import { JigsawView } from './JigsawView'
 export function JigsawTab() {
   const [params, setParams] = useState<JigsawTemplateParams>(DEFAULT_JIGSAW_PARAMS)
   const [gap, setGap] = useState(0)
+  const [tolerance, setTolerance] = useState(1e-6)
 
   const matrix = useMemo(() => new JigsawTemplateGenerator(params).generate(), [params])
   const jigsaw = useMemo(() => new JigsawVectorizer().vectorize(matrix, { gap }), [matrix, gap])
+  const report = useMemo(() => verifyJigsaw(matrix, jigsaw, { tolerance }), [matrix, jigsaw, tolerance])
   const matrixJson = useMemo(() => JSON.stringify(matrix, null, 2), [matrix])
 
   return (
@@ -28,6 +31,9 @@ export function JigsawTab() {
         gap={gap}
         onGapChange={setGap}
         matrixJson={matrixJson}
+        report={report}
+        tolerance={tolerance}
+        onToleranceChange={setTolerance}
       />
     </div>
   )

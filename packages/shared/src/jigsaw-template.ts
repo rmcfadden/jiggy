@@ -1,7 +1,7 @@
 import {
-  DEFAULT_PIECE_PARAMS,
   complement,
   createRng,
+  type EdgeShape,
   type EdgeType,
   type PieceParams,
 } from "./piece-generator";
@@ -9,18 +9,25 @@ import {
 /** Row-major grid of piece params: `matrix[row][col]`. */
 export type JigsawMatrix = PieceParams[][];
 
+/** Inclusive start/end of a shape value; each seam draws its own value from it. */
+export type Range = { min: number; max: number };
+
 export type JigsawTemplateParams = {
   cols: number;
   rows: number;
   /** Total puzzle size; each piece is `width / cols` by `height / rows`. */
   width: number;
   height: number;
-  /** Shared by every piece, see {@link PieceParams}. */
-  tabSize: number;
-  neckWidth: number;
-  tabPosition: number;
-  neckAngle: number;
-  jitter: number;
+  /**
+   * Tolerance ranges for the shape values (see {@link EdgeShape}). Every seam
+   * draws its own value from its range, so edges differ across the puzzle while
+   * the two pieces sharing a seam still agree.
+   */
+  tabSize: Range;
+  neckWidth: Range;
+  tabPosition: Range;
+  neckAngle: Range;
+  jitter: Range;
   seed: number;
 };
 
@@ -29,15 +36,15 @@ export const DEFAULT_JIGSAW_PARAMS: JigsawTemplateParams = {
   rows: 3,
   width: 800,
   height: 600,
-  tabSize: DEFAULT_PIECE_PARAMS.tabSize,
-  neckWidth: DEFAULT_PIECE_PARAMS.neckWidth,
-  tabPosition: DEFAULT_PIECE_PARAMS.tabPosition,
-  neckAngle: DEFAULT_PIECE_PARAMS.neckAngle,
-  jitter: DEFAULT_PIECE_PARAMS.jitter,
+  tabSize: { min: 0.16, max: 0.28 },
+  neckWidth: { min: 0.05, max: 0.1 },
+  tabPosition: { min: 0.4, max: 0.6 },
+  neckAngle: { min: -12, max: 12 },
+  jitter: { min: 0.2, max: 0.8 },
   seed: 1,
 };
 
-type Cut = { type: EdgeType; seed: number };
+type Cut = { type: EdgeType; seed: number; shape: EdgeShape };
 
 /**
  * Builds a matrix of {@link PieceParams} that tile into a jigsaw.
@@ -65,15 +72,24 @@ export class JigsawTemplateGenerator {
   generate(): JigsawMatrix {
     const { cols, rows, width, height, tabSize, neckWidth, tabPosition, neckAngle, jitter, seed } =
       this.params;
+    const mid = ({ min, max }: Range) => (min + max) / 2;
     const rng = createRng(seed);
     const pieceWidth = width / cols;
     const pieceHeight = height / rows;
 
-    // Always draw two values per seam, border or not, so changing the grid
+    // Always draw the same values per seam, border or not, so changing the grid
     // size does not reshuffle the seams that remain.
+    const pick = ({ min, max }: Range) => min + rng() * (max - min);
     const draw = (): Cut => ({
       type: rng() < 0.5 ? "out" : "in",
       seed: Math.floor(rng() * 2 ** 31),
+      shape: {
+        tabSize: pick(tabSize),
+        neckWidth: pick(neckWidth),
+        tabPosition: pick(tabPosition),
+        neckAngle: pick(neckAngle),
+        jitter: pick(jitter),
+      },
     });
     // horizontal[r][c]: seam above row r (r = 0..rows); vertical[r][c]: seam left of col c.
     const horizontal = Array.from({ length: rows + 1 }, () => Array.from({ length: cols }, draw));
@@ -97,11 +113,13 @@ export class JigsawTemplateGenerator {
             right: c === cols - 1 ? flat : complement(right.type),
           },
           edgeSeeds: { top: top.seed, bottom: bottom.seed, left: left.seed, right: right.seed },
-          tabSize,
-          neckWidth,
-          tabPosition,
-          neckAngle,
-          jitter,
+          // Piece-wide values are only fallbacks; each side carries its seam's shape.
+          tabSize: mid(tabSize),
+          neckWidth: mid(neckWidth),
+          tabPosition: mid(tabPosition),
+          neckAngle: mid(neckAngle),
+          jitter: mid(jitter),
+          sides: { top: top.shape, bottom: bottom.shape, left: left.shape, right: right.shape },
           seed,
         };
       }),
@@ -128,15 +146,19 @@ export class JigsawTemplateGenerator {
   static random(rng: () => number = Math.random): JigsawTemplateParams {
     const between = (lo: number, hi: number) => lo + rng() * (hi - lo);
     const round2 = (v: number) => Math.round(v * 100) / 100;
+    const range = (lo1: number, hi1: number, lo2: number, hi2: number): Range => ({
+      min: round2(between(lo1, hi1)),
+      max: round2(between(lo2, hi2)),
+    });
     return {
       ...DEFAULT_JIGSAW_PARAMS,
       cols: Math.floor(between(2, 9)),
       rows: Math.floor(between(2, 7)),
-      tabSize: round2(between(0.15, 0.3)),
-      neckWidth: round2(between(0.04, 0.12)),
-      tabPosition: round2(between(0.4, 0.6)),
-      neckAngle: Math.round(between(-10, 10)),
-      jitter: round2(between(0, 1)),
+      tabSize: range(0.12, 0.2, 0.2, 0.32),
+      neckWidth: range(0.03, 0.07, 0.07, 0.12),
+      tabPosition: range(0.3, 0.45, 0.55, 0.7),
+      neckAngle: { min: Math.round(between(-20, -2)), max: Math.round(between(2, 20)) },
+      jitter: range(0, 0.4, 0.5, 1),
       seed: Math.floor(rng() * 1_000_000),
     };
   }

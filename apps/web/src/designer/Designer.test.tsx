@@ -22,3 +22,10 @@ it('switches to the Jigsaw Template Generator tab and renders every piece', () =
   fireEvent.click(screen.getByRole('tab', { name: 'Piece' }))
   expect(screen.getByRole('img', { name: 'Puzzle piece' })).toBeTruthy()
 })
+
+it('reports a passing verification for the generated jigsaw', () => {
+  render(<Designer />)
+  fireEvent.click(screen.getByRole('tab', { name: 'Jigsaw Template Generator' }))
+  const section = screen.getByLabelText('Verification')
+  expect(section.textContent).toContain('OK')
+})
