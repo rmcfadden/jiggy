@@ -1,4 +1,5 @@
 import { createRng } from "./piece-generator";
+import type { StartSide } from "./puzzle";
 
 export type GameType = "scrambled" | "next-pieces" | "last-x";
 
@@ -23,6 +24,12 @@ export type GameConfig = {
   panelDock: PanelDock;
   /** last-x: how many pieces are left to place. */
   remaining: number;
+  /** scrambled: share of the window the puzzle board fills, in percent. */
+  viewPercent: number;
+  /** scrambled: which side of the board the loose pieces start on. */
+  startSide: StartSide;
+  /** scrambled: how many pieces start loose; 0 means all of them. */
+  looseCount: number;
 };
 
 export const DEFAULT_GAME_CONFIG: GameConfig = {
@@ -32,6 +39,9 @@ export const DEFAULT_GAME_CONFIG: GameConfig = {
   order: "sequential",
   panelDock: "bottom",
   remaining: 5,
+  viewPercent: 40,
+  startSide: "random",
+  looseCount: 0,
 };
 
 export type GameState = {

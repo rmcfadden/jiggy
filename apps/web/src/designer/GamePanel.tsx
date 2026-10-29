@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { GAME_TYPES, type GameConfig } from '@jiggy/shared'
+import { GAME_TYPES, START_SIDES, type GameConfig } from '@jiggy/shared'
 import { GAME_PHOTOS, GAME_TEMPLATES } from './gameAssets'
 import { NumberField, Panel, field, input, primaryButton } from './controls'
 
@@ -14,6 +14,8 @@ type Props = {
   onConfig: (config: GameConfig) => void
   showGuide: boolean
   onShowGuide: (show: boolean) => void
+  showOutline: boolean
+  onShowOutline: (show: boolean) => void
   pieceCount: number
   onRestart: () => void
 }
@@ -119,10 +121,38 @@ export function GamePanel(p: Props) {
             {config.type === 'last-x' && (
               <NumberField label="Pieces to solve" min={1} max={p.pieceCount} value={config.remaining} onChange={(remaining) => set({ remaining })} />
             )}
-            {config.type === 'scrambled' && <p className="text-sm text-slate-500">No extra settings; use Reshuffle for a new order.</p>}
+            {config.type === 'scrambled' && (
+              <>
+                <NumberField label="Puzzle size (% of window)" min={20} max={80} value={config.viewPercent} onChange={(viewPercent) => set({ viewPercent })} />
+                <label className={field}>
+                  Initial pieces location
+                  <select className={input} value={config.startSide} onChange={(e) => set({ startSide: e.target.value as GameConfig['startSide'] })}>
+                    {START_SIDES.map((s) => (
+                      <option key={s} value={s}>
+                        {s[0].toUpperCase() + s.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className={field}>
+                  Pieces on puzzle
+                  <select className={input} value={config.looseCount} onChange={(e) => set({ looseCount: Number(e.target.value) })}>
+                    {[0, 10, 20, 25, 50, 100, 250, 500, 1000].map((n) => (
+                      <option key={n} value={n}>
+                        {n === 0 ? `All (${p.pieceCount})` : n}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </>
+            )}
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={p.showGuide} onChange={(e) => p.onShowGuide(e.target.checked)} />
               Show faint guide image
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={p.showOutline} onChange={(e) => p.onShowOutline(e.target.checked)} />
+              Show template outline on the board
             </label>
             <button className={`self-end ${primaryButton}`} autoFocus onClick={() => setOpen(false)}>
               Done

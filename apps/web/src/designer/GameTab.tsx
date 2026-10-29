@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   DEFAULT_GAME_CONFIG,
+  DEFAULT_JIGSAW_PARAMS,
   JigsawTemplateGenerator,
   JigsawVectorizer,
   createGame,
@@ -19,6 +20,7 @@ export function GameTab() {
   const [upload, setUpload] = useState<{ name: string; src: string } | null>(null)
   const [config, setConfig] = useState<GameConfig>(DEFAULT_GAME_CONFIG)
   const [showGuide, setShowGuide] = useState(true)
+  const [showOutline, setShowOutline] = useState(true)
   const [selected, setSelected] = useState<number | null>(null)
 
   const template = GAME_TEMPLATES.find((t) => t.id === templateId)!
@@ -26,6 +28,7 @@ export function GameTab() {
     () => new JigsawVectorizer().vectorize(new JigsawTemplateGenerator(template.params).generate()),
     [template],
   )
+  const templateParams = { ...DEFAULT_JIGSAW_PARAMS, ...template.params }
   const total = jigsaw.pieces.length
   const photo = photoId === 'upload' && upload ? upload.src : (GAME_PHOTOS.find((p) => p.id === photoId) ?? GAME_PHOTOS[0]).src
 
@@ -48,8 +51,18 @@ export function GameTab() {
           // Scrambled pieces is the Puzzle view: loose pieces scattered around the board.
           <div className="min-h-0 flex-1 overflow-hidden rounded border border-slate-200">
             <ScrambledGame
-              key={`${template.id}-${config.seed}`}
-              spec={{ cols: template.params.cols!, rows: template.params.rows!, seed: template.params.seed! + config.seed }}
+              key={`${template.id}-${config.seed}-${config.viewPercent}-${config.startSide}-${config.looseCount}`}
+              spec={{ cols: templateParams.cols, rows: templateParams.rows, seed: templateParams.seed + config.seed }}
+              jigsaw={jigsaw}
+              photo={photo}
+              showGuide={showGuide}
+              showOutline={showOutline}
+              scatter={{
+                cell: { width: templateParams.width / templateParams.cols, height: templateParams.height / templateParams.rows },
+                viewPercent: config.viewPercent,
+                side: config.startSide,
+                count: config.looseCount > 0 ? config.looseCount : undefined,
+              }}
             />
           </div>
         ) : (
@@ -68,6 +81,7 @@ export function GameTab() {
           game={game}
           selected={selected}
           showGuide={showGuide}
+          showOutline={showOutline}
           dock={config.panelDock}
           onDock={(panelDock) => setConfig({ ...config, panelDock })}
           onSelect={setSelected}
@@ -100,6 +114,8 @@ export function GameTab() {
         onConfig={setConfig}
         showGuide={showGuide}
         onShowGuide={setShowGuide}
+        showOutline={showOutline}
+        onShowOutline={setShowOutline}
         pieceCount={total}
         onRestart={restart}
       />
