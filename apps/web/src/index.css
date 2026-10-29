@@ -1,1 +1,52 @@
 @import "tailwindcss";
+
+/* Piece effects (see designer/effects.ts). */
+.fx-glow {
+  filter: drop-shadow(0 0 6px #fbbf24) drop-shadow(0 0 12px #f59e0b);
+}
+.fx-flash-glow {
+  animation: fx-flash-glow 0.9s ease-out;
+}
+.fx-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: fx-pulse 0.9s ease-out;
+}
+@keyframes fx-flash-glow {
+  0% { filter: drop-shadow(0 0 0 #fbbf24); }
+  30% { filter: drop-shadow(0 0 8px #fbbf24) drop-shadow(0 0 16px #f59e0b); }
+  100% { filter: drop-shadow(0 0 0 #fbbf24); }
+}
+@keyframes fx-pulse {
+  0%, 100% { transform: scale(1); }
+  30% { transform: scale(1.15); }
+}
+.fx-sparkles {
+  display: none;
+  pointer-events: none;
+}
+.fx-sparkle .fx-sparkles {
+  display: inline;
+}
+.fx-spark {
+  transform-box: fill-box;
+  transform-origin: center;
+  filter: drop-shadow(0 0 3px #e0f2fe) drop-shadow(0 0 6px #7dd3fc);
+  animation: fx-twinkle 0.9s ease-out both;
+}
+.fx-sparkles g:nth-child(2) .fx-spark { animation-delay: 0.1s; }
+.fx-sparkles g:nth-child(3) .fx-spark { animation-delay: 0.2s; }
+.fx-sparkles g:nth-child(4) .fx-spark { animation-delay: 0.3s; }
+.fx-sparkles g:nth-child(5) .fx-spark { animation-delay: 0.4s; }
+.fx-shine {
+  animation: fx-shine 0.9s ease-in-out both;
+}
+@keyframes fx-shine {
+  from { transform: translateX(0); }
+  to { transform: translateX(var(--travel)); }
+}
+@keyframes fx-twinkle {
+  0% { opacity: 0; transform: scale(0) rotate(0deg); }
+  35% { opacity: 1; transform: scale(1.6) rotate(45deg); }
+  100% { opacity: 0; transform: scale(0.4) rotate(90deg); }
+}

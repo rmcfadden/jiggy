@@ -12,6 +12,7 @@ import {
 import { Game as ScrambledGame } from '../views/Player'
 import { GameBoard } from './GameBoard'
 import { GamePanel } from './GamePanel'
+import { DEFAULT_EFFECTS, type PieceEffects } from './effects'
 import { DEFAULT_PIECE_BORDERS, borderScale, type PieceBorders } from './controls'
 import { DEFAULT_TEMPLATE, GAME_PHOTOS, templateParams as buildTemplateParams } from './gameAssets'
 
@@ -23,6 +24,7 @@ export function GameTab() {
   const [config, setConfig] = useState<GameConfig>(DEFAULT_GAME_CONFIG)
   const [showGuide, setShowGuide] = useState(true)
   const [borders, setBorders] = useState<PieceBorders>(DEFAULT_PIECE_BORDERS)
+  const [effects, setEffects] = useState<PieceEffects>(DEFAULT_EFFECTS)
   const [selected, setSelected] = useState<number | null>(null)
 
   const templateId = `${templateSize}-${templateStyle}`
@@ -59,6 +61,7 @@ export function GameTab() {
               outline={borders.template.line}
               outlineScale={borderScale(borders.template.width)}
               borders={borders}
+              effects={effects}
               scatter={{
                 cell: { width: templateParams.width / templateParams.cols, height: templateParams.height / templateParams.rows },
                 viewPercent: config.viewPercent,
@@ -84,6 +87,7 @@ export function GameTab() {
           selected={selected}
           showGuide={showGuide}
           borders={borders}
+          effects={effects}
           dock={config.panelDock}
           onDock={(panelDock) => setConfig({ ...config, panelDock })}
           onSelect={setSelected}
@@ -120,6 +124,8 @@ export function GameTab() {
         onShowGuide={setShowGuide}
         jigsaw={jigsaw}
         photo={photo}
+        effects={effects}
+        onEffects={setEffects}
         borders={borders}
         onBorders={setBorders}
         pieceCount={total}

@@ -1,4 +1,6 @@
 import { PieceBorderPath, borderScale, type PieceBorders, DEFAULT_PIECE_BORDERS } from './controls'
+import { PieceSparkles } from './sparkles'
+import { NEAR_COLOR, DEFAULT_EFFECTS, effectClass, sparklePieces, useFlash, type PieceEffects } from './effects'
 import { ZoomControls, useZoom } from './zoom'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { JigsawVectorizer, toSvgPath, trayPieces, type GameState, type PanelDock, type JigsawVector } from '@jiggy/shared'
@@ -13,6 +15,7 @@ type Props = {
   selected: number | null
   showGuide: boolean
   borders?: PieceBorders
+  effects?: PieceEffects
   /** Which edge of the board the piece panel is docked to. */
   dock?: Dock
   /** Called when the piece selector is dragged to another edge. */
@@ -58,12 +61,20 @@ function PieceImage({ jigsaw, photo, clipId }: { jigsaw: JigsawVector; photo: st
   )
 }
 
-export function GameBoard({ jigsaw, photo, game, selected, showGuide, borders = DEFAULT_PIECE_BORDERS, dock = 'bottom', onDock, onSelect, onPlace }: Props) {
+export function GameBoard({ jigsaw, photo, game, selected, showGuide, borders = DEFAULT_PIECE_BORDERS, effects = DEFAULT_EFFECTS, dock = 'bottom', onDock, onSelect, onPlace }: Props) {
   const vertical = dock === 'left' || dock === 'right'
   const paths = useMemo(() => vectorizer.toSvgPaths(jigsaw), [jigsaw])
   const { minX, minY } = jigsaw.bounds
   const tray = trayPieces(game)
   const [drag, setDrag] = useState<Drag | null>(null)
+  /** True while the dragged piece is over its own slot. */
+  const [near, setNear] = useState(false)
+  const flash = useFlash(game.placed)
+  const nearPiece = drag && near ? drag.piece : null
+  /** The slot to light up while the dragged piece is close enough to snap. */
+  const lit = effects.near.highlightTemplate ? nearPiece : null
+  const fxFor = (i: number, isPlaced: boolean) =>
+    effectClass(i, isPlaced, effects, jigsaw.pieces, drag && near ? drag.piece : null, flash)
   const boardSvg = useRef<SVGSVGElement>(null)
   const z = useZoom((jigsaw.width + PAD * 2) / (jigsaw.height + PAD * 2))
   // Puzzle units per screen pixel, so outlines stay about a pixel wide on big grids
@@ -134,12 +145,15 @@ export function GameBoard({ jigsaw, photo, game, selected, showGuide, borders = 
       const w = scale > 0 ? (b.maxX - b.minX + PIECE_PAD * 2) * scale : rect.width
       const h = scale > 0 ? (b.maxY - b.minY + PIECE_PAD * 2) * scale : rect.height
       setDrag({ piece, x: ev.clientX, y: ev.clientY, w, h })
+      const over = document.elementFromPoint(ev.clientX, ev.clientY)?.closest('[data-slot-index]')
+      setNear(over?.getAttribute('data-slot-index') === String(piece))
     }
     const end = (ev: PointerEvent) => {
       window.removeEventListener('pointermove', move)
       window.removeEventListener('pointerup', end)
       window.removeEventListener('pointercancel', end)
       setDrag(null)
+      setNear(false)
       if (!dragged.current || ev.type === 'pointercancel') return
       const target = document.elementFromPoint(ev.clientX, ev.clientY)?.closest('[data-slot-index]')
       if (target) onPlace(Number(target.getAttribute('data-slot-index')), piece)
@@ -173,7 +187,7 @@ export function GameBoard({ jigsaw, photo, game, selected, showGuide, borders = 
           )}
           {paths.map((d, i) =>
             game.placed[i] ? (
-              <g key={i} data-testid="placed">
+              <g key={i} data-testid="placed" className={fxFor(i, true)}>
                 <PieceImage jigsaw={jigsaw} photo={photo} clipId={`piece-clip-${i}`} />
                 <PieceBorderPath d={d} border={borders.set} unit={unit} color="#ffffff88" />
               </g>
@@ -183,16 +197,23 @@ export function GameBoard({ jigsaw, photo, game, selected, showGuide, borders = 
                 data-testid="slot"
                 data-slot-index={i}
                 d={d}
-                fill={selected !== null ? '#fbbf2433' : 'transparent'}
-                stroke={borders.template.line === 'none' ? 'none' : '#92400e'}
+                fill={lit === i ? `${NEAR_COLOR}55` : selected !== null ? '#fbbf2433' : 'transparent'}
+                stroke={lit === i ? NEAR_COLOR : borders.template.line === 'none' ? 'none' : '#92400e'}
                 strokeDasharray={borders.template.line === 'dotted' ? `${4 * unit} ${4 * unit}` : undefined}
-                strokeWidth={1.5 * borderScale(borders.template.width) * unit}
+                strokeWidth={(lit === i ? 3 : 1.5 * borderScale(borders.template.width)) * unit}
                
                 className={selected !== null ? 'cursor-pointer' : ''}
                 onClick={() => selected !== null && onPlace(i)}
               />
             ),
           )}
+          {/* Above every piece, so a later neighbour's photo can't hide them. */}
+          <g className="fx-sparkle">
+            {flash !== null &&
+              sparklePieces(effects, jigsaw.pieces, game.placed, flash).map((i) => (
+                <PieceSparkles key={`${flash}-${i}`} bounds={jigsaw.pieces[i].vector.bounds} d={paths[i]} />
+              ))}
+          </g>
         </svg>
       </div>
       <ZoomControls z={z} />
@@ -271,8 +292,14 @@ export function GameBoard({ jigsaw, photo, game, selected, showGuide, borders = 
               <path d={toSvgPath(jigsaw.pieces[drag.piece].vector)} />
             </clipPath>
           </defs>
-          <PieceImage jigsaw={jigsaw} photo={photo} clipId="drag-clip" />
-          <PieceBorderPath d={toSvgPath(jigsaw.pieces[drag.piece].vector)} border={borders.moving} />
+          <g className={fxFor(drag.piece, false)}>
+            <PieceImage jigsaw={jigsaw} photo={photo} clipId="drag-clip" />
+            <PieceBorderPath
+              d={toSvgPath(jigsaw.pieces[drag.piece].vector)}
+              border={near && effects.near.border ? { ...borders.moving, width: 'thick' } : borders.moving}
+              color={near && effects.near.border ? NEAR_COLOR : undefined}
+            />
+          </g>
         </svg>
       )}
     </div>

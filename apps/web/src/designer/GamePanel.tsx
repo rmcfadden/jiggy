@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { GAME_TYPES, START_SIDES, type GameConfig, type JigsawVector } from '@jiggy/shared'
+import type { PieceEffects } from './effects'
 import { PieceSettings } from './PieceSettings'
 import { GAME_PHOTOS, TEMPLATE_SIZES, TEMPLATE_STYLES } from './gameAssets'
 import { NumberField, Panel, field, input, primaryButton, type PieceBorders } from './controls'
@@ -19,10 +20,30 @@ type Props = {
   onShowGuide: (show: boolean) => void
   jigsaw: JigsawVector
   photo: string
+  effects: PieceEffects
+  onEffects: (effects: PieceEffects) => void
   borders: PieceBorders
   onBorders: (borders: PieceBorders) => void
   pieceCount: number
   onRestart: () => void
+}
+
+const PLACED_EFFECTS: [keyof PieceEffects['placed'], string][] = [
+  ['pulse', 'Pulse'],
+  ['pulseNeighbors', 'Pulse neighbors'],
+  ['glow', 'Glow'],
+  ['glowNeighbors', 'Glow neighbors'],
+  ['sparkle', 'Sparkle'],
+  ['sparkleNeighbors', 'Sparkle neighbors'],
+]
+
+function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <label className="flex items-center gap-2 text-sm">
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+      {label}
+    </label>
+  )
 }
 
 const heading = 'text-sm font-semibold uppercase tracking-wide text-slate-500'
@@ -36,7 +57,7 @@ function choice(active: boolean) {
 export function GamePanel(p: Props) {
   const { config, onConfig } = p
   const [open, setOpen] = useState(false)
-  const [tab, setTab] = useState<'general' | 'pieces'>('general')
+  const [tab, setTab] = useState<'general' | 'pieces' | 'effects'>('general')
   const type = GAME_TYPES.find((t) => t.id === config.type)!
   const set = (patch: Partial<GameConfig>) => onConfig({ ...config, ...patch })
 
@@ -117,7 +138,7 @@ export function GamePanel(p: Props) {
             <h3 className="text-lg font-semibold">{type.name}</h3>
             <p className="text-sm text-slate-500">{type.description}</p>
             <div role="tablist" className="flex gap-1 border-b border-slate-200">
-              {([['general', 'General'], ['pieces', 'Piece Settings']] as const).map(([id, label]) => (
+              {([['general', 'General'], ['pieces', 'Piece Settings'], ['effects', 'Effects']] as const).map(([id, label]) => (
                 <button
                   key={id}
                   role="tab"
@@ -185,6 +206,23 @@ export function GamePanel(p: Props) {
               Show faint guide image
             </label>
               </>
+            )}
+            {tab === 'effects' && (
+              <div className="flex flex-col gap-4">
+                <fieldset className="flex flex-col gap-1.5">
+                  <legend className="mb-1 text-sm font-medium">Piece within tolerance of template</legend>
+                  <Toggle label="Glow" checked={p.effects.near.glow} onChange={(glow) => p.onEffects({ ...p.effects, near: { ...p.effects.near, glow } })} />
+                  <Toggle label="Glow neighbors" checked={p.effects.near.glowNeighbors} onChange={(glowNeighbors) => p.onEffects({ ...p.effects, near: { ...p.effects.near, glowNeighbors } })} />
+                  <Toggle label="Border" checked={p.effects.near.border} onChange={(border) => p.onEffects({ ...p.effects, near: { ...p.effects.near, border } })} />
+                  <Toggle label="Highlight template" checked={p.effects.near.highlightTemplate} onChange={(highlightTemplate) => p.onEffects({ ...p.effects, near: { ...p.effects.near, highlightTemplate } })} />
+                </fieldset>
+                <fieldset className="flex flex-col gap-1.5">
+                  <legend className="mb-1 text-sm font-medium">Piece placed</legend>
+                  {PLACED_EFFECTS.map(([key, label]) => (
+                    <Toggle key={key} label={label} checked={p.effects.placed[key]} onChange={(v) => p.onEffects({ ...p.effects, placed: { ...p.effects.placed, [key]: v } })} />
+                  ))}
+                </fieldset>
+              </div>
             )}
             {tab === 'pieces' && <PieceSettings jigsaw={p.jigsaw} photo={p.photo} borders={p.borders} onBorders={p.onBorders} />}
             <button className={`self-end ${primaryButton}`} autoFocus onClick={() => setOpen(false)}>
