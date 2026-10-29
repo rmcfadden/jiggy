@@ -14,6 +14,7 @@ export function JigsawTab() {
   const [fullScreen, setFullScreen] = useState(false)
   const [area, setArea] = useState<{ width: number; height: number } | null>(null)
   const mainRef = useRef<HTMLElement>(null)
+  const [preserveAspect, setPreserveAspect] = useState(false)
   const [gap, setGap] = useState(0)
   const [tolerance, setTolerance] = useState(1e-6)
 
@@ -36,10 +37,14 @@ export function JigsawTab() {
     return () => observer.disconnect()
   }, [])
 
-  const effective = useMemo(
-    () => (fullScreen && area ? { ...params, ...area } : params),
-    [params, fullScreen, area],
-  )
+  const effective = useMemo(() => {
+    if (!fullScreen || !area) return params
+    if (!preserveAspect) return { ...params, ...area }
+    // Fit the current width:height ratio inside the drawing area.
+    const ratio = params.width / params.height
+    const width = Math.max(40, Math.floor(Math.min(area.width, area.height * ratio)))
+    return { ...params, width, height: Math.max(40, Math.floor(width / ratio)) }
+  }, [params, fullScreen, area, preserveAspect])
 
   const matrix = useMemo(() => new JigsawTemplateGenerator(effective).generate(), [effective])
   const jigsaw = useMemo(() => new JigsawVectorizer().vectorize(matrix, { gap }), [matrix, gap])
@@ -56,6 +61,8 @@ export function JigsawTab() {
         fullScreen={fullScreen}
         onFullScreenChange={setFullScreen}
         onChange={setParams}
+        preserveAspect={preserveAspect}
+        onPreserveAspectChange={setPreserveAspect}
         onRandom={() =>
           setParams((p) => ({
             ...JigsawTemplateGenerator.random(),

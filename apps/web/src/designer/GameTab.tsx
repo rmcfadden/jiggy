@@ -12,7 +12,7 @@ import {
 import { Game as ScrambledGame } from '../views/Player'
 import { GameBoard } from './GameBoard'
 import { GamePanel } from './GamePanel'
-import type { OutlineStyle } from './controls'
+import { DEFAULT_PIECE_BORDERS, borderScale, type PieceBorders } from './controls'
 import { DEFAULT_TEMPLATE, GAME_PHOTOS, templateParams as buildTemplateParams } from './gameAssets'
 
 export function GameTab() {
@@ -22,7 +22,7 @@ export function GameTab() {
   const [upload, setUpload] = useState<{ name: string; src: string } | null>(null)
   const [config, setConfig] = useState<GameConfig>(DEFAULT_GAME_CONFIG)
   const [showGuide, setShowGuide] = useState(true)
-  const [outline, setOutline] = useState<OutlineStyle>('solid')
+  const [borders, setBorders] = useState<PieceBorders>(DEFAULT_PIECE_BORDERS)
   const [selected, setSelected] = useState<number | null>(null)
 
   const templateId = `${templateSize}-${templateStyle}`
@@ -56,7 +56,9 @@ export function GameTab() {
               jigsaw={jigsaw}
               photo={photo}
               showGuide={showGuide}
-              outline={outline}
+              outline={borders.template.line}
+              outlineScale={borderScale(borders.template.width)}
+              borders={borders}
               scatter={{
                 cell: { width: templateParams.width / templateParams.cols, height: templateParams.height / templateParams.rows },
                 viewPercent: config.viewPercent,
@@ -81,7 +83,7 @@ export function GameTab() {
           game={game}
           selected={selected}
           showGuide={showGuide}
-          outline={outline}
+          borders={borders}
           dock={config.panelDock}
           onDock={(panelDock) => setConfig({ ...config, panelDock })}
           onSelect={setSelected}
@@ -116,8 +118,10 @@ export function GameTab() {
         onConfig={setConfig}
         showGuide={showGuide}
         onShowGuide={setShowGuide}
-        outline={outline}
-        onOutline={setOutline}
+        jigsaw={jigsaw}
+        photo={photo}
+        borders={borders}
+        onBorders={setBorders}
         pieceCount={total}
         onRestart={restart}
       />

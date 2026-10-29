@@ -1,4 +1,4 @@
-import type { OutlineStyle } from './controls'
+import { PieceBorderPath, borderScale, type PieceBorders, DEFAULT_PIECE_BORDERS } from './controls'
 import { ZoomControls, useZoom } from './zoom'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { JigsawVectorizer, toSvgPath, trayPieces, type GameState, type PanelDock, type JigsawVector } from '@jiggy/shared'
@@ -12,7 +12,7 @@ type Props = {
   game: GameState
   selected: number | null
   showGuide: boolean
-  outline?: OutlineStyle
+  borders?: PieceBorders
   /** Which edge of the board the piece panel is docked to. */
   dock?: Dock
   /** Called when the piece selector is dragged to another edge. */
@@ -58,7 +58,7 @@ function PieceImage({ jigsaw, photo, clipId }: { jigsaw: JigsawVector; photo: st
   )
 }
 
-export function GameBoard({ jigsaw, photo, game, selected, showGuide, outline = 'solid', dock = 'bottom', onDock, onSelect, onPlace }: Props) {
+export function GameBoard({ jigsaw, photo, game, selected, showGuide, borders = DEFAULT_PIECE_BORDERS, dock = 'bottom', onDock, onSelect, onPlace }: Props) {
   const vertical = dock === 'left' || dock === 'right'
   const paths = useMemo(() => vectorizer.toSvgPaths(jigsaw), [jigsaw])
   const { minX, minY } = jigsaw.bounds
@@ -175,7 +175,7 @@ export function GameBoard({ jigsaw, photo, game, selected, showGuide, outline = 
             game.placed[i] ? (
               <g key={i} data-testid="placed">
                 <PieceImage jigsaw={jigsaw} photo={photo} clipId={`piece-clip-${i}`} />
-                <path d={d} fill="none" stroke="#ffffff88" strokeWidth={unit} />
+                <PieceBorderPath d={d} border={borders.set} unit={unit} color="#ffffff88" />
               </g>
             ) : (
               <path
@@ -184,9 +184,9 @@ export function GameBoard({ jigsaw, photo, game, selected, showGuide, outline = 
                 data-slot-index={i}
                 d={d}
                 fill={selected !== null ? '#fbbf2433' : 'transparent'}
-                stroke={outline === 'none' ? 'none' : '#92400e'}
-                strokeDasharray={outline === 'dotted' ? `${4 * unit} ${4 * unit}` : undefined}
-                strokeWidth={1.5 * unit}
+                stroke={borders.template.line === 'none' ? 'none' : '#92400e'}
+                strokeDasharray={borders.template.line === 'dotted' ? `${4 * unit} ${4 * unit}` : undefined}
+                strokeWidth={1.5 * borderScale(borders.template.width) * unit}
                
                 className={selected !== null ? 'cursor-pointer' : ''}
                 onClick={() => selected !== null && onPlace(i)}
@@ -247,7 +247,7 @@ export function GameBoard({ jigsaw, photo, game, selected, showGuide, outline = 
                   </clipPath>
                 </defs>
                 <PieceImage jigsaw={jigsaw} photo={photo} clipId={`tray-clip-${i}`} />
-                <path d={toSvgPath(jigsaw.pieces[i].vector)} fill="none" stroke="#92400e" strokeWidth={2} />
+                <PieceBorderPath d={toSvgPath(jigsaw.pieces[i].vector)} border={borders.selector} />
               </svg>
             </button>
           )
@@ -272,7 +272,7 @@ export function GameBoard({ jigsaw, photo, game, selected, showGuide, outline = 
             </clipPath>
           </defs>
           <PieceImage jigsaw={jigsaw} photo={photo} clipId="drag-clip" />
-          <path d={toSvgPath(jigsaw.pieces[drag.piece].vector)} fill="none" stroke="#92400e" strokeWidth={2} />
+          <PieceBorderPath d={toSvgPath(jigsaw.pieces[drag.piece].vector)} border={borders.moving} />
         </svg>
       )}
     </div>

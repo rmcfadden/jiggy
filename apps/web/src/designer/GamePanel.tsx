@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { GAME_TYPES, START_SIDES, type GameConfig } from '@jiggy/shared'
+import { GAME_TYPES, START_SIDES, type GameConfig, type JigsawVector } from '@jiggy/shared'
+import { PieceSettings } from './PieceSettings'
 import { GAME_PHOTOS, TEMPLATE_SIZES, TEMPLATE_STYLES } from './gameAssets'
-import { NumberField, Panel, field, input, primaryButton, type OutlineStyle } from './controls'
+import { NumberField, Panel, field, input, primaryButton, type PieceBorders } from './controls'
 
 type Props = {
   templateSize: string
@@ -16,8 +17,10 @@ type Props = {
   onConfig: (config: GameConfig) => void
   showGuide: boolean
   onShowGuide: (show: boolean) => void
-  outline: OutlineStyle
-  onOutline: (outline: OutlineStyle) => void
+  jigsaw: JigsawVector
+  photo: string
+  borders: PieceBorders
+  onBorders: (borders: PieceBorders) => void
   pieceCount: number
   onRestart: () => void
 }
@@ -33,6 +36,7 @@ function choice(active: boolean) {
 export function GamePanel(p: Props) {
   const { config, onConfig } = p
   const [open, setOpen] = useState(false)
+  const [tab, setTab] = useState<'general' | 'pieces'>('general')
   const type = GAME_TYPES.find((t) => t.id === config.type)!
   const set = (patch: Partial<GameConfig>) => onConfig({ ...config, ...patch })
 
@@ -112,6 +116,21 @@ export function GamePanel(p: Props) {
           >
             <h3 className="text-lg font-semibold">{type.name}</h3>
             <p className="text-sm text-slate-500">{type.description}</p>
+            <div role="tablist" className="flex gap-1 border-b border-slate-200">
+              {([['general', 'General'], ['pieces', 'Piece Settings']] as const).map(([id, label]) => (
+                <button
+                  key={id}
+                  role="tab"
+                  aria-selected={tab === id}
+                  className={`-mb-px border-b-2 px-3 py-1.5 text-sm ${tab === id ? 'border-amber-500 font-medium text-amber-800' : 'border-transparent text-slate-600 hover:text-slate-900'}`}
+                  onClick={() => setTab(id)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            {tab === 'general' && (
+              <>
             {config.type === 'next-pieces' && (
               <>
                 <NumberField label="Pieces in panel" min={1} max={p.pieceCount} value={config.panelSize} onChange={(panelSize) => set({ panelSize })} />
@@ -165,14 +184,9 @@ export function GamePanel(p: Props) {
               <input type="checkbox" checked={p.showGuide} onChange={(e) => p.onShowGuide(e.target.checked)} />
               Show faint guide image
             </label>
-            <label className={field}>
-              Template border
-              <select className={input} value={p.outline} onChange={(e) => p.onOutline(e.target.value as OutlineStyle)}>
-                <option value="solid">Solid</option>
-                <option value="dotted">Dotted</option>
-                <option value="none">None</option>
-              </select>
-            </label>
+              </>
+            )}
+            {tab === 'pieces' && <PieceSettings jigsaw={p.jigsaw} photo={p.photo} borders={p.borders} onBorders={p.onBorders} />}
             <button className={`self-end ${primaryButton}`} autoFocus onClick={() => setOpen(false)}>
               Done
             </button>

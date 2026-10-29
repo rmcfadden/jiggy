@@ -124,3 +124,51 @@ export const primaryButton =
   'rounded bg-amber-500 px-3 py-2 font-medium text-white hover:bg-amber-600'
 
 export type OutlineStyle = 'none' | 'solid' | 'dotted'
+
+/** Where a piece is drawn: in the selector tray, being dragged, or set in the puzzle. */
+export type PieceLocation = 'selector' | 'moving' | 'set'
+export type BorderWidth = 'thin' | 'medium' | 'thick'
+export type BorderLine = 'solid' | 'dotted'
+export type PieceLook = 'flat' | '3d'
+export type PieceBorder = { width: BorderWidth; line: BorderLine; look: PieceLook }
+/** The template's slot outlines: width and style only. */
+export type TemplateBorder = { width: BorderWidth; line: BorderLine | 'none' }
+export type PieceBorders = Record<PieceLocation, PieceBorder> & { template: TemplateBorder }
+
+export const DEFAULT_PIECE_BORDERS: PieceBorders = {
+  selector: { width: 'medium', line: 'solid', look: 'flat' },
+  moving: { width: 'medium', line: 'solid', look: 'flat' },
+  set: { width: 'thin', line: 'solid', look: 'flat' },
+  template: { width: 'medium', line: 'solid' },
+}
+
+const BORDER_WIDTH: Record<BorderWidth, number> = { thin: 1, medium: 2, thick: 4 }
+
+/** Scale of a width relative to medium, for outlines that size themselves. */
+export const borderScale = (w: BorderWidth) => BORDER_WIDTH[w] / BORDER_WIDTH.medium
+
+/** SVG stroke props for a border; `unit` is the size of one screen pixel in the SVG's own units. */
+export function borderProps(b: PieceBorder, unit = 1, color = '#92400e') {
+  const w = BORDER_WIDTH[b.width] * unit
+  return {
+    stroke: color,
+    strokeWidth: w,
+    strokeLinejoin: 'round' as const,
+    strokeDasharray: b.line === 'dotted' ? `${w * 2} ${w * 2}` : undefined,
+    style: b.look === '3d' ? { filter: `drop-shadow(${w * 0.75}px ${w * 0.75}px ${w * 0.5}px rgba(0,0,0,0.55))` } : undefined,
+  }
+}
+
+/** A piece's border; the 3D look adds a light bevel edge and a drop shadow. */
+export function PieceBorderPath({ d, border, unit = 1, color }: { d: string; border: PieceBorder; unit?: number; color?: string }) {
+  const p = borderProps(border, unit, color)
+  const shift = (BORDER_WIDTH[border.width] * unit) / 2
+  return (
+    <>
+      {border.look === '3d' && (
+        <path d={d} fill="none" stroke="#ffffffaa" strokeWidth={p.strokeWidth} strokeLinejoin="round" transform={`translate(${-shift} ${-shift})`} pointerEvents="none" />
+      )}
+      <path d={d} fill="none" {...p} pointerEvents="none" />
+    </>
+  )
+}
