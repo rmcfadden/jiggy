@@ -1,3 +1,4 @@
+import { ZoomControls, useZoom } from '../designer/zoom'
 import { useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { NextPiecesGame } from './NextPiecesGame'
@@ -70,7 +71,7 @@ export function Game({
   jigsaw,
   photo,
   showGuide = false,
-  showOutline = true,
+  outline = 'solid',
   modeControls,
 }: {
   spec: PuzzleSpec
@@ -81,7 +82,7 @@ export function Game({
   photo?: string
   showGuide?: boolean
   /** Draw the template's piece outlines on the board as a placement hint. */
-  showOutline?: boolean
+  outline?: 'none' | 'solid' | 'dotted'
   modeControls?: React.ReactNode
 }) {
   const puzzle = useMemo(() => jigsaw ?? buildPuzzle(spec), [jigsaw, spec])
@@ -100,6 +101,11 @@ export function Game({
   const margin = viewMargins(spec, scatter?.viewPercent, scatter?.cell)
   const { minX, minY } = puzzle.bounds
   const viewBox = `${minX - margin.x} ${minY - margin.y} ${puzzle.width + margin.x * 2} ${puzzle.height + margin.y * 2}`
+
+  // Solid outline about a pixel wide whatever the grid size (dashes turn to noise on big grids).
+  const outlineWidth = Math.max(2, (puzzle.width + margin.x * 2) / 800)
+
+  const z = useZoom((puzzle.width + margin.x * 2) / (puzzle.height + margin.y * 2))
 
   const toPuzzle = (e: React.PointerEvent): Offset => {
     const svg = svgRef.current!
@@ -155,19 +161,22 @@ export function Game({
           Restart
         </button>
       </div>
-      <div className="flex min-h-0 flex-1 items-center justify-center bg-slate-50">
+      <div className="relative flex min-h-0 flex-1 bg-slate-50">
+      <div ref={z.frameRef} {...z.frameProps} className="flex min-h-0 min-w-0 flex-1 overflow-auto">
         <svg
           ref={svgRef}
           viewBox={viewBox}
-          className="h-full w-full touch-none select-none"
+          style={z.svgStyle}
+          className="m-auto h-full w-full touch-none select-none"
           role="img"
           aria-label="Puzzle board"
           onPointerMove={onMove}
           onPointerUp={onUp}
           onPointerCancel={onUp}
         >
-          {showOutline && (
-            <g fill="none" stroke="#94a3b8" strokeDasharray="8 6" strokeWidth={2} pointerEvents="none" data-testid="outline">
+          {outline !== 'none' && (
+            <g fill="none" stroke="#94a3b8" strokeWidth={outlineWidth}
+              strokeDasharray={outline === 'dotted' ? `${outlineWidth * 4} ${outlineWidth * 3}` : undefined} pointerEvents="none" data-testid="outline">
               {paths.map((d, i) => (
                 <path key={i} d={d} />
               ))}
@@ -202,6 +211,7 @@ export function Game({
                 data-testid={`piece-${i}`}
                 transform={`translate(${o.x} ${o.y})`}
                 className={home ? '' : 'cursor-grab'}
+                data-nopan={home ? undefined : ''}
                 onPointerDown={onDown(i)}
               >
                 <path
@@ -229,6 +239,8 @@ export function Game({
             )
           })}
         </svg>
+      </div>
+      <ZoomControls z={z} />
       </div>
     </div>
   )

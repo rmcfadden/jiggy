@@ -122,3 +122,5 @@ export function Panel({ children }: { children: ReactNode }) {
 
 export const primaryButton =
   'rounded bg-amber-500 px-3 py-2 font-medium text-white hover:bg-amber-600'
+
+export type OutlineStyle = 'none' | 'solid' | 'dotted'

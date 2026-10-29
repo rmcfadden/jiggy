@@ -12,6 +12,7 @@ import {
 import { Game as ScrambledGame } from '../views/Player'
 import { GameBoard } from './GameBoard'
 import { GamePanel } from './GamePanel'
+import type { OutlineStyle } from './controls'
 import { DEFAULT_TEMPLATE, GAME_PHOTOS, templateParams as buildTemplateParams } from './gameAssets'
 
 export function GameTab() {
@@ -21,7 +22,7 @@ export function GameTab() {
   const [upload, setUpload] = useState<{ name: string; src: string } | null>(null)
   const [config, setConfig] = useState<GameConfig>(DEFAULT_GAME_CONFIG)
   const [showGuide, setShowGuide] = useState(true)
-  const [showOutline, setShowOutline] = useState(true)
+  const [outline, setOutline] = useState<OutlineStyle>('solid')
   const [selected, setSelected] = useState<number | null>(null)
 
   const templateId = `${templateSize}-${templateStyle}`
@@ -55,7 +56,7 @@ export function GameTab() {
               jigsaw={jigsaw}
               photo={photo}
               showGuide={showGuide}
-              showOutline={showOutline}
+              outline={outline}
               scatter={{
                 cell: { width: templateParams.width / templateParams.cols, height: templateParams.height / templateParams.rows },
                 viewPercent: config.viewPercent,
@@ -80,7 +81,7 @@ export function GameTab() {
           game={game}
           selected={selected}
           showGuide={showGuide}
-          showOutline={showOutline}
+          outline={outline}
           dock={config.panelDock}
           onDock={(panelDock) => setConfig({ ...config, panelDock })}
           onSelect={setSelected}
@@ -115,8 +116,8 @@ export function GameTab() {
         onConfig={setConfig}
         showGuide={showGuide}
         onShowGuide={setShowGuide}
-        showOutline={showOutline}
-        onShowOutline={setShowOutline}
+        outline={outline}
+        onOutline={setOutline}
         pieceCount={total}
         onRestart={restart}
       />

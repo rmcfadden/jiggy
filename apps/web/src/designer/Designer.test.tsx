@@ -102,3 +102,13 @@ it('last-x starts with all but x pieces placed, and next-pieces limits the panel
   fireEvent.change(screen.getByLabelText('Number of pieces'), { target: { value: '6' } })
   expect(container.querySelectorAll('[data-testid="slot"]')).toHaveLength(6)
 })
+
+it('zooms the board in and resets', () => {
+  render(<Designer />)
+  const zoomIn = screen.getByRole('button', { name: 'Zoom in' })
+  expect(screen.getByRole('button', { name: 'Reset zoom' })).toHaveProperty('disabled', true)
+  fireEvent.click(zoomIn)
+  expect(screen.getByText('150%')).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: 'Reset zoom' }))
+  expect(screen.getByText('100%')).toBeTruthy()
+})

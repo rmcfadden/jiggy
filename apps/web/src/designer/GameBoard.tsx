@@ -1,3 +1,5 @@
+import type { OutlineStyle } from './controls'
+import { ZoomControls, useZoom } from './zoom'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { JigsawVectorizer, toSvgPath, trayPieces, type GameState, type PanelDock, type JigsawVector } from '@jiggy/shared'
 
@@ -10,7 +12,7 @@ type Props = {
   game: GameState
   selected: number | null
   showGuide: boolean
-  showOutline?: boolean
+  outline?: OutlineStyle
   /** Which edge of the board the piece panel is docked to. */
   dock?: Dock
   /** Called when the piece selector is dragged to another edge. */
@@ -56,13 +58,14 @@ function PieceImage({ jigsaw, photo, clipId }: { jigsaw: JigsawVector; photo: st
   )
 }
 
-export function GameBoard({ jigsaw, photo, game, selected, showGuide, showOutline = true, dock = 'bottom', onDock, onSelect, onPlace }: Props) {
+export function GameBoard({ jigsaw, photo, game, selected, showGuide, outline = 'solid', dock = 'bottom', onDock, onSelect, onPlace }: Props) {
   const vertical = dock === 'left' || dock === 'right'
   const paths = useMemo(() => vectorizer.toSvgPaths(jigsaw), [jigsaw])
   const { minX, minY } = jigsaw.bounds
   const tray = trayPieces(game)
   const [drag, setDrag] = useState<Drag | null>(null)
   const boardSvg = useRef<SVGSVGElement>(null)
+  const z = useZoom((jigsaw.width + PAD * 2) / (jigsaw.height + PAD * 2))
   // Puzzle units per screen pixel, so outlines stay about a pixel wide on big grids
   // (a plain stroke width would shrink to nothing; non-scaling-stroke flattens curves).
   const [unit, setUnit] = useState(1)
@@ -148,12 +151,13 @@ export function GameBoard({ jigsaw, photo, game, selected, showGuide, showOutlin
 
   return (
     <div ref={boardRef} className={`relative flex min-h-0 min-w-0 flex-1 gap-3 ${OUTER[dock]}`}>
-      <div className="flex min-h-0 flex-1 items-center justify-center">
+      <div className="relative flex min-h-0 min-w-0 flex-1">
+      <div ref={z.frameRef} {...z.frameProps} className="flex min-h-0 min-w-0 flex-1 overflow-auto">
         <svg
           ref={boardSvg}
-          className="max-h-full max-w-full"
+          className="m-auto max-h-full max-w-full"
           viewBox={`${minX - PAD} ${minY - PAD} ${jigsaw.width + PAD * 2} ${jigsaw.height + PAD * 2}`}
-          style={{ aspectRatio: `${jigsaw.width + PAD * 2} / ${jigsaw.height + PAD * 2}` }}
+          style={{ aspectRatio: `${jigsaw.width + PAD * 2} / ${jigsaw.height + PAD * 2}`, ...z.svgStyle }}
           role="img"
           aria-label="Game board"
         >
@@ -180,8 +184,8 @@ export function GameBoard({ jigsaw, photo, game, selected, showGuide, showOutlin
                 data-slot-index={i}
                 d={d}
                 fill={selected !== null ? '#fbbf2433' : 'transparent'}
-                stroke={showOutline ? '#92400e' : 'none'}
-                strokeDasharray={`${4 * unit} ${4 * unit}`}
+                stroke={outline === 'none' ? 'none' : '#92400e'}
+                strokeDasharray={outline === 'dotted' ? `${4 * unit} ${4 * unit}` : undefined}
                 strokeWidth={1.5 * unit}
                
                 className={selected !== null ? 'cursor-pointer' : ''}
@@ -190,6 +194,8 @@ export function GameBoard({ jigsaw, photo, game, selected, showGuide, showOutlin
             ),
           )}
         </svg>
+      </div>
+      <ZoomControls z={z} />
       </div>
       <div
         className={`flex shrink-0 items-center gap-3 rounded border border-slate-200 bg-slate-50 p-3 [&::-webkit-scrollbar-thumb]:rounded [&::-webkit-scrollbar-thumb]:bg-slate-400 [&::-webkit-scrollbar-track]:bg-slate-200 ${
