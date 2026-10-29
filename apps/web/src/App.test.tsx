@@ -45,7 +45,7 @@ it('switches the player between the two main game modes', () => {
   expect(scrambled.getAttribute('aria-pressed')).toBe('true')
   fireEvent.click(screen.getByRole('button', { name: 'Next pieces in panel' }))
   expect(screen.getByRole('button', { name: 'Next pieces in panel' }).getAttribute('aria-pressed')).toBe('true')
-  expect(screen.getByLabelText('Piece panel')).toBeTruthy()
+  expect(screen.getByLabelText('Piece selector')).toBeTruthy()
   expect(screen.getByText(/0\/4 placed/)).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: 'Scrambled pieces' }))
   expect(screen.getByLabelText('Puzzle board')).toBeTruthy()

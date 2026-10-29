@@ -23,7 +23,6 @@ export function NextPiecesGame({ spec, modeControls }: { spec: PuzzleSpec; modeC
   const [config, setConfig] = useState<GameConfig>({ ...DEFAULT_GAME_CONFIG, type: 'next-pieces', seed: spec.seed })
   const [game, setGame] = useState(() => createGame(config, total))
   const [selected, setSelected] = useState<number | null>(null)
-  const [dock, setDock] = useState<Dock>('bottom')
 
   const start = (next: GameConfig) => {
     setConfig(next)
@@ -64,8 +63,8 @@ export function NextPiecesGame({ spec, modeControls }: { spec: PuzzleSpec; modeC
           </select>
         </label>
         <label className="flex items-center gap-2 text-sm">
-          Panel
-          <select className="rounded border border-slate-300 px-2 py-1" value={dock} onChange={(e) => setDock(e.target.value as Dock)}>
+          Selector position
+          <select className="rounded border border-slate-300 px-2 py-1" value={config.panelDock} onChange={(e) => setConfig({ ...config, panelDock: e.target.value as Dock })}>
             <option value="top">Top</option>
             <option value="bottom">Bottom</option>
             <option value="left">Left</option>
@@ -83,7 +82,8 @@ export function NextPiecesGame({ spec, modeControls }: { spec: PuzzleSpec; modeC
           game={game}
           selected={selected}
           showGuide
-          dock={dock}
+          dock={config.panelDock}
+          onDock={(panelDock) => setConfig({ ...config, panelDock })}
           onSelect={setSelected}
           onPlace={(slot, dragged) => {
             const piece = dragged ?? selected

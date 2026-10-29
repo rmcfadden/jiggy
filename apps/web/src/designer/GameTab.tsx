@@ -36,7 +36,8 @@ export function GameTab() {
   }
   // A new template or game setup always starts a fresh game.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(restart, [config, total])
+  const { panelDock: _dock, ...gameConfig } = config
+  useEffect(restart, [JSON.stringify(gameConfig), total])
 
   const solved = isGameSolved(game)
 
@@ -67,6 +68,8 @@ export function GameTab() {
           game={game}
           selected={selected}
           showGuide={showGuide}
+          dock={config.panelDock}
+          onDock={(panelDock) => setConfig({ ...config, panelDock })}
           onSelect={setSelected}
           onPlace={(slot, dragged) => {
             const piece = dragged ?? selected

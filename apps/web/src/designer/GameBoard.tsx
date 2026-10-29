@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import { JigsawVectorizer, toSvgPath, trayPieces, type GameState, type JigsawVector } from '@jiggy/shared'
+import { JigsawVectorizer, toSvgPath, trayPieces, type GameState, type PanelDock, type JigsawVector } from '@jiggy/shared'
 
 const PAD = 16
 const vectorizer = new JigsawVectorizer()
@@ -12,18 +12,27 @@ type Props = {
   showGuide: boolean
   /** Which edge of the board the piece panel is docked to. */
   dock?: Dock
+  /** Called when the piece selector is dragged to another edge. */
+  onDock?: (dock: Dock) => void
   onSelect: (piece: number | null) => void
   /** `piece` is given when the placement comes from a drag, before `selected` has updated. */
   onPlace: (slot: number, piece?: number) => void
 }
 
-export type Dock = 'top' | 'bottom' | 'left' | 'right'
+export type Dock = PanelDock
 
 const OUTER: Record<Dock, string> = {
   bottom: 'flex-col',
   top: 'flex-col-reverse',
   right: 'flex-row',
   left: 'flex-row-reverse',
+}
+
+const DOCK_ZONE: Record<Dock, string> = {
+  top: 'inset-x-0 top-0 h-1/4',
+  bottom: 'inset-x-0 bottom-0 h-1/4',
+  left: 'inset-y-0 left-0 w-1/4',
+  right: 'inset-y-0 right-0 w-1/4',
 }
 
 type Drag = { piece: number; x: number; y: number; w: number; h: number }
@@ -44,7 +53,7 @@ function PieceImage({ jigsaw, photo, clipId }: { jigsaw: JigsawVector; photo: st
   )
 }
 
-export function GameBoard({ jigsaw, photo, game, selected, showGuide, dock = 'bottom', onSelect, onPlace }: Props) {
+export function GameBoard({ jigsaw, photo, game, selected, showGuide, dock = 'bottom', onDock, onSelect, onPlace }: Props) {
   const vertical = dock === 'left' || dock === 'right'
   const paths = useMemo(() => vectorizer.toSvgPaths(jigsaw), [jigsaw])
   const { minX, minY } = jigsaw.bounds
@@ -52,6 +61,37 @@ export function GameBoard({ jigsaw, photo, game, selected, showGuide, dock = 'bo
   const [drag, setDrag] = useState<Drag | null>(null)
   // Set once the pointer moves far enough that the gesture is a drag, not a click.
   const dragged = useRef(false)
+
+  const boardRef = useRef<HTMLDivElement>(null)
+  const [dockTarget, setDockTarget] = useState<Dock | null>(null)
+
+  /** The edge of the board area nearest the pointer. */
+  const nearestEdge = (x: number, y: number): Dock => {
+    const r = boardRef.current!.getBoundingClientRect()
+    const d: Record<Dock, number> = {
+      left: (x - r.left) / r.width,
+      right: (r.right - x) / r.width,
+      top: (y - r.top) / r.height,
+      bottom: (r.bottom - y) / r.height,
+    }
+    return (Object.keys(d) as Dock[]).reduce((a, b) => (d[b] < d[a] ? b : a))
+  }
+
+  const startDockDrag = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    const move = (ev: PointerEvent) => setDockTarget(nearestEdge(ev.clientX, ev.clientY))
+    const end = (ev: PointerEvent) => {
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', end)
+      window.removeEventListener('pointercancel', end)
+      setDockTarget(null)
+      if (ev.type === 'pointerup') onDock?.(nearestEdge(ev.clientX, ev.clientY))
+    }
+    move(e.nativeEvent)
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', end)
+    window.addEventListener('pointercancel', end)
+  }
 
   const startDrag = (e: React.PointerEvent<HTMLButtonElement>, piece: number) => {
     if (e.pointerType === 'mouse' && e.button !== 0) return
@@ -82,7 +122,7 @@ export function GameBoard({ jigsaw, photo, game, selected, showGuide, dock = 'bo
   }
 
   return (
-    <div className={`flex min-h-0 min-w-0 flex-1 gap-3 ${OUTER[dock]}`}>
+    <div ref={boardRef} className={`relative flex min-h-0 min-w-0 flex-1 gap-3 ${OUTER[dock]}`}>
       <div className="flex min-h-0 flex-1 items-center justify-center">
         <svg
           className="max-h-full max-w-full"
@@ -130,7 +170,19 @@ export function GameBoard({ jigsaw, photo, game, selected, showGuide, dock = 'bo
             ? 'min-h-0 w-32 flex-col overflow-y-scroll [&::-webkit-scrollbar]:w-3'
             : 'min-h-24 w-full overflow-x-scroll [&::-webkit-scrollbar]:h-3'
         }`}
-        aria-label="Piece panel">
+        aria-label="Piece selector">
+        {onDock && (
+          <div
+            role="separator"
+            aria-label="Drag to move the piece selector"
+            title="Drag to dock the piece selector to another edge"
+            style={{ touchAction: 'none' }}
+            onPointerDown={startDockDrag}
+            className={`flex shrink-0 cursor-grab select-none items-center justify-center rounded bg-slate-200 text-slate-500 hover:bg-slate-300 active:cursor-grabbing ${vertical ? 'h-4 w-full' : 'h-full min-h-12 w-4'}`}
+          >
+            ⋮⋮
+          </div>
+        )}
         {tray.length === 0 && <span className="text-sm text-slate-500">No pieces left.</span>}
         {tray.map((i) => {
           const b = jigsaw.pieces[i].vector.bounds
@@ -168,6 +220,12 @@ export function GameBoard({ jigsaw, photo, game, selected, showGuide, dock = 'bo
           )
         })}
       </div>
+      {dockTarget && (
+        <div
+          aria-hidden
+          className={`pointer-events-none absolute z-40 rounded border-2 border-dashed border-amber-500 bg-amber-300/30 ${DOCK_ZONE[dockTarget]}`}
+        />
+      )}
       {drag && (
         <svg
           aria-hidden
