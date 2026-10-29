@@ -17,15 +17,15 @@ const renderAt = (path: string) =>
 
 it('redirects / to the explorer and links puzzles to the player', () => {
   renderAt('/')
-  expect(screen.getByRole('heading', { name: 'Puzzles Explorer' })).toBeTruthy()
+  expect(screen.getByRole('heading', { name: 'Puzzles' })).toBeTruthy()
   const link = screen.getAllByRole('link').find((l) => l.getAttribute('href')?.startsWith('/puzzle?id='))!
   fireEvent.click(link)
-  expect(screen.getByRole('heading', { name: 'Puzzle Player' })).toBeTruthy()
+  expect(screen.getByRole('heading', { name: 'Puzzle' })).toBeTruthy()
 })
 
 it('navigates via the sidebar and collapses it', () => {
   renderAt('/puzzles')
-  fireEvent.click(screen.getByRole('link', { name: 'Puzzle Designer' }))
+  fireEvent.click(screen.getByRole('link', { name: 'Designer' }))
   expect(screen.getByRole('tab', { name: 'Piece' })).toBeTruthy()
   const toggle = screen.getByRole('button', { name: 'Toggle sidebar' })
   expect(toggle.getAttribute('aria-expanded')).toBe('true')

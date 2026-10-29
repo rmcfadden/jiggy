@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 
 const LINKS = [
-  { to: '/puzzles', label: 'Puzzles Explorer', short: 'E' },
-  { to: '/puzzle', label: 'Puzzle Player', short: 'P' },
-  { to: '/designer', label: 'Puzzle Designer', short: 'D' },
+  { to: '/puzzles', label: 'Puzzles', short: 'E' },
+  { to: '/puzzle', label: 'Puzzle', short: 'P' },
+  { to: '/designer', label: 'Designer', short: 'D' },
 ]
 
 const STORAGE_KEY = 'jiggy.sidebar.collapsed'
