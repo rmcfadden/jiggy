@@ -27,7 +27,16 @@ export function JigsawTab() {
       <JigsawPanel
         params={params}
         onChange={setParams}
-        onRandom={() => setParams(JigsawTemplateGenerator.random())}
+        onRandom={() =>
+          setParams((p) => ({
+            ...JigsawTemplateGenerator.random(),
+            cols: p.cols,
+            rows: p.rows,
+            width: p.width,
+            height: p.height,
+            fixOverlap: p.fixOverlap,
+          }))
+        }
         gap={gap}
         onGapChange={setGap}
         matrixJson={matrixJson}

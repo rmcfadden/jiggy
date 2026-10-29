@@ -113,7 +113,7 @@ export function RangeField(props: {
 
 export function Panel({ children }: { children: ReactNode }) {
   return (
-    <aside className="flex w-80 shrink-0 flex-col gap-4 overflow-y-auto border-l border-slate-200 bg-slate-50 p-4">
+    <aside className="flex min-h-0 w-80 shrink-0 flex-col gap-3 overflow-y-auto border-l border-slate-200 bg-slate-50 p-3">
       <h2 className="text-lg font-semibold">Properties</h2>
       {children}
     </aside>

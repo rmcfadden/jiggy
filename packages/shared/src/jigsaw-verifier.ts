@@ -1,4 +1,5 @@
 import type { JigsawMatrix } from "./jigsaw-template";
+import { overlappingSides } from "./overlap";
 import { JigsawTemplateGenerator } from "./jigsaw-template";
 import type { JigsawVector, PlacedPiece } from "./jigsaw-vectorizer";
 import type { PathSegment, Point, Side } from "./piece-generator";
@@ -11,7 +12,7 @@ export type VerifyOptions = {
 };
 
 export type VerifyIssue = {
-  kind: "seam" | "closed" | "bounds" | "tab";
+  kind: "seam" | "closed" | "bounds" | "tab" | "overlap";
   row: number;
   col: number;
   side?: Side;
@@ -143,6 +144,10 @@ export function verifyJigsaw(
       if (first?.type !== "M" || segs.at(-1)?.type !== "Z" || !endPoint || dist(first.to, endPoint) > tolerance) {
         issues.push({ kind: "closed", row: r, col: c, message: `Outline not closed at row ${r}, col ${c}` });
       }
+
+      overlappingSides(piece.vector).forEach((side) =>
+        issues.push({ kind: "overlap", row: r, col: c, side, message: `Outline crosses itself near ${side} at row ${r}, col ${c}` }),
+      );
 
       // The outline starts at the piece's own (placed) top-left corner.
       const origin = first?.type === "M" ? first.to : { x: 0, y: 0 };

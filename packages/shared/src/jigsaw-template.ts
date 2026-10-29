@@ -1,9 +1,12 @@
+import { overlappingSides } from "./overlap";
 import {
+  PieceGenerator,
   complement,
   createRng,
   type EdgeShape,
   type EdgeType,
   type PieceParams,
+  type Side,
 } from "./piece-generator";
 
 /** Row-major grid of piece params: `matrix[row][col]`. */
@@ -28,6 +31,11 @@ export type JigsawTemplateParams = {
   tabPosition: Range;
   neckAngle: Range;
   jitter: Range;
+  /**
+   * When a piece's outline crosses itself (a neck or bulb folding over), randomly
+   * shrink the tab size and neck width of the seams involved until it no longer does.
+   */
+  fixOverlap: boolean;
   seed: number;
 };
 
@@ -36,11 +44,12 @@ export const DEFAULT_JIGSAW_PARAMS: JigsawTemplateParams = {
   rows: 3,
   width: 800,
   height: 600,
-  tabSize: { min: 0.16, max: 0.28 },
-  neckWidth: { min: 0.05, max: 0.1 },
-  tabPosition: { min: 0.4, max: 0.6 },
-  neckAngle: { min: -12, max: 12 },
-  jitter: { min: 0.2, max: 0.8 },
+  tabSize: { min: 0.16, max: 0.23 },
+  neckWidth: { min: 0.1, max: 0.12 },
+  tabPosition: { min: 0.47, max: 0.52 },
+  neckAngle: { min: -2, max: 5 },
+  jitter: { min: 0.48, max: 0.52 },
+  fixOverlap: true,
   seed: 1,
 };
 
@@ -52,16 +61,6 @@ export type JigsawShapeRanges = Pick<
 /** Named shape ranges; applying one leaves grid size and seed alone. */
 export const JIGSAW_PRESETS: { name: string; ranges: JigsawShapeRanges }[] = [
   {
-    name: "Varied",
-    ranges: {
-      tabSize: DEFAULT_JIGSAW_PARAMS.tabSize,
-      neckWidth: DEFAULT_JIGSAW_PARAMS.neckWidth,
-      tabPosition: DEFAULT_JIGSAW_PARAMS.tabPosition,
-      neckAngle: DEFAULT_JIGSAW_PARAMS.neckAngle,
-      jitter: DEFAULT_JIGSAW_PARAMS.jitter,
-    },
-  },
-  {
     name: "Subtle",
     ranges: {
       tabSize: { min: 0.16, max: 0.23 },
@@ -71,7 +70,25 @@ export const JIGSAW_PRESETS: { name: string; ranges: JigsawShapeRanges }[] = [
       jitter: { min: 0.48, max: 0.52 },
     },
   },
+  {
+    name: "Varied",
+    ranges: {
+      tabSize: { min: 0.16, max: 0.28 },
+      neckWidth: { min: 0.05, max: 0.1 },
+      tabPosition: { min: 0.4, max: 0.6 },
+      neckAngle: { min: -12, max: 12 },
+      jitter: { min: 0.2, max: 0.8 },
+    },
+  },
 ];
+
+const MAX_FIX_PASSES = 40;
+const POSITION_TRIES = 8;
+/** Tab centre bounds when sliding a tab; matches the Tab position slider. */
+const MIN_POSITION = 0.3;
+const MAX_POSITION = 0.7;
+const MIN_NECK_WIDTH = 0.01;
+const MIN_TAB_SIZE = 0.03;
 
 type Cut = { type: EdgeType; seed: number; shape: EdgeShape };
 
@@ -125,34 +142,92 @@ export class JigsawTemplateGenerator {
     const vertical = Array.from({ length: rows }, () => Array.from({ length: cols + 1 }, draw));
 
     const flat: EdgeType = "flat";
-    return Array.from({ length: rows }, (_, r) =>
-      Array.from({ length: cols }, (_, c): PieceParams => {
-        const top = horizontal[r][c];
-        const bottom = horizontal[r + 1][c];
-        const left = vertical[r][c];
-        const right = vertical[r][c + 1];
-        // The cut's type belongs to the piece below / right of the seam.
-        return {
-          width: pieceWidth,
-          height: pieceHeight,
-          edges: {
-            top: r === 0 ? flat : top.type,
-            bottom: r === rows - 1 ? flat : complement(bottom.type),
-            left: c === 0 ? flat : left.type,
-            right: c === cols - 1 ? flat : complement(right.type),
-          },
-          edgeSeeds: { top: top.seed, bottom: bottom.seed, left: left.seed, right: right.seed },
-          // Piece-wide values are only fallbacks; each side carries its seam's shape.
-          tabSize: mid(tabSize),
-          neckWidth: mid(neckWidth),
-          tabPosition: mid(tabPosition),
-          neckAngle: mid(neckAngle),
-          jitter: mid(jitter),
-          sides: { top: top.shape, bottom: bottom.shape, left: left.shape, right: right.shape },
-          seed,
-        };
-      }),
-    );
+    const pieceAt = (r: number, c: number): PieceParams => {
+      const top = horizontal[r][c];
+      const bottom = horizontal[r + 1][c];
+      const left = vertical[r][c];
+      const right = vertical[r][c + 1];
+      // The cut's type belongs to the piece below / right of the seam.
+      return {
+        width: pieceWidth,
+        height: pieceHeight,
+        edges: {
+          top: r === 0 ? flat : top.type,
+          bottom: r === rows - 1 ? flat : complement(bottom.type),
+          left: c === 0 ? flat : left.type,
+          right: c === cols - 1 ? flat : complement(right.type),
+        },
+        edgeSeeds: { top: top.seed, bottom: bottom.seed, left: left.seed, right: right.seed },
+        // Piece-wide values are only fallbacks; each side carries its seam's shape.
+        tabSize: mid(tabSize),
+        neckWidth: mid(neckWidth),
+        tabPosition: mid(tabPosition),
+        neckAngle: mid(neckAngle),
+        jitter: mid(jitter),
+        sides: { top: top.shape, bottom: bottom.shape, left: left.shape, right: right.shape },
+        seed,
+      };
+    };
+    const build = (): JigsawMatrix =>
+      Array.from({ length: rows }, (_, r) => Array.from({ length: cols }, (_, c) => pieceAt(r, c)));
+
+    let matrix = build();
+    if (!this.params.fixOverlap) return matrix;
+
+    // Separate stream so fixing never reshuffles the seams drawn above.
+    const fixRng = createRng((seed ^ 0x9e3779b9) >>> 0);
+    const cutOf = (r: number, c: number, side: Side) =>
+      side === "top" ? horizontal[r][c]
+        : side === "bottom" ? horizontal[r + 1][c]
+        : side === "left" ? vertical[r][c]
+        : vertical[r][c + 1];
+    // The piece across a seam, and the side of it the seam is on.
+    const across = (r: number, c: number, side: Side): [number, number, Side] =>
+      side === "top" ? [r - 1, c, "bottom"]
+        : side === "bottom" ? [r + 1, c, "top"]
+        : side === "left" ? [r, c - 1, "right"]
+        : [r, c + 1, "left"];
+    const crossing = (r: number, c: number, side: Side) =>
+      r >= 0 && r < rows && c >= 0 && c < cols &&
+      overlappingSides(new PieceGenerator(pieceAt(r, c)).generate()).includes(side);
+
+    for (let pass = 0; pass < MAX_FIX_PASSES; pass++) {
+      let changed = false;
+      matrix.forEach((row, r) =>
+        row.forEach((piece, c) => {
+          for (const side of overlappingSides(new PieceGenerator(piece).generate())) {
+            // A flat edge only crosses because its neighbour does; fix that one.
+            if (piece.edges[side] === "flat") continue;
+            const cut = cutOf(r, c, side);
+            const [nr, nc, nside] = across(r, c, side);
+            const shape = cut.shape;
+
+            // First choice: slide the tab along its edge to somewhere it fits.
+            let moved = false;
+            for (let i = 0; i < POSITION_TRIES && !moved; i++) {
+              cut.shape = { ...shape, tabPosition: MIN_POSITION + fixRng() * (MAX_POSITION - MIN_POSITION) };
+              moved = !crossing(r, c, side) && !crossing(nr, nc, nside);
+            }
+            if (moved) {
+              changed = true;
+              continue;
+            }
+            cut.shape = shape;
+
+            // Otherwise make the tab smaller and its neck narrower.
+            const neckWidth = Math.max(MIN_NECK_WIDTH, shape.neckWidth * (0.8 + fixRng() * 0.15));
+            const tabSize = Math.max(MIN_TAB_SIZE, shape.tabSize * (0.8 + fixRng() * 0.15));
+            if (neckWidth < shape.neckWidth || tabSize < shape.tabSize) {
+              cut.shape = { ...shape, neckWidth, tabSize };
+              changed = true;
+            }
+          }
+        }),
+      );
+      if (!changed) break;
+      matrix = build();
+    }
+    return matrix;
   }
 
   /** Lists every seam whose two sides are not complementary; empty means the pieces fit. */
@@ -171,7 +246,7 @@ export class JigsawTemplateGenerator {
     return bad;
   }
 
-  /** Random but valid template params. */
+  /** Random but valid shape ranges and seed; grid and size stay at the defaults. */
   static random(rng: () => number = Math.random): JigsawTemplateParams {
     const between = (lo: number, hi: number) => lo + rng() * (hi - lo);
     const round2 = (v: number) => Math.round(v * 100) / 100;
@@ -181,8 +256,6 @@ export class JigsawTemplateGenerator {
     });
     return {
       ...DEFAULT_JIGSAW_PARAMS,
-      cols: Math.floor(between(2, 9)),
-      rows: Math.floor(between(2, 7)),
       tabSize: range(0.12, 0.2, 0.2, 0.32),
       neckWidth: range(0.03, 0.07, 0.07, 0.12),
       tabPosition: range(0.3, 0.45, 0.55, 0.7),
