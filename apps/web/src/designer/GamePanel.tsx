@@ -105,6 +105,15 @@ export function GamePanel(p: Props) {
                     <option value="random">Random</option>
                   </select>
                 </label>
+                <label className={field}>
+                  Piece selector position
+                  <select className={input} value={config.panelDock} onChange={(e) => set({ panelDock: e.target.value as GameConfig['panelDock'] })}>
+                    <option value="top">Top</option>
+                    <option value="bottom">Bottom</option>
+                    <option value="left">Left</option>
+                    <option value="right">Right</option>
+                  </select>
+                </label>
               </>
             )}
             {config.type === 'last-x' && (

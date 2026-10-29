@@ -8,6 +8,9 @@ export const GAME_TYPES: { id: GameType; name: string; description: string }[] =
   { id: "last-x", name: "Solve last X pieces", description: "The puzzle starts nearly done; finish the last few." },
 ];
 
+/** Which edge of the board the piece panel is docked to. */
+export type PanelDock = "top" | "bottom" | "left" | "right";
+
 export type GameConfig = {
   type: GameType;
   /** Drives every shuffle, so a config always starts the same game. */
@@ -16,6 +19,8 @@ export type GameConfig = {
   panelSize: number;
   /** next-pieces: the order pieces are offered in. */
   order: "sequential" | "random";
+  /** next-pieces: where the piece panel is docked. */
+  panelDock: PanelDock;
   /** last-x: how many pieces are left to place. */
   remaining: number;
 };
@@ -25,6 +30,7 @@ export const DEFAULT_GAME_CONFIG: GameConfig = {
   seed: 1,
   panelSize: 3,
   order: "sequential",
+  panelDock: "bottom",
   remaining: 5,
 };
 
