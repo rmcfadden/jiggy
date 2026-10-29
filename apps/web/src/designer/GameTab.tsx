@@ -12,10 +12,11 @@ import {
 import { Game as ScrambledGame } from '../views/Player'
 import { GameBoard } from './GameBoard'
 import { GamePanel } from './GamePanel'
-import { GAME_PHOTOS, GAME_TEMPLATES } from './gameAssets'
+import { DEFAULT_TEMPLATE, GAME_PHOTOS, templateParams as buildTemplateParams } from './gameAssets'
 
 export function GameTab() {
-  const [templateId, setTemplateId] = useState(GAME_TEMPLATES[1].id)
+  const [templateSize, setTemplateSize] = useState(DEFAULT_TEMPLATE.size)
+  const [templateStyle, setTemplateStyle] = useState(DEFAULT_TEMPLATE.style)
   const [photoId, setPhotoId] = useState(GAME_PHOTOS[0].id)
   const [upload, setUpload] = useState<{ name: string; src: string } | null>(null)
   const [config, setConfig] = useState<GameConfig>(DEFAULT_GAME_CONFIG)
@@ -23,12 +24,10 @@ export function GameTab() {
   const [showOutline, setShowOutline] = useState(true)
   const [selected, setSelected] = useState<number | null>(null)
 
-  const template = GAME_TEMPLATES.find((t) => t.id === templateId)!
-  const jigsaw = useMemo(
-    () => new JigsawVectorizer().vectorize(new JigsawTemplateGenerator(template.params).generate()),
-    [template],
-  )
-  const templateParams = { ...DEFAULT_JIGSAW_PARAMS, ...template.params }
+  const templateId = `${templateSize}-${templateStyle}`
+  const template = useMemo(() => buildTemplateParams(templateSize, templateStyle), [templateSize, templateStyle])
+  const jigsaw = useMemo(() => new JigsawVectorizer().vectorize(new JigsawTemplateGenerator(template).generate()), [template])
+  const templateParams = { ...DEFAULT_JIGSAW_PARAMS, ...template }
   const total = jigsaw.pieces.length
   const photo = photoId === 'upload' && upload ? upload.src : (GAME_PHOTOS.find((p) => p.id === photoId) ?? GAME_PHOTOS[0]).src
 
@@ -51,7 +50,7 @@ export function GameTab() {
           // Scrambled pieces is the Puzzle view: loose pieces scattered around the board.
           <div className="min-h-0 flex-1 overflow-hidden rounded border border-slate-200">
             <ScrambledGame
-              key={`${template.id}-${config.seed}-${config.viewPercent}-${config.startSide}-${config.looseCount}`}
+              key={`${templateId}-${config.seed}-${config.viewPercent}-${config.startSide}-${config.looseCount}`}
               spec={{ cols: templateParams.cols, rows: templateParams.rows, seed: templateParams.seed + config.seed }}
               jigsaw={jigsaw}
               photo={photo}
@@ -97,8 +96,10 @@ export function GameTab() {
         )}
       </main>
       <GamePanel
-        templateId={templateId}
-        onTemplate={setTemplateId}
+        templateSize={templateSize}
+        templateStyle={templateStyle}
+        onTemplateSize={setTemplateSize}
+        onTemplateStyle={setTemplateStyle}
         photoId={photoId}
         uploadName={upload?.name ?? null}
         onPhoto={setPhotoId}
