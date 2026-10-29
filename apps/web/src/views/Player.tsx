@@ -1,4 +1,6 @@
 import { ZoomControls, useZoom } from '../designer/zoom'
+import { PieceSparkles } from '../designer/sparkles'
+import { NEAR_COLOR, DEFAULT_EFFECTS, effectClass, sparklePieces, useFlash, type PieceEffects } from '../designer/effects'
 import { DEFAULT_PIECE_BORDERS, PieceBorderPath, type PieceBorders } from '../designer/controls'
 import { useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
@@ -75,6 +77,7 @@ export function Game({
   outline = 'solid',
   outlineScale = 1,
   borders = DEFAULT_PIECE_BORDERS,
+  effects = DEFAULT_EFFECTS,
   modeControls,
 }: {
   spec: PuzzleSpec
@@ -90,6 +93,7 @@ export function Game({
   outlineScale?: number
   /** Border looks for loose (moving) and home (set) pieces. */
   borders?: PieceBorders
+  effects?: PieceEffects
   modeControls?: React.ReactNode
 }) {
   const puzzle = useMemo(() => jigsaw ?? buildPuzzle(spec), [jigsaw, spec])
@@ -98,9 +102,13 @@ export function Game({
   // Pieces drawn last are on top; dragging brings a piece to the front.
   const [order, setOrder] = useState(() => puzzle.pieces.map((_, i) => i))
   const svgRef = useRef<SVGSVGElement>(null)
-  const drag = useRef<{ index: number; last: Offset } | null>(null)
+  const drag = useRef<{ index: number; last: Offset; pos: Offset } | null>(null)
+  /** The piece being dragged while it is within snapping distance of its slot. */
+  const [near, setNear] = useState<number | null>(null)
 
   const solved = isSolved(offsets)
+  const homes = useMemo(() => offsets.map((o) => o.x === 0 && o.y === 0), [offsets])
+  const flash = useFlash(homes)
   const placed = offsets.filter((o) => o.x === 0 && o.y === 0).length
 
   // Snap distance follows the piece size, so small pieces of big puzzles don't snap from afar.
@@ -129,7 +137,7 @@ export function Game({
   const onDown = (index: number) => (e: React.PointerEvent) => {
     if (offsets[index].x === 0 && offsets[index].y === 0) return
     e.currentTarget.setPointerCapture?.(e.pointerId)
-    drag.current = { index, last: toPuzzle(e) }
+    drag.current = { index, last: toPuzzle(e), pos: offsets[index] }
     setOrder((o) => [...o.filter((i) => i !== index), index])
   }
 
@@ -140,12 +148,15 @@ export function Game({
     const dx = now.x - d.last.x
     const dy = now.y - d.last.y
     d.last = now
+    d.pos = { x: d.pos.x + dx, y: d.pos.y + dy }
+    setNear(snapPiece(d.pos, snapTolerance).snapped ? d.index : null)
     setOffsets((os) => os.map((o, i) => (i === d.index ? { x: o.x + dx, y: o.y + dy } : o)))
   }
 
   const onUp = () => {
     const d = drag.current
     drag.current = null
+    setNear(null)
     if (!d) return
     setOffsets((os) => os.map((o, i) => (i === d.index ? snapPiece(o, snapTolerance).offset : o)))
   }
@@ -190,6 +201,9 @@ export function Game({
               ))}
             </g>
           )}
+          {near !== null && effects.near.highlightTemplate && (
+            <path d={paths[near]} fill={`${NEAR_COLOR}55`} stroke={NEAR_COLOR} strokeWidth={outlineWidth * 2} strokeLinejoin="round" pointerEvents="none" data-testid="template-highlight" />
+          )}
           <defs>
             {photo &&
               paths.map((d, i) => (
@@ -222,10 +236,11 @@ export function Game({
                 data-nopan={home ? undefined : ''}
                 onPointerDown={onDown(i)}
               >
+                <g className={effectClass(i, home, effects, puzzle.pieces, near, flash)}>
                 <path
                   d={paths[i]}
                   fill={photo ? '#ffffff' : `hsl(${(row * 40 + col * 25) % 360} 85% 80%)`}
-                  stroke={photo ? 'none' : '#92400e'}
+                  stroke={photo ? 'none' : near === i && effects.near.border ? NEAR_COLOR : '#92400e'}
                   strokeWidth={1.5}
                   strokeLinejoin="round"
                 />
@@ -240,12 +255,19 @@ export function Game({
                       preserveAspectRatio="xMidYMid slice"
                       clipPath={`url(#scatter-clip-${i})`}
                     />
-                    <PieceBorderPath d={paths[i]} border={home ? borders.set : borders.moving} unit={pixel / 2} color={home ? '#ffffff88' : '#92400e'} />
+                    <PieceBorderPath d={paths[i]} border={home ? borders.set : near === i && effects.near.border ? { ...borders.moving, width: 'thick' } : borders.moving} unit={pixel / 2} color={home ? '#ffffff88' : near === i && effects.near.border ? NEAR_COLOR : '#92400e'} />
                   </>
                 )}
+                </g>
               </g>
             )
           })}
+          <g className="fx-sparkle">
+            {flash !== null &&
+              sparklePieces(effects, puzzle.pieces, homes, flash).map((i) => (
+                <PieceSparkles key={`${flash}-${i}`} bounds={puzzle.pieces[i].vector.bounds} d={paths[i]} />
+              ))}
+          </g>
         </svg>
       </div>
       <ZoomControls z={z} />
