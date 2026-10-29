@@ -64,8 +64,15 @@ it('toggles the neck overlap fix and keeps it through Random', () => {
   expect(screen.getByLabelText(/Fix neck overlap/)).toHaveProperty('checked', false)
 })
 
-it('plays a scrambled game: pick a piece, place it in its slot', () => {
+it('shows the scattered-pieces Puzzle view for scrambled', () => {
+  render(<Designer />)
+  expect(screen.getByLabelText('Puzzle board')).toBeTruthy()
+  expect(screen.getByText(/0\/12 placed/)).toBeTruthy()
+})
+
+it('plays a next-pieces game: pick a piece, place it in its slot', () => {
   const { container } = render(<Designer />)
+  fireEvent.click(screen.getByRole('button', { name: /Next pieces in panel/ }))
   expect(container.querySelectorAll('[data-testid="slot"]')).toHaveLength(12)
   expect(screen.getByText(/0\/12 placed/)).toBeTruthy()
   fireEvent.click(screen.getAllByRole('button', { name: /^Piece \d+$/ })[0])
