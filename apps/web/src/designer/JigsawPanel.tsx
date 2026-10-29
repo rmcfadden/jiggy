@@ -44,6 +44,12 @@ export function JigsawPanel({ params, onChange, onRandom, gap,
     />
   )
 
+  const activePreset = JIGSAW_PRESETS.find((p) =>
+    (Object.keys(p.ranges) as (keyof typeof p.ranges)[]).every(
+      (k) => params[k].min === p.ranges[k].min && params[k].max === p.ranges[k].max,
+    ),
+  )
+
   return (
     <Panel>
       <button className={primaryButton} onClick={onRandom}>
@@ -54,13 +60,13 @@ export function JigsawPanel({ params, onChange, onRandom, gap,
         Preset
         <select
           className={input}
-          value=""
+          value={activePreset?.name ?? ''}
           onChange={(e) => {
             const preset = JIGSAW_PRESETS.find((p) => p.name === e.target.value)
             if (preset) onChange({ ...params, ...preset.ranges })
           }}
         >
-          <option value="">Choose a preset…</option>
+          <option value="">Custom</option>
           {JIGSAW_PRESETS.map((p) => (
             <option key={p.name} value={p.name}>
               {p.name}
@@ -76,6 +82,20 @@ export function JigsawPanel({ params, onChange, onRandom, gap,
         {num('height', 'Height', 40)}
       </fieldset>
 
+      <label className="flex items-start gap-2 text-sm">
+        <input
+          type="checkbox"
+          className="mt-1"
+          checked={params.fixOverlap}
+          onChange={(e) => set('fixOverlap', e.target.checked)}
+        />
+        <span>
+          Fix neck overlap
+          <span className="block text-xs text-slate-500">
+            On seams whose outline crosses itself, first slides the tab along its edge, then randomly shrinks tab size and neck width.
+          </span>
+        </span>
+      </label>
       <p className="text-xs text-slate-500">
         Each seam picks its own value between start and end, so every piece differs.
       </p>

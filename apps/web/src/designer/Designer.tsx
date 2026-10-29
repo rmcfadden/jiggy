@@ -1,18 +1,20 @@
 import { useState } from 'react'
+import { GameTab } from './GameTab'
 import { JigsawTab } from './JigsawTab'
 import { PieceTab } from './PieceTab'
 
 const TABS = [
+  { id: 'game', label: 'Game', content: GameTab },
+  { id: 'jigsaw', label: 'Jigsaw Template', content: JigsawTab },
   { id: 'piece', label: 'Piece', content: PieceTab },
-  { id: 'jigsaw', label: 'Jigsaw Template Generator', content: JigsawTab },
 ] as const
 
 export default function Designer() {
-  const [active, setActive] = useState<(typeof TABS)[number]['id']>('piece')
+  const [active, setActive] = useState<(typeof TABS)[number]['id']>('game')
   const Active = TABS.find((t) => t.id === active)!.content
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
       <div role="tablist" className="flex gap-1 border-b border-slate-200 bg-slate-100 px-4 pt-2">
         {TABS.map((t) => (
           <button
@@ -32,7 +34,7 @@ export default function Designer() {
           </button>
         ))}
       </div>
-      <div role="tabpanel" id="tabpanel" aria-labelledby={`tab-${active}`} className="flex min-h-0 flex-1">
+      <div role="tabpanel" id="tabpanel" aria-labelledby={`tab-${active}`} className="flex min-h-0 min-w-0 flex-1">
         <Active />
       </div>
     </div>
