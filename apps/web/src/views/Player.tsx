@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { NextPiecesGame } from './NextPiecesGame'
 import {
   PIECE_SIZE,
   buildPuzzle,
@@ -16,14 +17,52 @@ import {
 const DEFAULT_SPEC: PuzzleSpec = { cols: 4, rows: 3, seed: 1 }
 
 export default function Player() {
-  const [params] = useSearchParams()
+  const [params, setParams] = useSearchParams()
   const spec = decodePuzzleId(params.get('id')) ?? DEFAULT_SPEC
   const id = encodePuzzleId(spec)
-  // Remount on id change so the game state resets.
-  return <Game key={id} spec={spec} />
+  const mode: Mode = params.get('mode') === 'next-pieces' ? 'next-pieces' : 'scrambled'
+  const setMode = (m: Mode) => {
+    const next = new URLSearchParams(params)
+    next.set('mode', m)
+    setParams(next, { replace: true })
+  }
+  // Remount on id or mode change so the game state resets.
+  return mode === 'next-pieces' ? (
+    <NextPiecesGame key={id} spec={spec} modeControls={<ModeControls mode={mode} onMode={setMode} />} />
+  ) : (
+    <Game key={id} spec={spec} modeControls={<ModeControls mode={mode} onMode={setMode} />} />
+  )
 }
 
-function Game({ spec }: { spec: PuzzleSpec }) {
+type Mode = 'scrambled' | 'next-pieces'
+
+const MODES: { id: Mode; label: string }[] = [
+  { id: 'scrambled', label: 'Scrambled pieces' },
+  { id: 'next-pieces', label: 'Next pieces in panel' },
+]
+
+function ModeControls({ mode, onMode }: { mode: Mode; onMode: (m: Mode) => void }) {
+  return (
+    <div role="group" aria-label="Game mode" className="flex gap-1">
+      {MODES.map((m) => (
+        <button
+          key={m.id}
+          aria-pressed={m.id === mode}
+          className={`rounded border px-3 py-1.5 text-sm font-medium ${
+            m.id === mode
+              ? 'border-amber-500 bg-amber-50 text-amber-800'
+              : 'border-slate-300 bg-white hover:bg-slate-100'
+          }`}
+          onClick={() => onMode(m.id)}
+        >
+          {m.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+export function Game({ spec, modeControls }: { spec: PuzzleSpec; modeControls?: React.ReactNode }) {
   const puzzle = useMemo(() => buildPuzzle(spec), [spec])
   const paths = useMemo(() => puzzle.pieces.map((p) => toSvgPath(p.vector)), [puzzle])
   const [offsets, setOffsets] = useState<Offset[]>(() => scatterOffsets(spec))
@@ -78,6 +117,7 @@ function Game({ spec }: { spec: PuzzleSpec }) {
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-4 border-b border-slate-200 bg-slate-100 px-4 py-2">
         <h1 className="text-lg font-bold">Puzzle</h1>
+        {modeControls}
         <span className="text-sm text-slate-600">
           {encodePuzzleId(spec)} · {placed}/{offsets.length} placed
         </span>

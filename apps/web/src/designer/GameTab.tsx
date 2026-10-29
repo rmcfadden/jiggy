@@ -8,6 +8,7 @@ import {
   placePiece,
   type GameConfig,
 } from '@jiggy/shared'
+import { Game as ScrambledGame } from '../views/Player'
 import { GameBoard } from './GameBoard'
 import { GamePanel } from './GamePanel'
 import { GAME_PHOTOS, GAME_TEMPLATES } from './gameAssets'
@@ -42,6 +43,16 @@ export function GameTab() {
   return (
     <div className="flex min-h-0 min-w-0 flex-1">
       <main className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-hidden bg-white p-4">
+        {config.type === 'scrambled' ? (
+          // Scrambled pieces is the Puzzle view: loose pieces scattered around the board.
+          <div className="min-h-0 flex-1 overflow-hidden rounded border border-slate-200">
+            <ScrambledGame
+              key={`${template.id}-${config.seed}`}
+              spec={{ cols: template.params.cols!, rows: template.params.rows!, seed: template.params.seed! + config.seed }}
+            />
+          </div>
+        ) : (
+          <>
         <div className="flex items-center justify-between text-sm" aria-live="polite">
           <span>
             {game.total - game.queue.length}/{game.total} placed · {game.mistakes} mistakes
@@ -57,13 +68,16 @@ export function GameTab() {
           selected={selected}
           showGuide={showGuide}
           onSelect={setSelected}
-          onPlace={(slot) => {
-            if (selected === null) return
-            const result = placePiece(game, selected, slot)
+          onPlace={(slot, dragged) => {
+            const piece = dragged ?? selected
+            if (piece === null) return
+            const result = placePiece(game, piece, slot)
             setGame(result.state)
             if (result.correct) setSelected(null)
           }}
         />
+          </>
+        )}
       </main>
       <GamePanel
         templateId={templateId}

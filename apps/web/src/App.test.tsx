@@ -38,3 +38,15 @@ it('shows progress in the player', () => {
   expect(screen.getByText(/0\/4 placed/)).toBeTruthy()
   expect(screen.queryByText('Solved!')).toBeNull()
 })
+
+it('switches the player between the two main game modes', () => {
+  renderAt('/puzzle?id=2x2-5')
+  const scrambled = screen.getByRole('button', { name: 'Scrambled pieces' })
+  expect(scrambled.getAttribute('aria-pressed')).toBe('true')
+  fireEvent.click(screen.getByRole('button', { name: 'Next pieces in panel' }))
+  expect(screen.getByRole('button', { name: 'Next pieces in panel' }).getAttribute('aria-pressed')).toBe('true')
+  expect(screen.getByLabelText('Piece panel')).toBeTruthy()
+  expect(screen.getByText(/0\/4 placed/)).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: 'Scrambled pieces' }))
+  expect(screen.getByLabelText('Puzzle board')).toBeTruthy()
+})
