@@ -12,6 +12,9 @@ export const GAME_TYPES: { id: GameType; name: string; description: string }[] =
 /** Which edge of the board the piece panel is docked to. */
 export type PanelDock = "top" | "bottom" | "left" | "right";
 
+/** Whether the zoom control lays its buttons out in a row or a column. */
+export type ZoomOrientation = "vertical" | "horizontal";
+
 export type GameConfig = {
   type: GameType;
   /** Drives every shuffle, so a config always starts the same game. */
@@ -30,6 +33,10 @@ export type GameConfig = {
   startSide: StartSide;
   /** scrambled: how many pieces start loose; 0 means all of them. */
   looseCount: number;
+  /** scrambled: how far apart loose pieces are pushed, 0-100; 0 is purely random. */
+  spread: number;
+  /** Layout of the zoom control on the board. */
+  zoomOrientation: ZoomOrientation;
 };
 
 export const DEFAULT_GAME_CONFIG: GameConfig = {
@@ -42,6 +49,8 @@ export const DEFAULT_GAME_CONFIG: GameConfig = {
   viewPercent: 40,
   startSide: "random",
   looseCount: 0,
+  spread: 30,
+  zoomOrientation: "vertical",
 };
 
 export type GameState = {

@@ -18,6 +18,7 @@ import {
   type Offset,
   type ScatterOptions,
   type PuzzleSpec,
+  type ZoomOrientation,
 } from '@jiggy/shared'
 
 const DEFAULT_SPEC: PuzzleSpec = { cols: 4, rows: 3, seed: 1 }
@@ -78,6 +79,7 @@ export function Game({
   outlineScale = 1,
   borders = DEFAULT_PIECE_BORDERS,
   effects = DEFAULT_EFFECTS,
+  zoomOrientation,
   modeControls,
 }: {
   spec: PuzzleSpec
@@ -94,6 +96,7 @@ export function Game({
   /** Border looks for loose (moving) and home (set) pieces. */
   borders?: PieceBorders
   effects?: PieceEffects
+  zoomOrientation?: ZoomOrientation
   modeControls?: React.ReactNode
 }) {
   const puzzle = useMemo(() => jigsaw ?? buildPuzzle(spec), [jigsaw, spec])
@@ -270,7 +273,7 @@ export function Game({
           </g>
         </svg>
       </div>
-      <ZoomControls z={z} />
+      <ZoomControls z={z} orientation={zoomOrientation} />
       </div>
     </div>
   )

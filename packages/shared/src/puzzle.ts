@@ -41,11 +41,14 @@ export type ScatterOptions = {
   count?: number;
   /** Share of the window the puzzle board fills, 20-80. Default 40. */
   viewPercent?: number;
+  /** How hard to keep loose pieces apart, 0-100; 0 is purely random. Default 30. */
+  spread?: number;
   /** Size of one piece cell; default {@link PIECE_SIZE} square. Set it when using a custom template. */
   cell?: { width: number; height: number };
 };
 
 export const DEFAULT_VIEW_PERCENT = 40;
+export const DEFAULT_SPREAD = 30;
 
 /** Free space around the board (per side) so the board fills `viewPercent` of the view. */
 export function viewMargins(
@@ -68,7 +71,7 @@ export function viewMargins(
  * Loose pieces are scattered in the free space around the board; pieces outside `count` start placed.
  */
 export function scatterOffsets(spec: PuzzleSpec, options: ScatterOptions = {}): Offset[] {
-  const { side = "random", viewPercent, cell = { width: PIECE_SIZE, height: PIECE_SIZE } } = options;
+  const { side = "random", viewPercent, spread = DEFAULT_SPREAD, cell = { width: PIECE_SIZE, height: PIECE_SIZE } } = options;
   const total = spec.cols * spec.rows;
   const count = Math.min(total, Math.max(1, Math.floor(options.count ?? total)));
   const rng = createRng(spec.seed ^ 0x5bd1e995);
@@ -97,6 +100,21 @@ export function scatterOffsets(spec: PuzzleSpec, options: ScatterOptions = {}): 
     }
   };
 
+  // Mitchell's best-candidate: of several random targets, take the one farthest from the pieces already placed.
+  const candidates = 1 + Math.round(Math.min(100, Math.max(0, spread)));
+  const taken: Offset[] = [];
+  const spreadTarget = (): Offset => {
+    let best = target();
+    let bestGap = -1;
+    for (let c = 0; c < candidates; c++) {
+      const t = c === 0 ? best : target();
+      const gap = taken.reduce((min, o) => Math.min(min, Math.hypot(o.x - t.x, o.y - t.y)), Infinity);
+      if (gap > bestGap) [best, bestGap] = [t, gap];
+    }
+    taken.push(best);
+    return best;
+  };
+
   // Pick which pieces are loose with a partial Fisher-Yates shuffle.
   const ids = Array.from({ length: total }, (_, i) => i);
   for (let i = 0; i < count; i++) {
@@ -107,7 +125,7 @@ export function scatterOffsets(spec: PuzzleSpec, options: ScatterOptions = {}): 
 
   return Array.from({ length: total }, (_, i) => {
     if (!loose.has(i)) return { x: 0, y: 0 };
-    const t = target();
+    const t = spreadTarget();
     const cx = ((i % spec.cols) + 0.5) * cell.width;
     const cy = (Math.floor(i / spec.cols) + 0.5) * cell.height;
     return { x: t.x - cx, y: t.y - cy };
