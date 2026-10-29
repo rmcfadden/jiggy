@@ -10,6 +10,7 @@ type Props = {
   game: GameState
   selected: number | null
   showGuide: boolean
+  showOutline?: boolean
   /** Which edge of the board the piece panel is docked to. */
   dock?: Dock
   /** Called when the piece selector is dragged to another edge. */
@@ -53,7 +54,7 @@ function PieceImage({ jigsaw, photo, clipId }: { jigsaw: JigsawVector; photo: st
   )
 }
 
-export function GameBoard({ jigsaw, photo, game, selected, showGuide, dock = 'bottom', onDock, onSelect, onPlace }: Props) {
+export function GameBoard({ jigsaw, photo, game, selected, showGuide, showOutline = true, dock = 'bottom', onDock, onSelect, onPlace }: Props) {
   const vertical = dock === 'left' || dock === 'right'
   const paths = useMemo(() => vectorizer.toSvgPaths(jigsaw), [jigsaw])
   const { minX, minY } = jigsaw.bounds
@@ -154,7 +155,7 @@ export function GameBoard({ jigsaw, photo, game, selected, showGuide, dock = 'bo
                 data-slot-index={i}
                 d={d}
                 fill={selected !== null ? '#fbbf2433' : 'transparent'}
-                stroke="#92400e"
+                stroke={showOutline ? '#92400e' : 'none'}
                 strokeDasharray="4 4"
                 strokeWidth={1.5}
                 className={selected !== null ? 'cursor-pointer' : ''}

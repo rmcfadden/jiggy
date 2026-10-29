@@ -2,7 +2,6 @@ import { useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { NextPiecesGame } from './NextPiecesGame'
 import {
-  PIECE_SIZE,
   buildPuzzle,
   decodePuzzleId,
   encodePuzzleId,
@@ -10,7 +9,10 @@ import {
   scatterOffsets,
   snapPiece,
   toSvgPath,
+  viewMargins,
+  type JigsawVector,
   type Offset,
+  type ScatterOptions,
   type PuzzleSpec,
 } from '@jiggy/shared'
 
@@ -62,10 +64,29 @@ function ModeControls({ mode, onMode }: { mode: Mode; onMode: (m: Mode) => void 
   )
 }
 
-export function Game({ spec, modeControls }: { spec: PuzzleSpec; modeControls?: React.ReactNode }) {
-  const puzzle = useMemo(() => buildPuzzle(spec), [spec])
+export function Game({
+  spec,
+  scatter,
+  jigsaw,
+  photo,
+  showGuide = false,
+  showOutline = true,
+  modeControls,
+}: {
+  spec: PuzzleSpec
+  scatter?: ScatterOptions
+  /** Custom template outlines; defaults to a plain grid built from `spec`. */
+  jigsaw?: JigsawVector
+  /** Picture clipped into each piece; pieces are flat colours without it. */
+  photo?: string
+  showGuide?: boolean
+  /** Draw the template's piece outlines on the board as a placement hint. */
+  showOutline?: boolean
+  modeControls?: React.ReactNode
+}) {
+  const puzzle = useMemo(() => jigsaw ?? buildPuzzle(spec), [jigsaw, spec])
   const paths = useMemo(() => puzzle.pieces.map((p) => toSvgPath(p.vector)), [puzzle])
-  const [offsets, setOffsets] = useState<Offset[]>(() => scatterOffsets(spec))
+  const [offsets, setOffsets] = useState<Offset[]>(() => scatterOffsets(spec, scatter))
   // Pieces drawn last are on top; dragging brings a piece to the front.
   const [order, setOrder] = useState(() => puzzle.pieces.map((_, i) => i))
   const svgRef = useRef<SVGSVGElement>(null)
@@ -74,9 +95,9 @@ export function Game({ spec, modeControls }: { spec: PuzzleSpec; modeControls?: 
   const solved = isSolved(offsets)
   const placed = offsets.filter((o) => o.x === 0 && o.y === 0).length
 
-  const margin = PIECE_SIZE * 2 + Math.max(spec.cols, spec.rows) * PIECE_SIZE * 0.75
+  const margin = viewMargins(spec, scatter?.viewPercent, scatter?.cell)
   const { minX, minY } = puzzle.bounds
-  const viewBox = `${minX - margin} ${minY - margin} ${puzzle.width + margin * 2} ${puzzle.height + margin * 2}`
+  const viewBox = `${minX - margin.x} ${minY - margin.y} ${puzzle.width + margin.x * 2} ${puzzle.height + margin.y * 2}`
 
   const toPuzzle = (e: React.PointerEvent): Offset => {
     const svg = svgRef.current!
@@ -125,7 +146,7 @@ export function Game({ spec, modeControls }: { spec: PuzzleSpec; modeControls?: 
         <button
           className="ml-auto rounded bg-amber-500 px-3 py-1.5 text-sm font-medium hover:bg-amber-400"
           onClick={() => {
-            setOffsets(scatterOffsets(spec))
+            setOffsets(scatterOffsets(spec, scatter))
             setOrder(puzzle.pieces.map((_, i) => i))
           }}
         >
@@ -143,33 +164,66 @@ export function Game({ spec, modeControls }: { spec: PuzzleSpec; modeControls?: 
           onPointerUp={onUp}
           onPointerCancel={onUp}
         >
-          <rect
-            x={minX}
-            y={minY}
-            width={puzzle.width}
-            height={puzzle.height}
-            fill="none"
-            stroke="#94a3b8"
-            strokeDasharray="8 6"
-            strokeWidth={2}
-          />
+          {showOutline && (
+            <g fill="none" stroke="#94a3b8" strokeDasharray="8 6" strokeWidth={2} pointerEvents="none" data-testid="outline">
+              {paths.map((d, i) => (
+                <path key={i} d={d} />
+              ))}
+            </g>
+          )}
+          <defs>
+            {photo &&
+              paths.map((d, i) => (
+                <clipPath key={i} id={`scatter-clip-${i}`}>
+                  <path d={d} />
+                </clipPath>
+              ))}
+          </defs>
+          {photo && showGuide && (
+            <image
+              href={photo}
+              x={minX}
+              y={minY}
+              width={puzzle.width}
+              height={puzzle.height}
+              preserveAspectRatio="xMidYMid slice"
+              opacity={0.18}
+            />
+          )}
           {order.map((i) => {
             const { row, col } = puzzle.pieces[i]
             const o = offsets[i]
             const home = o.x === 0 && o.y === 0
             return (
-              <path
+              <g
                 key={i}
                 data-testid={`piece-${i}`}
-                d={paths[i]}
                 transform={`translate(${o.x} ${o.y})`}
-                fill={`hsl(${(row * 40 + col * 25) % 360} 85% 80%)`}
-                stroke="#92400e"
-                strokeWidth={1.5}
-                strokeLinejoin="round"
                 className={home ? '' : 'cursor-grab'}
                 onPointerDown={onDown(i)}
-              />
+              >
+                <path
+                  d={paths[i]}
+                  fill={photo ? '#ffffff' : `hsl(${(row * 40 + col * 25) % 360} 85% 80%)`}
+                  stroke={photo ? 'none' : '#92400e'}
+                  strokeWidth={1.5}
+                  strokeLinejoin="round"
+                />
+                {photo && (
+                  <>
+                    <image
+                      href={photo}
+                      x={minX}
+                      y={minY}
+                      width={puzzle.width}
+                      height={puzzle.height}
+                      preserveAspectRatio="xMidYMid slice"
+                      clipPath={`url(#scatter-clip-${i})`}
+                    />
+                    <path d={paths[i]} fill="none" stroke="#ffffff88" strokeWidth={1} strokeLinejoin="round" />
+                  </>
+                )}
+              </g>
             )
           })}
         </svg>
