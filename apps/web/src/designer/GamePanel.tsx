@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { GAME_TYPES, START_SIDES, type GameConfig } from '@jiggy/shared'
 import { GAME_PHOTOS, TEMPLATE_SIZES, TEMPLATE_STYLES } from './gameAssets'
-import { NumberField, Panel, field, input, primaryButton } from './controls'
+import { NumberField, Panel, field, input, primaryButton, type OutlineStyle } from './controls'
 
 type Props = {
   templateSize: string
@@ -16,8 +16,8 @@ type Props = {
   onConfig: (config: GameConfig) => void
   showGuide: boolean
   onShowGuide: (show: boolean) => void
-  showOutline: boolean
-  onShowOutline: (show: boolean) => void
+  outline: OutlineStyle
+  onOutline: (outline: OutlineStyle) => void
   pieceCount: number
   onRestart: () => void
 }
@@ -165,9 +165,13 @@ export function GamePanel(p: Props) {
               <input type="checkbox" checked={p.showGuide} onChange={(e) => p.onShowGuide(e.target.checked)} />
               Show faint guide image
             </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={p.showOutline} onChange={(e) => p.onShowOutline(e.target.checked)} />
-              Show template outline on the board
+            <label className={field}>
+              Template border
+              <select className={input} value={p.outline} onChange={(e) => p.onOutline(e.target.value as OutlineStyle)}>
+                <option value="solid">Solid</option>
+                <option value="dotted">Dotted</option>
+                <option value="none">None</option>
+              </select>
             </label>
             <button className={`self-end ${primaryButton}`} autoFocus onClick={() => setOpen(false)}>
               Done
