@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { GAME_TYPES, START_SIDES, type GameConfig } from '@jiggy/shared'
-import { GAME_PHOTOS, GAME_TEMPLATES } from './gameAssets'
+import { GAME_PHOTOS, TEMPLATE_SIZES, TEMPLATE_STYLES } from './gameAssets'
 import { NumberField, Panel, field, input, primaryButton } from './controls'
 
 type Props = {
-  templateId: string
-  onTemplate: (id: string) => void
+  templateSize: string
+  templateStyle: string
+  onTemplateSize: (id: string) => void
+  onTemplateStyle: (id: string) => void
   photoId: string
   uploadName: string | null
   onPhoto: (id: string) => void
@@ -38,13 +40,26 @@ export function GamePanel(p: Props) {
     <Panel>
       <section className="flex flex-col gap-1.5" aria-label="Template">
         <h3 className={heading}>1. Template</h3>
-        <div className="grid grid-cols-2 gap-2">
-          {GAME_TEMPLATES.map((t) => (
-            <button key={t.id} className={choice(t.id === p.templateId)} aria-pressed={t.id === p.templateId} onClick={() => p.onTemplate(t.id)}>
-              {t.name}
-            </button>
-          ))}
-        </div>
+        <label className={field}>
+          Number of pieces
+          <select className={input} value={p.templateSize} onChange={(e) => p.onTemplateSize(e.target.value)}>
+            {TEMPLATE_SIZES.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.id} pieces ({t.cols}×{t.rows})
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className={field}>
+          Piece style
+          <select className={input} value={p.templateStyle} onChange={(e) => p.onTemplateStyle(e.target.value)}>
+            {TEMPLATE_STYLES.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
+              </option>
+            ))}
+          </select>
+        </label>
       </section>
 
       <section className="flex flex-col gap-1.5" aria-label="Background photo">

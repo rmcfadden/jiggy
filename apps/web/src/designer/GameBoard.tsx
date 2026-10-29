@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { JigsawVectorizer, toSvgPath, trayPieces, type GameState, type PanelDock, type JigsawVector } from '@jiggy/shared'
 
 const PAD = 16
@@ -38,14 +38,16 @@ const DOCK_ZONE: Record<Dock, string> = {
 
 type Drag = { piece: number; x: number; y: number; w: number; h: number }
 const DRAG_THRESHOLD = 4
+/** Room around a piece's bounds so its outline stroke isn't clipped at the edge. */
+const PIECE_PAD = 3
 
 /** The photo, clipped to one piece's outline, in puzzle coordinates. */
 function PieceImage({ jigsaw, photo, clipId }: { jigsaw: JigsawVector; photo: string; clipId: string }) {
   return (
     <image
       href={photo}
-      x={0}
-      y={0}
+      x={jigsaw.bounds.minX}
+      y={jigsaw.bounds.minY}
       width={jigsaw.width}
       height={jigsaw.height}
       preserveAspectRatio="xMidYMid slice"
@@ -60,6 +62,22 @@ export function GameBoard({ jigsaw, photo, game, selected, showGuide, showOutlin
   const { minX, minY } = jigsaw.bounds
   const tray = trayPieces(game)
   const [drag, setDrag] = useState<Drag | null>(null)
+  const boardSvg = useRef<SVGSVGElement>(null)
+  // Puzzle units per screen pixel, so outlines stay about a pixel wide on big grids
+  // (a plain stroke width would shrink to nothing; non-scaling-stroke flattens curves).
+  const [unit, setUnit] = useState(1)
+  useEffect(() => {
+    const svg = boardSvg.current
+    if (!svg || typeof ResizeObserver === 'undefined') return
+    const measure = () => {
+      const w = svg.getBoundingClientRect().width
+      if (w > 0) setUnit(Math.max(1, (jigsaw.width + PAD * 2) / w))
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(svg)
+    return () => observer.disconnect()
+  }, [jigsaw])
   // Set once the pointer moves far enough that the gesture is a drag, not a click.
   const dragged = useRef(false)
 
@@ -106,7 +124,13 @@ export function GameBoard({ jigsaw, photo, game, selected, showGuide, showOutlin
         dragged.current = true
         onSelect(piece)
       }
-      setDrag({ piece, x: ev.clientX, y: ev.clientY, w: rect.width, h: rect.height })
+      // Drag at the board's scale so the piece matches the slot it will drop into.
+      const b = jigsaw.pieces[piece].vector.bounds
+      const svg = boardSvg.current
+      const scale = svg ? svg.getBoundingClientRect().width / (jigsaw.width + PAD * 2) : 0
+      const w = scale > 0 ? (b.maxX - b.minX + PIECE_PAD * 2) * scale : rect.width
+      const h = scale > 0 ? (b.maxY - b.minY + PIECE_PAD * 2) * scale : rect.height
+      setDrag({ piece, x: ev.clientX, y: ev.clientY, w, h })
     }
     const end = (ev: PointerEvent) => {
       window.removeEventListener('pointermove', move)
@@ -126,6 +150,7 @@ export function GameBoard({ jigsaw, photo, game, selected, showGuide, showOutlin
     <div ref={boardRef} className={`relative flex min-h-0 min-w-0 flex-1 gap-3 ${OUTER[dock]}`}>
       <div className="flex min-h-0 flex-1 items-center justify-center">
         <svg
+          ref={boardSvg}
           className="max-h-full max-w-full"
           viewBox={`${minX - PAD} ${minY - PAD} ${jigsaw.width + PAD * 2} ${jigsaw.height + PAD * 2}`}
           style={{ aspectRatio: `${jigsaw.width + PAD * 2} / ${jigsaw.height + PAD * 2}` }}
@@ -140,13 +165,13 @@ export function GameBoard({ jigsaw, photo, game, selected, showGuide, showOutlin
             ))}
           </defs>
           {showGuide && (
-            <image href={photo} width={jigsaw.width} height={jigsaw.height} preserveAspectRatio="xMidYMid slice" opacity={0.18} />
+            <image href={photo} x={minX} y={minY} width={jigsaw.width} height={jigsaw.height} preserveAspectRatio="xMidYMid slice" opacity={0.18} />
           )}
           {paths.map((d, i) =>
             game.placed[i] ? (
               <g key={i} data-testid="placed">
                 <PieceImage jigsaw={jigsaw} photo={photo} clipId={`piece-clip-${i}`} />
-                <path d={d} fill="none" stroke="#ffffff88" strokeWidth={1} />
+                <path d={d} fill="none" stroke="#ffffff88" strokeWidth={unit} />
               </g>
             ) : (
               <path
@@ -156,8 +181,9 @@ export function GameBoard({ jigsaw, photo, game, selected, showGuide, showOutlin
                 d={d}
                 fill={selected !== null ? '#fbbf2433' : 'transparent'}
                 stroke={showOutline ? '#92400e' : 'none'}
-                strokeDasharray="4 4"
-                strokeWidth={1.5}
+                strokeDasharray={`${4 * unit} ${4 * unit}`}
+                strokeWidth={1.5 * unit}
+               
                 className={selected !== null ? 'cursor-pointer' : ''}
                 onClick={() => selected !== null && onPlace(i)}
               />
@@ -206,8 +232,8 @@ export function GameBoard({ jigsaw, photo, game, selected, showGuide, showOutlin
             >
               <svg
                 className={vertical ? 'h-auto w-24' : 'h-20 w-auto'}
-                viewBox={`${b.minX} ${b.minY} ${b.maxX - b.minX} ${b.maxY - b.minY}`}
-                style={{ aspectRatio: `${b.maxX - b.minX} / ${b.maxY - b.minY}` }}
+                viewBox={pieceViewBox(jigsaw, i)}
+                style={{ aspectRatio: `${b.maxX - b.minX + PIECE_PAD * 2} / ${b.maxY - b.minY + PIECE_PAD * 2}` }}
               >
                 <defs>
                   <clipPath id={`tray-clip-${i}`}>
@@ -249,5 +275,5 @@ export function GameBoard({ jigsaw, photo, game, selected, showGuide, showOutlin
 
 function pieceViewBox(jigsaw: JigsawVector, i: number) {
   const b = jigsaw.pieces[i].vector.bounds
-  return `${b.minX} ${b.minY} ${b.maxX - b.minX} ${b.maxY - b.minY}`
+  return `${b.minX - PIECE_PAD} ${b.minY - PIECE_PAD} ${b.maxX - b.minX + PIECE_PAD * 2} ${b.maxY - b.minY + PIECE_PAD * 2}`
 }

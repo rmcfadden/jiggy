@@ -64,6 +64,15 @@ it('toggles the neck overlap fix and keeps it through Random', () => {
   expect(screen.getByLabelText(/Fix neck overlap/)).toHaveProperty('checked', false)
 })
 
+it('full screen disables the width and height inputs', () => {
+  render(<Designer />)
+  fireEvent.click(screen.getByRole('tab', { name: 'Jigsaw Template' }))
+  expect(screen.getByLabelText('Width')).toHaveProperty('disabled', false)
+  fireEvent.click(screen.getByLabelText(/Full screen/))
+  expect(screen.getByLabelText('Width')).toHaveProperty('disabled', true)
+  expect(screen.getByLabelText('Height')).toHaveProperty('disabled', true)
+})
+
 it('shows the scattered-pieces Puzzle view for scrambled', () => {
   render(<Designer />)
   expect(screen.getByLabelText('Puzzle board')).toBeTruthy()
@@ -90,6 +99,6 @@ it('last-x starts with all but x pieces placed, and next-pieces limits the panel
   fireEvent.click(screen.getByRole('button', { name: 'Done' }))
   expect(screen.queryByRole('dialog')).toBeNull()
   expect(screen.getAllByRole('button', { name: /^Piece \d+$/ })).toHaveLength(3)
-  fireEvent.click(screen.getByRole('button', { name: 'Small 3×2' }))
+  fireEvent.change(screen.getByLabelText('Number of pieces'), { target: { value: '6' } })
   expect(container.querySelectorAll('[data-testid="slot"]')).toHaveLength(6)
 })

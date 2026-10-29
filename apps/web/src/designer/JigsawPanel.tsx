@@ -4,6 +4,8 @@ import { field, input, NumberField, Panel, primaryButton, RangeField, SliderFiel
 type Props = {
   params: JigsawTemplateParams
   onChange: (params: JigsawTemplateParams) => void
+  fullScreen: boolean
+  onFullScreenChange: (fullScreen: boolean) => void
   onRandom: () => void
   gap: number
   onGapChange: (gap: number) => void
@@ -13,7 +15,7 @@ type Props = {
   onToleranceChange: (tolerance: number) => void
 }
 
-export function JigsawPanel({ params, onChange, onRandom, gap,
+export function JigsawPanel({ params, onChange, fullScreen, onFullScreenChange, onRandom, gap,
   onGapChange,
   matrixJson,
   report,
@@ -26,6 +28,16 @@ export function JigsawPanel({ params, onChange, onRandom, gap,
   const num = (key: 'cols' | 'rows' | 'width' | 'height' | 'seed', label: string, min: number, max?: number) => (
     <NumberField label={label} min={min} max={max} value={params[key]} onChange={(v) => set(key, v)} />
   )
+  // In full screen the size comes from the viewport, so editing it would do nothing.
+  const size = (key: 'width' | 'height', label: string) =>
+    fullScreen ? (
+      <label className={field}>
+        {label}
+        <input className={input} type="number" value={params[key]} disabled readOnly />
+      </label>
+    ) : (
+      num(key, label, 40)
+    )
 
   const range = (
     key: 'tabSize' | 'neckWidth' | 'tabPosition' | 'neckAngle' | 'jitter',
@@ -78,9 +90,24 @@ export function JigsawPanel({ params, onChange, onRandom, gap,
       <fieldset className="grid grid-cols-2 gap-3">
         {num('cols', 'Columns', 1, 30)}
         {num('rows', 'Rows', 1, 30)}
-        {num('width', 'Width', 40)}
-        {num('height', 'Height', 40)}
+        {size('width', 'Width')}
+        {size('height', 'Height')}
       </fieldset>
+
+      <label className="flex items-start gap-2 text-sm">
+        <input
+          type="checkbox"
+          className="mt-1"
+          checked={fullScreen}
+          onChange={(e) => onFullScreenChange(e.target.checked)}
+        />
+        <span>
+          Full screen
+          <span className="block text-xs text-slate-500">
+            Fills the drawing area, overriding width and height.
+          </span>
+        </span>
+      </label>
 
       <label className="flex items-start gap-2 text-sm">
         <input

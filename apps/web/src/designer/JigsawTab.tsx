@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   DEFAULT_JIGSAW_PARAMS,
   JigsawTemplateGenerator,
@@ -7,25 +7,54 @@ import {
   type JigsawTemplateParams,
 } from '@jiggy/shared'
 import { JigsawPanel } from './JigsawPanel'
-import { JigsawView } from './JigsawView'
+import { JigsawView, VIEW_PAD } from './JigsawView'
 
 export function JigsawTab() {
   const [params, setParams] = useState<JigsawTemplateParams>(DEFAULT_JIGSAW_PARAMS)
+  const [fullScreen, setFullScreen] = useState(false)
+  const [area, setArea] = useState<{ width: number; height: number } | null>(null)
+  const mainRef = useRef<HTMLElement>(null)
   const [gap, setGap] = useState(0)
   const [tolerance, setTolerance] = useState(1e-6)
 
-  const matrix = useMemo(() => new JigsawTemplateGenerator(params).generate(), [params])
+  // Track the drawing area so full screen can override the width/height params.
+  useEffect(() => {
+    const el = mainRef.current
+    if (!el) return
+    const measure = () => {
+      // Subtract the main padding (p-4) and the view's own padding.
+      const inset = (16 + VIEW_PAD) * 2
+      setArea({
+        width: Math.max(40, Math.floor(el.clientWidth - inset)),
+        height: Math.max(40, Math.floor(el.clientHeight - inset)),
+      })
+    }
+    measure()
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(measure)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  const effective = useMemo(
+    () => (fullScreen && area ? { ...params, ...area } : params),
+    [params, fullScreen, area],
+  )
+
+  const matrix = useMemo(() => new JigsawTemplateGenerator(effective).generate(), [effective])
   const jigsaw = useMemo(() => new JigsawVectorizer().vectorize(matrix, { gap }), [matrix, gap])
   const report = useMemo(() => verifyJigsaw(matrix, jigsaw, { tolerance }), [matrix, jigsaw, tolerance])
   const matrixJson = useMemo(() => JSON.stringify(matrix, null, 2), [matrix])
 
   return (
     <div className="flex min-h-0 flex-1">
-      <main className="flex flex-1 items-center justify-center overflow-hidden bg-white p-4">
+      <main ref={mainRef} className="flex flex-1 items-center justify-center overflow-hidden bg-white p-4">
         <JigsawView jigsaw={jigsaw} />
       </main>
       <JigsawPanel
-        params={params}
+        params={effective}
+        fullScreen={fullScreen}
+        onFullScreenChange={setFullScreen}
         onChange={setParams}
         onRandom={() =>
           setParams((p) => ({

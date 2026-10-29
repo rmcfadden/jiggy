@@ -1,6 +1,7 @@
 import { JigsawVectorizer, type JigsawVector } from '@jiggy/shared'
 
-const PAD = 16
+export const VIEW_PAD = 16
+const PAD = VIEW_PAD
 const vectorizer = new JigsawVectorizer()
 
 export function JigsawView({ jigsaw }: { jigsaw: JigsawVector }) {

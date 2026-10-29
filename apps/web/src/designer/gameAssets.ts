@@ -1,13 +1,28 @@
 import { JIGSAW_PRESETS, type JigsawTemplateParams } from '@jiggy/shared'
 
-const varied = JIGSAW_PRESETS.find((p) => p.name === 'Varied')!.ranges
+const styleRanges = (name: string) => JIGSAW_PRESETS.find((p) => p.name === name)!.ranges
 
-export const GAME_TEMPLATES: { id: string; name: string; params: Partial<JigsawTemplateParams> }[] = [
-  { id: 'small', name: 'Small 3×2', params: { cols: 3, rows: 2, seed: 7 } },
-  { id: 'classic', name: 'Classic 4×3', params: { cols: 4, rows: 3, seed: 1 } },
-  { id: 'varied', name: 'Varied 5×4', params: { cols: 5, rows: 4, seed: 3, ...varied } },
-  { id: 'large', name: 'Large 8×6', params: { cols: 8, rows: 6, seed: 5 } },
+/** Piece-count options; cols × rows is the exact grid, so the count is exact. */
+export const TEMPLATE_SIZES: { id: string; cols: number; rows: number }[] = [
+  [6, 3, 2], [12, 4, 3], [20, 5, 4], [48, 8, 6], [100, 10, 10], [200, 20, 10], [300, 20, 15],
+  [500, 25, 20], [1000, 40, 25], [1500, 50, 30], [2000, 50, 40],
+].map(([count, cols, rows]) => ({ id: String(count), cols, rows }))
+
+/** Shape variations applied to any size. */
+export const TEMPLATE_STYLES: { id: string; name: string; ranges?: ReturnType<typeof styleRanges> }[] = [
+  { id: 'subtle', name: 'Classic (subtle)' },
+  { id: 'varied', name: 'Varied (irregular tabs)', ranges: styleRanges('Varied') },
 ]
+
+export const DEFAULT_TEMPLATE = { size: '12', style: 'subtle' }
+
+export function templateParams(size: string, style: string): Partial<JigsawTemplateParams> {
+  const s = TEMPLATE_SIZES.find((t) => t.id === size) ?? TEMPLATE_SIZES[1]
+  const st = TEMPLATE_STYLES.find((t) => t.id === style)
+  // Keep pieces a sensible on-screen size: big puzzles use smaller cells.
+  const cell = s.cols * s.rows > 48 ? 100 : 200
+  return { cols: s.cols, rows: s.rows, width: s.cols * cell, height: s.rows * cell, seed: s.cols + s.rows, ...st?.ranges }
+}
 
 const scene = (sky: [string, string], ground: string, sun: string) =>
   `data:image/svg+xml;utf8,${encodeURIComponent(

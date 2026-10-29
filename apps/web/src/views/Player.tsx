@@ -95,6 +95,8 @@ export function Game({
   const solved = isSolved(offsets)
   const placed = offsets.filter((o) => o.x === 0 && o.y === 0).length
 
+  // Snap distance follows the piece size, so small pieces of big puzzles don't snap from afar.
+  const snapTolerance = scatter?.cell ? Math.min(scatter.cell.width, scatter.cell.height) * 0.25 : undefined
   const margin = viewMargins(spec, scatter?.viewPercent, scatter?.cell)
   const { minX, minY } = puzzle.bounds
   const viewBox = `${minX - margin.x} ${minY - margin.y} ${puzzle.width + margin.x * 2} ${puzzle.height + margin.y * 2}`
@@ -131,7 +133,7 @@ export function Game({
     const d = drag.current
     drag.current = null
     if (!d) return
-    setOffsets((os) => os.map((o, i) => (i === d.index ? snapPiece(o).offset : o)))
+    setOffsets((os) => os.map((o, i) => (i === d.index ? snapPiece(o, snapTolerance).offset : o)))
   }
 
   return (
