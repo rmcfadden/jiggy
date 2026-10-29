@@ -39,7 +39,7 @@ export default function Explorer() {
   return (
     <div className="p-6">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Puzzles Explorer</h1>
+        <h1 className="text-2xl font-bold">Puzzles</h1>
         <button
           className="rounded bg-amber-500 px-3 py-1.5 text-sm font-medium hover:bg-amber-400"
           onClick={() => setSpecs(makeSpecs())}
