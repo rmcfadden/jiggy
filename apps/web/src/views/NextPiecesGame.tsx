@@ -10,7 +10,7 @@ import {
   type GameConfig,
   type PuzzleSpec,
 } from '@jiggy/shared'
-import { GameBoard } from '../designer/GameBoard'
+import { GameBoard, type Dock } from '../designer/GameBoard'
 import { GAME_PHOTOS } from '../designer/gameAssets'
 
 /** The "Next pieces in panel" game: the panel only offers the next few pieces. */
@@ -23,6 +23,7 @@ export function NextPiecesGame({ spec, modeControls }: { spec: PuzzleSpec; modeC
   const [config, setConfig] = useState<GameConfig>({ ...DEFAULT_GAME_CONFIG, type: 'next-pieces', seed: spec.seed })
   const [game, setGame] = useState(() => createGame(config, total))
   const [selected, setSelected] = useState<number | null>(null)
+  const [dock, setDock] = useState<Dock>('bottom')
 
   const start = (next: GameConfig) => {
     setConfig(next)
@@ -62,6 +63,15 @@ export function NextPiecesGame({ spec, modeControls }: { spec: PuzzleSpec; modeC
             <option value="random">Random</option>
           </select>
         </label>
+        <label className="flex items-center gap-2 text-sm">
+          Panel
+          <select className="rounded border border-slate-300 px-2 py-1" value={dock} onChange={(e) => setDock(e.target.value as Dock)}>
+            <option value="top">Top</option>
+            <option value="bottom">Bottom</option>
+            <option value="left">Left</option>
+            <option value="right">Right</option>
+          </select>
+        </label>
         <button className="rounded bg-amber-500 px-3 py-1.5 text-sm font-medium hover:bg-amber-400" onClick={() => start(config)}>
           Restart
         </button>
@@ -73,6 +83,7 @@ export function NextPiecesGame({ spec, modeControls }: { spec: PuzzleSpec; modeC
           game={game}
           selected={selected}
           showGuide
+          dock={dock}
           onSelect={setSelected}
           onPlace={(slot, dragged) => {
             const piece = dragged ?? selected
