@@ -90,21 +90,23 @@ type ZoomState = ReturnType<typeof useZoom>
 const btn = 'h-7 min-w-7 rounded px-1.5 text-sm font-medium hover:bg-slate-200 disabled:opacity-40'
 
 /** Floating +/−/reset buttons; place inside a `relative` wrapper around the scroll frame. */
-export function ZoomControls({ z }: { z: ZoomState }) {
+export function ZoomControls({ z, orientation = 'vertical' }: { z: ZoomState; orientation?: 'vertical' | 'horizontal' }) {
+  const vertical = orientation === 'vertical'
   return (
     <div
       role="group"
       aria-label="Zoom"
-      className="absolute right-3 top-3 z-20 flex items-center gap-0.5 rounded border border-slate-300 bg-white/90 p-0.5 shadow"
+      aria-orientation={orientation}
+      className={`absolute right-3 top-3 z-20 flex items-center gap-0.5 rounded border border-slate-300 bg-white/90 p-0.5 shadow ${vertical ? 'flex-col' : ''}`}
     >
-      <button type="button" className={btn} aria-label="Zoom out" disabled={z.zoom <= MIN_ZOOM} onClick={z.zoomOut}>
+      <button type="button" className={`${btn} ${vertical ? 'order-3' : ''}`} aria-label="Zoom out" disabled={z.zoom <= MIN_ZOOM} onClick={z.zoomOut}>
         −
       </button>
-      <span className="w-11 text-center text-xs tabular-nums text-slate-600">{Math.round(z.zoom * 100)}%</span>
-      <button type="button" className={btn} aria-label="Zoom in" disabled={z.zoom >= MAX_ZOOM} onClick={z.zoomIn}>
+      <span className={`${vertical ? 'order-2 w-9' : 'w-11'} text-center text-xs tabular-nums text-slate-600`}>{Math.round(z.zoom * 100)}%</span>
+      <button type="button" className={`${btn} ${vertical ? 'order-1' : ''}`} aria-label="Zoom in" disabled={z.zoom >= MAX_ZOOM} onClick={z.zoomIn}>
         +
       </button>
-      <button type="button" className={btn} aria-label="Reset zoom" disabled={z.zoom === 1} onClick={z.reset}>
+      <button type="button" className={`${btn} ${vertical ? 'order-4' : ''}`} aria-label="Reset zoom" disabled={z.zoom === 1} onClick={z.reset}>
         Reset
       </button>
     </div>

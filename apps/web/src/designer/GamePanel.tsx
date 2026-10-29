@@ -152,6 +152,13 @@ export function GamePanel(p: Props) {
             </div>
             {tab === 'general' && (
               <>
+            <label className={field}>
+              Zoom control
+              <select className={input} value={config.zoomOrientation} onChange={(e) => set({ zoomOrientation: e.target.value as GameConfig['zoomOrientation'] })}>
+                <option value="vertical">Vertical</option>
+                <option value="horizontal">Horizontal</option>
+              </select>
+            </label>
             {config.type === 'next-pieces' && (
               <>
                 <NumberField label="Pieces in panel" min={1} max={p.pieceCount} value={config.panelSize} onChange={(panelSize) => set({ panelSize })} />
@@ -189,6 +196,7 @@ export function GamePanel(p: Props) {
                     ))}
                   </select>
                 </label>
+                <NumberField label="Piece spread (0-100)" min={0} max={100} value={config.spread} onChange={(spread) => set({ spread })} />
                 <label className={field}>
                   Pieces on puzzle
                   <select className={input} value={config.looseCount} onChange={(e) => set({ looseCount: Number(e.target.value) })}>

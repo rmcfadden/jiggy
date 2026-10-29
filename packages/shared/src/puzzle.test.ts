@@ -51,6 +51,14 @@ describe("scatter options", () => {
     expect(side("right").every((c) => c.x > spec.cols * PIECE_SIZE)).toBe(true);
   });
 
+  it("spreads loose pieces further apart than purely random placement", () => {
+    const nearestGap = (spread: number) => {
+      const c = scatterOffsets(spec, { spread }).map(centre);
+      return Math.min(...c.flatMap((a, i) => c.slice(i + 1).map((b) => Math.hypot(a.x - b.x, a.y - b.y))));
+    };
+    expect(nearestGap(100)).toBeGreaterThan(nearestGap(0));
+  });
+
   it("gives a larger view margin for a smaller puzzle share", () => {
     expect(viewMargins(spec, 25).x).toBeGreaterThan(viewMargins(spec, 70).x);
   });

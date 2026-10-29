@@ -53,7 +53,7 @@ export function GameTab() {
           // Scrambled pieces is the Puzzle view: loose pieces scattered around the board.
           <div className="min-h-0 flex-1 overflow-hidden rounded border border-slate-200">
             <ScrambledGame
-              key={`${templateId}-${config.seed}-${config.viewPercent}-${config.startSide}-${config.looseCount}`}
+              key={`${templateId}-${config.seed}-${config.viewPercent}-${config.startSide}-${config.looseCount}-${config.spread}`}
               spec={{ cols: templateParams.cols, rows: templateParams.rows, seed: templateParams.seed + config.seed }}
               jigsaw={jigsaw}
               photo={photo}
@@ -62,24 +62,18 @@ export function GameTab() {
               outlineScale={borderScale(borders.template.width)}
               borders={borders}
               effects={effects}
+              zoomOrientation={config.zoomOrientation}
               scatter={{
                 cell: { width: templateParams.width / templateParams.cols, height: templateParams.height / templateParams.rows },
                 viewPercent: config.viewPercent,
                 side: config.startSide,
+                spread: config.spread,
                 count: config.looseCount > 0 ? config.looseCount : undefined,
               }}
             />
           </div>
         ) : (
           <>
-        <div className="flex items-center justify-between text-sm" aria-live="polite">
-          <span>
-            {game.total - game.queue.length}/{game.total} placed · {game.mistakes} mistakes
-          </span>
-          <span className="font-medium text-amber-700">
-            {solved ? 'Solved!' : selected === null ? 'Pick a piece from the panel' : 'Now click its slot on the board'}
-          </span>
-        </div>
         <GameBoard
           jigsaw={jigsaw}
           photo={photo}
@@ -88,6 +82,7 @@ export function GameTab() {
           showGuide={showGuide}
           borders={borders}
           effects={effects}
+          zoomOrientation={config.zoomOrientation}
           dock={config.panelDock}
           onDock={(panelDock) => setConfig({ ...config, panelDock })}
           onSelect={setSelected}

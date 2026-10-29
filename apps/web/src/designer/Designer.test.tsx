@@ -83,10 +83,9 @@ it('plays a next-pieces game: pick a piece, place it in its slot', () => {
   const { container } = render(<Designer />)
   fireEvent.click(screen.getByRole('button', { name: /Next pieces in panel/ }))
   expect(container.querySelectorAll('[data-testid="slot"]')).toHaveLength(12)
-  expect(screen.getByText(/0\/12 placed/)).toBeTruthy()
   fireEvent.click(screen.getAllByRole('button', { name: /^Piece \d+$/ })[0])
   fireEvent.click(container.querySelector('[data-testid="slot"]')!)
-  expect(screen.getByText(/(1\/12 placed · 0|0\/12 placed · 1) mistakes?/)).toBeTruthy()
+  expect(screen.getAllByRole('button', { name: /^Piece \d+$/ })).toHaveLength(3)
 })
 
 it('last-x starts with all but x pieces placed, and next-pieces limits the panel', () => {
