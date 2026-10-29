@@ -10,9 +10,20 @@ type Props = {
   game: GameState
   selected: number | null
   showGuide: boolean
+  /** Which edge of the board the piece panel is docked to. */
+  dock?: Dock
   onSelect: (piece: number | null) => void
   /** `piece` is given when the placement comes from a drag, before `selected` has updated. */
   onPlace: (slot: number, piece?: number) => void
+}
+
+export type Dock = 'top' | 'bottom' | 'left' | 'right'
+
+const OUTER: Record<Dock, string> = {
+  bottom: 'flex-col',
+  top: 'flex-col-reverse',
+  right: 'flex-row',
+  left: 'flex-row-reverse',
 }
 
 type Drag = { piece: number; x: number; y: number; w: number; h: number }
@@ -33,7 +44,8 @@ function PieceImage({ jigsaw, photo, clipId }: { jigsaw: JigsawVector; photo: st
   )
 }
 
-export function GameBoard({ jigsaw, photo, game, selected, showGuide, onSelect, onPlace }: Props) {
+export function GameBoard({ jigsaw, photo, game, selected, showGuide, dock = 'bottom', onSelect, onPlace }: Props) {
+  const vertical = dock === 'left' || dock === 'right'
   const paths = useMemo(() => vectorizer.toSvgPaths(jigsaw), [jigsaw])
   const { minX, minY } = jigsaw.bounds
   const tray = trayPieces(game)
@@ -70,7 +82,7 @@ export function GameBoard({ jigsaw, photo, game, selected, showGuide, onSelect, 
   }
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
+    <div className={`flex min-h-0 min-w-0 flex-1 gap-3 ${OUTER[dock]}`}>
       <div className="flex min-h-0 flex-1 items-center justify-center">
         <svg
           className="max-h-full max-w-full"
@@ -112,7 +124,13 @@ export function GameBoard({ jigsaw, photo, game, selected, showGuide, onSelect, 
           )}
         </svg>
       </div>
-      <div className="flex min-h-24 w-full shrink-0 items-center gap-3 overflow-x-scroll rounded [&::-webkit-scrollbar-thumb]:rounded [&::-webkit-scrollbar-thumb]:bg-slate-400 [&::-webkit-scrollbar-track]:bg-slate-200 [&::-webkit-scrollbar]:h-3 border border-slate-200 bg-slate-50 p-3" aria-label="Piece panel">
+      <div
+        className={`flex shrink-0 items-center gap-3 rounded border border-slate-200 bg-slate-50 p-3 [&::-webkit-scrollbar-thumb]:rounded [&::-webkit-scrollbar-thumb]:bg-slate-400 [&::-webkit-scrollbar-track]:bg-slate-200 ${
+          vertical
+            ? 'min-h-0 w-32 flex-col overflow-y-scroll [&::-webkit-scrollbar]:w-3'
+            : 'min-h-24 w-full overflow-x-scroll [&::-webkit-scrollbar]:h-3'
+        }`}
+        aria-label="Piece panel">
         {tray.length === 0 && <span className="text-sm text-slate-500">No pieces left.</span>}
         {tray.map((i) => {
           const b = jigsaw.pieces[i].vector.bounds
@@ -134,7 +152,7 @@ export function GameBoard({ jigsaw, photo, game, selected, showGuide, onSelect, 
               }}
             >
               <svg
-                className="h-20 w-auto"
+                className={vertical ? 'h-auto w-24' : 'h-20 w-auto'}
                 viewBox={`${b.minX} ${b.minY} ${b.maxX - b.minX} ${b.maxY - b.minY}`}
                 style={{ aspectRatio: `${b.maxX - b.minX} / ${b.maxY - b.minY}` }}
               >
