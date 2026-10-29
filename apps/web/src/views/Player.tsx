@@ -1,4 +1,5 @@
 import { ZoomControls, useZoom } from '../designer/zoom'
+import { DEFAULT_PIECE_BORDERS, PieceBorderPath, type PieceBorders } from '../designer/controls'
 import { useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { NextPiecesGame } from './NextPiecesGame'
@@ -72,6 +73,8 @@ export function Game({
   photo,
   showGuide = false,
   outline = 'solid',
+  outlineScale = 1,
+  borders = DEFAULT_PIECE_BORDERS,
   modeControls,
 }: {
   spec: PuzzleSpec
@@ -83,6 +86,10 @@ export function Game({
   showGuide?: boolean
   /** Draw the template's piece outlines on the board as a placement hint. */
   outline?: 'none' | 'solid' | 'dotted'
+  /** Multiplier on the outline width (thin 0.5, medium 1, thick 2). */
+  outlineScale?: number
+  /** Border looks for loose (moving) and home (set) pieces. */
+  borders?: PieceBorders
   modeControls?: React.ReactNode
 }) {
   const puzzle = useMemo(() => jigsaw ?? buildPuzzle(spec), [jigsaw, spec])
@@ -103,7 +110,8 @@ export function Game({
   const viewBox = `${minX - margin.x} ${minY - margin.y} ${puzzle.width + margin.x * 2} ${puzzle.height + margin.y * 2}`
 
   // Solid outline about a pixel wide whatever the grid size (dashes turn to noise on big grids).
-  const outlineWidth = Math.max(2, (puzzle.width + margin.x * 2) / 800)
+  const pixel = Math.max(2, (puzzle.width + margin.x * 2) / 800)
+  const outlineWidth = pixel * outlineScale
 
   const z = useZoom((puzzle.width + margin.x * 2) / (puzzle.height + margin.y * 2))
 
@@ -232,7 +240,7 @@ export function Game({
                       preserveAspectRatio="xMidYMid slice"
                       clipPath={`url(#scatter-clip-${i})`}
                     />
-                    <path d={paths[i]} fill="none" stroke="#ffffff88" strokeWidth={1} strokeLinejoin="round" />
+                    <PieceBorderPath d={paths[i]} border={home ? borders.set : borders.moving} unit={pixel / 2} color={home ? '#ffffff88' : '#92400e'} />
                   </>
                 )}
               </g>

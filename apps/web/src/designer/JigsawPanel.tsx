@@ -6,6 +6,8 @@ type Props = {
   onChange: (params: JigsawTemplateParams) => void
   fullScreen: boolean
   onFullScreenChange: (fullScreen: boolean) => void
+  preserveAspect: boolean
+  onPreserveAspectChange: (preserve: boolean) => void
   onRandom: () => void
   gap: number
   onGapChange: (gap: number) => void
@@ -15,7 +17,7 @@ type Props = {
   onToleranceChange: (tolerance: number) => void
 }
 
-export function JigsawPanel({ params, onChange, fullScreen, onFullScreenChange, onRandom, gap,
+export function JigsawPanel({ params, onChange, fullScreen, onFullScreenChange, preserveAspect, onPreserveAspectChange, onRandom, gap,
   onGapChange,
   matrixJson,
   report,
@@ -36,7 +38,20 @@ export function JigsawPanel({ params, onChange, fullScreen, onFullScreenChange, 
         <input className={input} type="number" value={params[key]} disabled readOnly />
       </label>
     ) : (
-      num(key, label, 40)
+      <NumberField
+        label={label}
+        min={40}
+        value={params[key]}
+        onChange={(v) => {
+          if (!preserveAspect) return set(key, v)
+          const ratio = params.width / params.height
+          onChange(
+            key === 'width'
+              ? { ...params, width: v, height: Math.max(40, Math.round(v / ratio)) }
+              : { ...params, height: v, width: Math.max(40, Math.round(v * ratio)) },
+          )
+        }}
+      />
     )
 
   const range = (
@@ -93,6 +108,21 @@ export function JigsawPanel({ params, onChange, fullScreen, onFullScreenChange, 
         {size('width', 'Width')}
         {size('height', 'Height')}
       </fieldset>
+
+      <label className="flex items-start gap-2 text-sm">
+        <input
+          type="checkbox"
+          className="mt-1"
+          checked={preserveAspect}
+          onChange={(e) => onPreserveAspectChange(e.target.checked)}
+        />
+        <span>
+          Preserve aspect ratio
+          <span className="block text-xs text-slate-500">
+            Editing width or height updates the other; full screen fits the ratio inside the drawing area.
+          </span>
+        </span>
+      </label>
 
       <label className="flex items-start gap-2 text-sm">
         <input
