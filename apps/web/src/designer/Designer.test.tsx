@@ -115,24 +115,31 @@ it('zooms the board in and resets', () => {
 
 const click = (name: string | RegExp, section?: string) =>
   fireEvent.click(within(section ? screen.getByLabelText(section) : document.body).getByRole('button', { name }))
+const create = (section: string, noun: string, name: string) => {
+  click('New…', section)
+  expect(screen.getByRole('dialog', { name: `New ${noun}` })).toBeTruthy()
+  fireEvent.change(screen.getByLabelText('Name'), { target: { value: name } })
+  fireEvent.click(screen.getByRole('button', { name: 'Create' }))
+  expect(screen.queryByRole('dialog')).toBeNull()
+}
 const pick = (label: string, value: string) => fireEvent.change(screen.getByLabelText(label), { target: { value } })
 
 it('saves, loads, renames and deletes a template', () => {
   render(<Designer />)
   pick('Number of pieces', '20')
-  fireEvent.change(screen.getByLabelText('Template name'), { target: { value: 'Big' } })
-  click('Add new', 'Template')
+  create('Template', 'template', 'Big')
   pick('Number of pieces', '6')
   pick('Saved templates', screen.getByRole('option', { name: 'Big' }).getAttribute('value')!)
   click('Load', 'Template')
   expect(screen.getByLabelText('Number of pieces')).toHaveProperty('value', '20')
 
-  fireEvent.change(screen.getByLabelText('Template name'), { target: { value: 'Large' } })
-  click('Rename', 'Template')
+  click('Rename…', 'Template')
+  fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Large' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Rename' }))
   expect(screen.getByRole('option', { name: 'Large' })).toBeTruthy()
 
   pick('Number of pieces', '48')
-  click('Save changes', 'Template')
+  click('Save', 'Template')
   pick('Number of pieces', '6')
   click('Load', 'Template')
   expect(screen.getByLabelText('Number of pieces')).toHaveProperty('value', '48')
@@ -146,8 +153,7 @@ it('saves a game and restores its setup, and keeps it after a reload', () => {
   const { unmount } = render(<Designer />)
   click(/Solve last X pieces/, 'Game type')
   pick('Number of pieces', '20')
-  fireEvent.change(screen.getByLabelText('Game name'), { target: { value: 'Mine' } })
-  click('Add new', 'Games')
+  create('Games', 'game', 'Mine')
   unmount()
 
   render(<Designer />)
