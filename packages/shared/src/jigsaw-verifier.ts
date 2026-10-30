@@ -2,7 +2,7 @@ import type { JigsawMatrix } from "./jigsaw-template";
 import { overlappingSides } from "./overlap";
 import { JigsawTemplateGenerator } from "./jigsaw-template";
 import type { JigsawVector, PlacedPiece } from "./jigsaw-vectorizer";
-import type { PathSegment, Point, Side } from "./piece-generator";
+import { CURVES_PER_TAB, type PathSegment, type Point, type Side } from "./piece-generator";
 
 export type VerifyOptions = {
   /** Largest allowed distance between matching points on a shared seam. Default 1e-6. */
@@ -48,8 +48,8 @@ function edgePoints(segments: PathSegment[]): Point[][] {
         });
       }
       cur = s.to;
-      // A tab or socket is three consecutive curves.
-      if (curve.length === 3 * (SAMPLES + 1)) {
+      // A tab or socket is CURVES_PER_TAB consecutive curves.
+      if (curve.length === CURVES_PER_TAB * (SAMPLES + 1)) {
         edges.push(curve);
         curve = [];
       }

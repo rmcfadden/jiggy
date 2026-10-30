@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { JigsawTemplateGenerator } from "./jigsaw-template";
 import { JigsawVectorizer } from "./jigsaw-vectorizer";
-import type { PathSegment, Point } from "./piece-generator";
+import { CURVES_PER_TAB, type PathSegment, type Point } from "./piece-generator";
 
 describe("JigsawTemplateGenerator", () => {
   const gen = (p = {}) => new JigsawTemplateGenerator({ cols: 5, rows: 4, seed: 9, ...p });
@@ -88,8 +88,8 @@ function edgePoints(segments: PathSegment[]): Point[][] {
         });
       }
       cur = s.to;
-      // An edge is three consecutive curves.
-      if (edge.length === 27) {
+      // An edge is CURVES_PER_TAB consecutive curves.
+      if (edge.length === CURVES_PER_TAB * 9) {
         edges.push(edge);
         edge = [];
       }

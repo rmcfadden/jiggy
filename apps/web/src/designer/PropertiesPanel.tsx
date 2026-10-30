@@ -28,6 +28,9 @@ const SLIDERS: { key: keyof EdgeShape; label: string; min: number; max: number; 
   { key: 'tabPosition', label: 'Tab position', min: 0.3, max: 0.7, step: 0.01 },
   { key: 'neckAngle', label: 'Neck angle (°)', min: -20, max: 20, step: 1 },
   { key: 'jitter', label: 'Jitter', min: 0, max: 1, step: 0.01 },
+  { key: 'headAspect', label: 'Head aspect', min: 0.6, max: 1.6, step: 0.01 },
+  { key: 'flare', label: 'Shoulder flare', min: 0, max: 1, step: 0.01 },
+  { key: 'wobble', label: 'Edge wobble', min: 0, max: 1, step: 0.01 },
 ]
 
 export function PropertiesPanel({
