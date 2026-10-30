@@ -2,8 +2,10 @@ import { useState } from 'react'
 import { GAME_TYPES, START_SIDES, type GameConfig, type JigsawVector } from '@jiggy/shared'
 import type { PieceEffects } from './effects'
 import { PieceSettings } from './PieceSettings'
-import { TEMPLATE_SIZES, TEMPLATE_STYLES } from './gameAssets'
+import { TEMPLATE_SIZES, TEMPLATE_STYLES, type GameImage } from './gameAssets'
 import { SavedItems, type SavedItemsProps } from './SavedItems'
+import { ImageFormatter } from './ImageFormatter'
+import type { ImageEdits } from './imageFilters'
 import { NumberField, Panel, field, input, primaryButton, type PieceBorders } from './controls'
 
 type Props = {
@@ -13,7 +15,13 @@ type Props = {
   onTemplateStyle: (id: string) => void
   photoId: string
   /** Built-in photos first, then the user's saved images. */
-  photos: { id: string; name: string; src: string; builtin: boolean }[]
+  photos: GameImage[]
+  /** Display URLs for photos that have edits applied; the others show their original. */
+  photoUrls: Record<string, string>
+  /** Stores edits on a user image (or clears them with undefined). */
+  onEditPhoto: (id: string, edits: ImageEdits | undefined) => void
+  /** Adds a new image that points at `base`'s original and carries the edits. */
+  onCopyPhoto: (base: GameImage, name: string, edits: ImageEdits) => void
   onPhoto: (id: string) => void
   /** Adds an image file to the library. */
   onUpload: (file: File) => void
@@ -103,6 +111,12 @@ export function GamePanel(p: Props) {
   const [tab, setTab] = useState<'general' | 'pieces' | 'effects'>('general')
   const type = GAME_TYPES.find((t) => t.id === config.type)!
   const chosenPhoto = p.photos.find((ph) => ph.id === p.photoId)
+  const [query, setQuery] = useState('')
+  const [formatting, setFormatting] = useState(false)
+  const needle = query.trim().toLowerCase()
+  // The chosen photo stays in the strip while searching, so it never disappears from view.
+  const matches = needle ? p.photos.filter((ph) => ph.name.toLowerCase().includes(needle)) : p.photos
+  const shownPhotos = needle ? p.photos.filter((ph) => ph.id === p.photoId || matches.includes(ph)) : p.photos
   const set = (patch: Partial<GameConfig>) => onConfig({ ...config, ...patch })
 
   return (
@@ -144,14 +158,37 @@ export function GamePanel(p: Props) {
 
       <section className="flex flex-col gap-1.5" aria-label="Background photo">
         <h3 className={heading}>2. Background photo</h3>
-        <div className="grid grid-cols-2 gap-2">
-          {p.photos.map((ph) => (
-            <button key={ph.id} aria-label={ph.name} aria-pressed={ph.id === p.photoId} className={`overflow-hidden rounded border-2 ${ph.id === p.photoId ? 'border-amber-500' : 'border-transparent'}`} onClick={() => p.onPhoto(ph.id)}>
-              <img src={ph.src} alt="" className="aspect-[4/3] w-full object-cover" />
+        <input
+          type="search"
+          aria-label="Search images"
+          placeholder="Search images…"
+          className="rounded border border-slate-300 bg-white px-2 py-0.5 text-xs"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        <div className="scrollbar-visible flex gap-1.5 pb-1.5" role="group" aria-label="Photos">
+          {shownPhotos.map((ph) => (
+            <button
+              key={ph.id}
+              ref={ph.id === p.photoId ? (el) => el?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' }) : undefined}
+              aria-label={ph.name}
+              aria-pressed={ph.id === p.photoId}
+              title={ph.name}
+              className={`w-20 shrink-0 overflow-hidden rounded border-2 text-left ${ph.id === p.photoId ? 'border-amber-500 ring-2 ring-amber-300' : 'border-transparent hover:border-slate-300'}`}
+              onClick={() => p.onPhoto(ph.id)}
+            >
+              <img src={p.photoUrls[ph.id] ?? ph.location} alt="" className="aspect-[4/3] w-full object-cover" />
+              <span className={`block truncate px-1 py-0.5 text-xs ${ph.id === p.photoId ? 'bg-amber-50 font-medium text-amber-800' : 'text-slate-600'}`}>{ph.name}</span>
             </button>
           ))}
+          {matches.length === 0 && <p className="py-2 text-sm text-slate-500">No images match “{query}”.</p>}
         </div>
-        {chosenPhoto && !chosenPhoto.builtin && (
+        {chosenPhoto && (
+          <button className="rounded border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium hover:bg-slate-100" onClick={() => setFormatting(true)}>
+            Format image…{chosenPhoto.edits && ' (edited)'}
+          </button>
+        )}
+        {chosenPhoto && chosenPhoto.source === 'user' && (
           <ImageEditor
             key={chosenPhoto.id}
             name={chosenPhoto.name}
@@ -192,6 +229,16 @@ export function GamePanel(p: Props) {
           Restart
         </button>
       </section>
+
+      {formatting && chosenPhoto && (
+        <ImageFormatter
+          key={chosenPhoto.id}
+          image={chosenPhoto}
+          onClose={() => setFormatting(false)}
+          onReplace={chosenPhoto.source === 'user' ? (edits) => p.onEditPhoto(chosenPhoto.id, edits) : undefined}
+          onSaveNew={(name, edits) => p.onCopyPhoto(chosenPhoto, name, edits)}
+        />
+      )}
 
       {open && (
         <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/40" onClick={() => setOpen(false)}>

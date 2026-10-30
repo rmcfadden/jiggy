@@ -14,7 +14,9 @@ import { GameBoard } from './GameBoard'
 import { GamePanel } from './GamePanel'
 import { DEFAULT_EFFECTS, type PieceEffects } from './effects'
 import { DEFAULT_PIECE_BORDERS, borderScale, type PieceBorders } from './controls'
-import { DEFAULT_TEMPLATE, GAME_PHOTOS, TEMPLATE_SIZES, TEMPLATE_STYLES, templateParams as buildTemplateParams } from './gameAssets'
+import { DEFAULT_TEMPLATE, GAME_PHOTOS, type GameImage, TEMPLATE_SIZES, TEMPLATE_STYLES, templateParams as buildTemplateParams } from './gameAssets'
+import { useEditedUrls } from './renderImage'
+import type { ImageEdits } from './imageFilters'
 import { addItem, newId, readImage, removeItem, updateItem, useLibrary, type SavedGame } from './library'
 
 export function GameTab() {
@@ -33,8 +35,10 @@ export function GameTab() {
   const jigsaw = useMemo(() => new JigsawVectorizer().vectorize(new JigsawTemplateGenerator(template).generate()), [template])
   const templateParams = { ...DEFAULT_JIGSAW_PARAMS, ...template }
   const total = jigsaw.pieces.length
-  const photos = [...GAME_PHOTOS.map((p) => ({ ...p, builtin: true })), ...library.images.map((i) => ({ ...i, builtin: false }))]
-  const photo = (photos.find((p) => p.id === photoId) ?? photos[0]).src
+  const photos: GameImage[] = [...GAME_PHOTOS, ...library.images.map((i): GameImage => ({ ...i, source: 'user' }))]
+  const photoUrls = useEditedUrls(photos)
+  const chosen = photos.find((p) => p.id === photoId) ?? photos[0]
+  const photo = photoUrls[chosen.id] ?? chosen.location
 
   const [game, setGame] = useState(() => createGame(config, total))
   const restart = () => {
@@ -51,13 +55,13 @@ export function GameTab() {
   const snapshot = (): Omit<SavedGame, 'id' | 'name'> => ({ templateSize, templateStyle, photoId, config, showGuide, borders, effects })
   const imageName = (file: File) => file.name.replace(/\.[^.]+$/, '') || 'Image'
   const addImage = (file: File, replaceId?: string) =>
-    readImage(file).then((src) => {
+    readImage(file).then((location) => {
       if (replaceId) {
-        setLibrary((l) => ({ ...l, images: updateItem(l.images, replaceId, { src }) }))
+        setLibrary((l) => ({ ...l, images: updateItem(l.images, replaceId, { location }) }))
         return
       }
       const id = newId()
-      setLibrary((l) => ({ ...l, images: addItem(l.images, { id, name: imageName(file), src }) }))
+      setLibrary((l) => ({ ...l, images: addItem(l.images, { id, name: imageName(file), location }) }))
       setPhotoId(id)
     })
 
@@ -161,6 +165,14 @@ export function GameTab() {
         onTemplateStyle={setTemplateStyle}
         photoId={photoId}
         photos={photos}
+        photoUrls={photoUrls}
+        onEditPhoto={(id, edits: ImageEdits | undefined) => setLibrary((l) => ({ ...l, images: updateItem(l.images, id, { edits }) }))}
+        onCopyPhoto={(base, name, edits) => {
+          // The copy points at the same untouched original, so no picture data is duplicated.
+          const id = newId()
+          setLibrary((l) => ({ ...l, images: addItem(l.images, { id, name, location: base.location, edits }) }))
+          setPhotoId(id)
+        }}
         onPhoto={setPhotoId}
         onUpload={(file) => void addImage(file)}
         onReplacePhoto={(id, file) => void addImage(file, id)}

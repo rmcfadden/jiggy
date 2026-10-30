@@ -15,7 +15,6 @@ import {
   decodePuzzleId,
   encodePuzzleId,
   findPuzzle,
-  isSolved,
   scatterOffsets,
   snapPiece,
   toSvgPath,
@@ -31,7 +30,7 @@ import {
 const DEFAULT_SPEC: PuzzleSpec = { cols: 4, rows: 3, seed: 1 }
 
 export default function Player() {
-  const [params, setParams] = useSearchParams()
+  const [params] = useSearchParams()
   const catalogPuzzle = findPuzzle(CATALOG, params.get('id'))
   const spec = decodePuzzleId(params.get('id')) ?? DEFAULT_SPEC
   const id = catalogPuzzle?.id ?? encodePuzzleId(spec)
@@ -42,23 +41,17 @@ export default function Player() {
       : catalogPuzzle?.settings.type === 'next-pieces'
         ? 'next-pieces'
         : 'scrambled'
-  const setMode = (m: Mode) => {
-    const next = new URLSearchParams(params)
-    next.set('mode', m)
-    setParams(next, { replace: true })
-  }
-  const controls = <ModeControls mode={mode} onMode={setMode} />
   // Remount on id or mode change so the game state resets.
-  if (catalogPuzzle) return <CatalogPlayer key={`${id}-${mode}`} puzzle={catalogPuzzle} mode={mode} modeControls={controls} />
+  if (catalogPuzzle) return <CatalogPlayer key={`${id}-${mode}`} puzzle={catalogPuzzle} mode={mode} />
   return mode === 'next-pieces' ? (
-    <NextPiecesGame key={id} spec={spec} modeControls={controls} />
+    <NextPiecesGame key={id} spec={spec} />
   ) : (
-    <Game key={id} spec={spec} modeControls={controls} />
+    <Game key={id} spec={spec} />
   )
 }
 
 /** A catalog puzzle: its picture, template and game settings, with its reviews underneath. */
-function CatalogPlayer({ puzzle, mode, modeControls }: { puzzle: Puzzle; mode: Mode; modeControls: React.ReactNode }) {
+function CatalogPlayer({ puzzle, mode }: { puzzle: Puzzle; mode: Mode }) {
   const { settings } = puzzle
   const template = useMemo(() => templateParams(puzzle.template.size, puzzle.template.style), [puzzle.template])
   const jigsaw = useMemo(() => new JigsawVectorizer().vectorize(new JigsawTemplateGenerator(template).generate()), [template])
@@ -74,19 +67,15 @@ function CatalogPlayer({ puzzle, mode, modeControls }: { puzzle: Puzzle; mode: M
             spec={spec}
             jigsaw={jigsaw}
             photo={puzzle.image.location}
-            title={puzzle.name}
             config={{ ...settings, type: 'next-pieces' }}
-            modeControls={modeControls}
           />
         ) : (
           <Game
             spec={spec}
             jigsaw={jigsaw}
             photo={puzzle.image.location}
-            title={puzzle.name}
             showGuide
             zoomOrientation={settings.zoomOrientation}
-            modeControls={modeControls}
             scatter={{
               cell: { width: template.width! / cols, height: template.height! / rows },
               viewPercent: settings.viewPercent,
@@ -116,32 +105,6 @@ function CatalogPlayer({ puzzle, mode, modeControls }: { puzzle: Puzzle; mode: M
 
 type Mode = 'scrambled' | 'next-pieces'
 
-const MODES: { id: Mode; label: string }[] = [
-  { id: 'scrambled', label: 'Scrambled pieces' },
-  { id: 'next-pieces', label: 'Next pieces in panel' },
-]
-
-function ModeControls({ mode, onMode }: { mode: Mode; onMode: (m: Mode) => void }) {
-  return (
-    <div role="group" aria-label="Game mode" className="flex gap-1">
-      {MODES.map((m) => (
-        <button
-          key={m.id}
-          aria-pressed={m.id === mode}
-          className={`rounded border px-3 py-1.5 text-sm font-medium ${
-            m.id === mode
-              ? 'border-amber-500 bg-amber-50 text-amber-800'
-              : 'border-slate-300 bg-white hover:bg-slate-100'
-          }`}
-          onClick={() => onMode(m.id)}
-        >
-          {m.label}
-        </button>
-      ))}
-    </div>
-  )
-}
-
 export function Game({
   spec,
   scatter,
@@ -153,8 +116,6 @@ export function Game({
   borders = DEFAULT_PIECE_BORDERS,
   effects = DEFAULT_EFFECTS,
   zoomOrientation,
-  title,
-  modeControls,
 }: {
   spec: PuzzleSpec
   scatter?: ScatterOptions
@@ -171,9 +132,6 @@ export function Game({
   borders?: PieceBorders
   effects?: PieceEffects
   zoomOrientation?: ZoomOrientation
-  /** Shown in the header instead of the puzzle id. */
-  title?: string
-  modeControls?: React.ReactNode
 }) {
   const puzzle = useMemo(() => jigsaw ?? buildPuzzle(spec), [jigsaw, spec])
   const paths = useMemo(() => puzzle.pieces.map((p) => toSvgPath(p.vector)), [puzzle])
@@ -185,10 +143,8 @@ export function Game({
   /** The piece being dragged while it is within snapping distance of its slot. */
   const [near, setNear] = useState<number | null>(null)
 
-  const solved = isSolved(offsets)
   const homes = useMemo(() => offsets.map((o) => o.x === 0 && o.y === 0), [offsets])
   const flash = useFlash(homes)
-  const placed = offsets.filter((o) => o.x === 0 && o.y === 0).length
 
   // Snap distance follows the piece size, so small pieces of big puzzles don't snap from afar.
   const snapTolerance = scatter?.cell ? Math.min(scatter.cell.width, scatter.cell.height) * 0.25 : undefined
@@ -242,23 +198,6 @@ export function Game({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-4 border-b border-slate-200 bg-slate-100 px-4 py-2">
-        <h1 className="text-lg font-bold">Puzzle</h1>
-        {modeControls}
-        <span className="text-sm text-slate-600">
-          {title ?? encodePuzzleId(spec)} · {placed}/{offsets.length} placed
-        </span>
-        {solved && <span className="rounded bg-green-600 px-2 py-0.5 text-sm font-medium text-white">Solved!</span>}
-        <button
-          className="ml-auto rounded bg-amber-500 px-3 py-1.5 text-sm font-medium hover:bg-amber-400"
-          onClick={() => {
-            setOffsets(scatterOffsets(spec, scatter))
-            setOrder(puzzle.pieces.map((_, i) => i))
-          }}
-        >
-          Restart
-        </button>
-      </div>
       <div className="relative flex min-h-0 flex-1 bg-slate-50">
       <div ref={z.frameRef} {...z.frameProps} className="flex min-h-0 min-w-0 flex-1 overflow-auto">
         <svg

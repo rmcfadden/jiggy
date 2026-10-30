@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { DEFAULT_GAME_CONFIG, type GameConfig } from '@jiggy/shared'
 import { DEFAULT_EFFECTS, type PieceEffects } from './effects'
+import type { ImageEdits } from './imageFilters'
 import { DEFAULT_PIECE_BORDERS, type PieceBorders } from './controls'
 
 type Named = { id: string; name: string }
@@ -9,7 +10,7 @@ type Named = { id: string; name: string }
 export type SavedTemplate = Named & { size: string; style: string }
 
 /** A named background photo the user added. */
-export type SavedImage = Named & { src: string }
+export type SavedImage = Named & { location: string; edits?: ImageEdits }
 
 /** Everything the Game tab can set, under a name. */
 export type SavedGame = Named & {
@@ -60,7 +61,8 @@ export function parseLibrary(text: string | null): Library {
     const list = (v: unknown) => (Array.isArray(v) ? v.filter(isNamed) : [])
     return {
       templates: list(raw.templates) as SavedTemplate[],
-      images: list(raw.images) as SavedImage[],
+      // Images saved by an older build kept their data URL in `src`.
+      images: (list(raw.images) as (SavedImage & { src?: string })[]).map(({ src, ...i }) => ({ ...i, location: i.location ?? src ?? '' })),
       games: (list(raw.games) as SavedGame[]).map(normalizeGame),
     }
   } catch {
@@ -99,28 +101,12 @@ export function useLibrary() {
   return { library, setLibrary, error }
 }
 
-const MAX_IMAGE_EDGE = 1600
-
-/** Reads an image file as a data URL, shrinking big photos so they fit in local storage. */
+/** Reads an image file as a data URL, exactly as the file is. */
 export function readImage(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onerror = () => reject(reader.error)
-    reader.onload = () => {
-      const raw = String(reader.result)
-      const img = new Image()
-      img.onerror = () => resolve(raw)
-      img.onload = () => {
-        const scale = Math.min(1, MAX_IMAGE_EDGE / Math.max(img.naturalWidth, img.naturalHeight))
-        if (scale === 1) return resolve(raw)
-        const canvas = document.createElement('canvas')
-        canvas.width = Math.round(img.naturalWidth * scale)
-        canvas.height = Math.round(img.naturalHeight * scale)
-        canvas.getContext('2d')?.drawImage(img, 0, 0, canvas.width, canvas.height)
-        resolve(canvas.toDataURL('image/jpeg', 0.85))
-      }
-      img.src = raw
-    }
+    reader.onload = () => resolve(String(reader.result))
     reader.readAsDataURL(file)
   })
 }
