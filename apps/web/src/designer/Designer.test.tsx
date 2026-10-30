@@ -1,7 +1,8 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { afterEach, expect, it } from 'vitest'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { afterEach, beforeEach, expect, it } from 'vitest'
 import Designer from './Designer'
 
+beforeEach(() => localStorage.clear())
 afterEach(cleanup)
 
 it('renders a piece and changes it on Random', () => {
@@ -110,4 +111,65 @@ it('zooms the board in and resets', () => {
   expect(screen.getByText('150%')).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: 'Reset zoom' }))
   expect(screen.getByText('100%')).toBeTruthy()
+})
+
+const click = (name: string | RegExp, section?: string) =>
+  fireEvent.click(within(section ? screen.getByLabelText(section) : document.body).getByRole('button', { name }))
+const pick = (label: string, value: string) => fireEvent.change(screen.getByLabelText(label), { target: { value } })
+
+it('saves, loads, renames and deletes a template', () => {
+  render(<Designer />)
+  pick('Number of pieces', '20')
+  fireEvent.change(screen.getByLabelText('Template name'), { target: { value: 'Big' } })
+  click('Add new', 'Template')
+  pick('Number of pieces', '6')
+  pick('Saved templates', screen.getByRole('option', { name: 'Big' }).getAttribute('value')!)
+  click('Load', 'Template')
+  expect(screen.getByLabelText('Number of pieces')).toHaveProperty('value', '20')
+
+  fireEvent.change(screen.getByLabelText('Template name'), { target: { value: 'Large' } })
+  click('Rename', 'Template')
+  expect(screen.getByRole('option', { name: 'Large' })).toBeTruthy()
+
+  pick('Number of pieces', '48')
+  click('Save changes', 'Template')
+  pick('Number of pieces', '6')
+  click('Load', 'Template')
+  expect(screen.getByLabelText('Number of pieces')).toHaveProperty('value', '48')
+
+  click('Delete', 'Template')
+  click('Confirm delete', 'Template')
+  expect(screen.queryByRole('option', { name: 'Large' })).toBeNull()
+})
+
+it('saves a game and restores its setup, and keeps it after a reload', () => {
+  const { unmount } = render(<Designer />)
+  click(/Solve last X pieces/, 'Game type')
+  pick('Number of pieces', '20')
+  fireEvent.change(screen.getByLabelText('Game name'), { target: { value: 'Mine' } })
+  click('Add new', 'Games')
+  unmount()
+
+  render(<Designer />)
+  expect(screen.getByLabelText('Number of pieces')).toHaveProperty('value', '12')
+  pick('Saved games', screen.getByRole('option', { name: 'Mine' }).getAttribute('value')!)
+  click('Load', 'Games')
+  expect(screen.getByLabelText('Number of pieces')).toHaveProperty('value', '20')
+  expect(within(screen.getByLabelText('Game type')).getByRole('button', { name: /Solve last X pieces/ }).getAttribute('aria-pressed')).toBe('true')
+})
+
+it('manages saved images: rename and delete, with built-ins left alone', () => {
+  localStorage.setItem('jiggy.designer.library', JSON.stringify({ images: [{ id: 'i1', name: 'Beach', src: 'data:image/png;base64,AAAA' }] }))
+  render(<Designer />)
+  expect(screen.queryByLabelText('Image name')).toBeNull()
+  click('Sunset')
+  expect(screen.queryByLabelText('Image name')).toBeNull()
+  click('Beach')
+  fireEvent.change(screen.getByLabelText('Image name'), { target: { value: 'Shore' } })
+  click('Rename', 'Background photo')
+  expect(screen.getByRole('button', { name: 'Shore' })).toBeTruthy()
+  click('Delete image', 'Background photo')
+  click('Confirm delete', 'Background photo')
+  expect(screen.queryByRole('button', { name: 'Shore' })).toBeNull()
+  expect(screen.getByRole('button', { name: 'Sunset' }).getAttribute('aria-pressed')).toBe('true')
 })
