@@ -293,10 +293,10 @@ export class PieceGenerator {
     // Keep the neck symmetric about the centre so the shape reverses exactly.
     const room = Math.min(center - 0.05 * len, 0.95 * len - center);
     const neck = clamp(neckWidth * base * (1 + 0.4 * r[1]), 0.01 * base, Math.min(0.45 * len, room));
-    // The head is a steady multiple of the neck so it never balloons or collapses.
-    // headAspect trades width for height: the tab height stays put, only the head's width changes.
-    const aspect = clamp(shape.headAspect ?? 1, 0.5, 2);
-    const head = Math.min(neck * clamp((1.7 * (1 + 0.25 * r[2])) / aspect, 1.2, 2.6), room);
+    // The head is an ellipse whose half-width is a steady multiple of the neck, so it never
+    // balloons or collapses. headAspect is its height over its width, limited by the tab height.
+    const headRx = Math.max(neck * 1.05, Math.min(neck * clamp(1.5 * (1 + 0.2 * r[2]), 1.2, 2.4), room));
+    const aspect = clamp(shape.headAspect ?? 1, 0.4, 2);
 
     // Shear along the edge in proportion to height. Walking backwards flips
     // the edge direction, so the canonical lean flips with it.
@@ -317,24 +317,44 @@ export class PieceGenerator {
         y: a.y + uy * (t + h * lean) + ny * (h * sign + w),
       };
     };
-    // Neck pinch at 35% of the height, widest part of the head at 70%.
-    const hNeck = tabH * 0.35;
-    const hWide = tabH * 0.7;
+    // The head is an ellipse centred at height `hc`; the neck rises straight into it where it
+    // meets the ellipse at (center ± neck, hNeck). Both are fixed by the tab height.
+    const s = Math.sqrt(1 - (neck / headRx) ** 2);
+    const headRy = Math.min(headRx * aspect, (0.85 * tabH) / (1 + s));
+    const hc = tabH - headRy;
+    const hNeck = hc - headRy * s;
+    const headPt = (theta: number): Point => pt(center + headRx * Math.cos(theta), hc + headRy * Math.sin(theta));
+    // Cubic along the ellipse from angle `from` to `to` (radians, either direction).
+    const arc = (from: number, to: number): PathSegment => {
+      const k = (4 / 3) * Math.tan((to - from) / 4);
+      const tan = (th: number): [number, number] => [-headRx * Math.sin(th), headRy * Math.cos(th)];
+      const [t1x, t1y] = tan(from);
+      const [t2x, t2y] = tan(to);
+      const along = (th: number, kx: number, ky: number) =>
+        pt(center + headRx * Math.cos(th) + kx, hc + headRy * Math.sin(th) + ky);
+      return {
+        type: "C",
+        c1: along(from, k * t1x, k * t1y),
+        c2: along(to, -k * t2x, -k * t2y),
+        to: headPt(to),
+      };
+    };
     // Lower flare lifts the last control point, giving a sharper corner where the neck starts.
     const flareH = hNeck * 0.6 * (1 - clamp(shape.flare ?? 0.7, 0, 1));
-    const l = center - neck;
-    const r2 = center + neck;
-    const wl = center - head;
-    const wr = center + head;
-    const top = pt(center, tabH);
-
     // The edge stays straight until this far from the neck; more flare starts the curve earlier.
     const lead = neck * (0.4 + 1.6 * clamp(shape.flare ?? 0.7, 0, 1));
+    const l = center - neck;
+    const r2 = center + neck;
+    // Angle where the neck meets the ellipse: lower left, then clockwise round to lower right.
+    const alpha = Math.acos(neck / headRx);
+    const th1 = Math.PI + alpha;
+    const th2 = -alpha;
+
     out.push({ type: "C", c1: pt(Math.max(l * 0.5, l - lead), 0), c2: pt(l, flareH), to: pt(l, hNeck) });
-    out.push({ type: "C", c1: pt(l, hNeck + tabH * 0.15), c2: pt(wl, hWide - tabH * 0.2), to: pt(wl, hWide) });
-    out.push({ type: "C", c1: pt(wl, hWide + tabH * 0.17), c2: pt(center - head * 0.55, tabH), to: top });
-    out.push({ type: "C", c1: pt(center + head * 0.55, tabH), c2: pt(wr, hWide + tabH * 0.17), to: pt(wr, hWide) });
-    out.push({ type: "C", c1: pt(wr, hWide - tabH * 0.2), c2: pt(r2, hNeck + tabH * 0.15), to: pt(r2, hNeck) });
+    out.push(arc(th1, Math.PI));
+    out.push(arc(Math.PI, Math.PI / 2));
+    out.push(arc(Math.PI / 2, 0));
+    out.push(arc(0, th2));
     out.push({ type: "C", c1: pt(r2, flareH), c2: pt(Math.min(r2 + (len - r2) * 0.5, r2 + lead), 0), to: b });
   }
 
