@@ -328,12 +328,14 @@ export class PieceGenerator {
     const wr = center + head;
     const top = pt(center, tabH);
 
-    out.push({ type: "C", c1: pt(l * 0.5, 0), c2: pt(l, flareH), to: pt(l, hNeck) });
+    // The edge stays straight until this far from the neck; more flare starts the curve earlier.
+    const lead = neck * (0.4 + 1.6 * clamp(shape.flare ?? 0.7, 0, 1));
+    out.push({ type: "C", c1: pt(Math.max(l * 0.5, l - lead), 0), c2: pt(l, flareH), to: pt(l, hNeck) });
     out.push({ type: "C", c1: pt(l, hNeck + tabH * 0.15), c2: pt(wl, hWide - tabH * 0.2), to: pt(wl, hWide) });
     out.push({ type: "C", c1: pt(wl, hWide + tabH * 0.17), c2: pt(center - head * 0.55, tabH), to: top });
     out.push({ type: "C", c1: pt(center + head * 0.55, tabH), c2: pt(wr, hWide + tabH * 0.17), to: pt(wr, hWide) });
     out.push({ type: "C", c1: pt(wr, hWide - tabH * 0.2), c2: pt(r2, hNeck + tabH * 0.15), to: pt(r2, hNeck) });
-    out.push({ type: "C", c1: pt(r2, flareH), c2: pt(r2 + (len - r2) * 0.5, 0), to: b });
+    out.push({ type: "C", c1: pt(r2, flareH), c2: pt(Math.min(r2 + (len - r2) * 0.5, r2 + lead), 0), to: b });
   }
 
   /** Random but valid params. Pass a custom `rng` (returning [0,1)) for determinism. */
