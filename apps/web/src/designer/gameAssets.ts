@@ -1,4 +1,5 @@
-import { JIGSAW_PRESETS, type JigsawTemplateParams } from '@jiggy/shared'
+import { CATALOG, JIGSAW_PRESETS, type JigsawTemplateParams } from '@jiggy/shared'
+import type { ImageEdits } from './imageFilters'
 
 const styleRanges = (name: string) => JIGSAW_PRESETS.find((p) => p.name === name)!.ranges
 
@@ -35,8 +36,23 @@ const scene = (sky: [string, string], ground: string, sun: string) =>
     </svg>`,
   )}`
 
-export const GAME_PHOTOS: { id: string; name: string; src: string }[] = [
-  { id: 'sunset', name: 'Sunset', src: scene(['#fb923c', '#fde68a'], '#7c2d12', '#fef08a') },
-  { id: 'forest', name: 'Forest', src: scene(['#7dd3fc', '#dcfce7'], '#166534', '#fffbeb') },
-  { id: 'night', name: 'Night', src: scene(['#1e1b4b', '#6366f1'], '#0f172a', '#e0e7ff') },
+/** Where a game image came from; only user images can be renamed, replaced or deleted. */
+export type ImageSource = 'builtin' | 'catalog' | 'user'
+
+/** One background picture, whatever its origin. `location` is the untouched original (a URL path or data URL); `edits` are applied on top when it is drawn. */
+export type GameImage = { id: string; name: string; location: string; source: ImageSource; edits?: ImageEdits }
+
+/** Every picture the puzzle catalog offers, so games can use the same photos. */
+const CATALOG_IMAGES: GameImage[] = CATALOG.puzzles.map((p) => ({
+  id: `catalog-${p.id}`,
+  name: p.image.name,
+  location: p.image.location,
+  source: 'catalog',
+}))
+
+export const GAME_PHOTOS: GameImage[] = [
+  { id: 'sunset', name: 'Sunset', location: scene(['#fb923c', '#fde68a'], '#7c2d12', '#fef08a'), source: 'builtin' },
+  { id: 'forest', name: 'Forest', location: scene(['#7dd3fc', '#dcfce7'], '#166534', '#fffbeb'), source: 'builtin' },
+  { id: 'night', name: 'Night', location: scene(['#1e1b4b', '#6366f1'], '#0f172a', '#e0e7ff'), source: 'builtin' },
+  ...CATALOG_IMAGES,
 ]

@@ -50,3 +50,13 @@
   35% { opacity: 1; transform: scale(1.6) rotate(45deg); }
   100% { opacity: 0; transform: scale(0.4) rotate(90deg); }
 }
+
+/* A horizontal scrollbar that stays visible, so a long strip is obviously scrollable. */
+.scrollbar-visible {
+  overflow-x: scroll;
+  scrollbar-width: thin;
+  scrollbar-color: #94a3b8 #e2e8f0;
+}
+.scrollbar-visible::-webkit-scrollbar { height: 8px; }
+.scrollbar-visible::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 4px; }
+.scrollbar-visible::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
