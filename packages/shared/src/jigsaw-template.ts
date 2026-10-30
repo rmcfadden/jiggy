@@ -31,6 +31,9 @@ export type JigsawTemplateParams = {
   tabPosition: Range;
   neckAngle: Range;
   jitter: Range;
+  headAspect: Range;
+  flare: Range;
+  wobble: Range;
   /**
    * When a piece's outline crosses itself (a neck or bulb folding over), randomly
    * shrink the tab size and neck width of the seams involved until it no longer does.
@@ -49,13 +52,16 @@ export const DEFAULT_JIGSAW_PARAMS: JigsawTemplateParams = {
   tabPosition: { min: 0.47, max: 0.52 },
   neckAngle: { min: -2, max: 5 },
   jitter: { min: 0.48, max: 0.52 },
+  headAspect: { min: 0.95, max: 1.1 },
+  flare: { min: 0.6, max: 0.8 },
+  wobble: { min: 0.2, max: 0.4 },
   fixOverlap: true,
   seed: 1,
 };
 
 export type JigsawShapeRanges = Pick<
   JigsawTemplateParams,
-  "tabSize" | "neckWidth" | "tabPosition" | "neckAngle" | "jitter"
+  "tabSize" | "neckWidth" | "tabPosition" | "neckAngle" | "jitter" | "headAspect" | "flare" | "wobble"
 >;
 
 /** Named shape ranges; applying one leaves grid size and seed alone. */
@@ -68,6 +74,9 @@ export const JIGSAW_PRESETS: { name: string; ranges: JigsawShapeRanges }[] = [
       tabPosition: { min: 0.47, max: 0.52 },
       neckAngle: { min: -2, max: 5 },
       jitter: { min: 0.48, max: 0.52 },
+      headAspect: { min: 0.95, max: 1.1 },
+      flare: { min: 0.6, max: 0.8 },
+      wobble: { min: 0.2, max: 0.4 },
     },
   },
   {
@@ -78,6 +87,9 @@ export const JIGSAW_PRESETS: { name: string; ranges: JigsawShapeRanges }[] = [
       tabPosition: { min: 0.4, max: 0.6 },
       neckAngle: { min: -12, max: 12 },
       jitter: { min: 0.2, max: 0.8 },
+      headAspect: { min: 0.8, max: 1.3 },
+      flare: { min: 0.35, max: 1 },
+      wobble: { min: 0.1, max: 0.8 },
     },
   },
 ];
@@ -116,7 +128,7 @@ export class JigsawTemplateGenerator {
   }
 
   generate(): JigsawMatrix {
-    const { cols, rows, width, height, tabSize, neckWidth, tabPosition, neckAngle, jitter, seed } =
+    const { cols, rows, width, height, tabSize, neckWidth, tabPosition, neckAngle, jitter, headAspect, flare, wobble, seed } =
       this.params;
     const mid = ({ min, max }: Range) => (min + max) / 2;
     const rng = createRng(seed);
@@ -135,6 +147,9 @@ export class JigsawTemplateGenerator {
         tabPosition: pick(tabPosition),
         neckAngle: pick(neckAngle),
         jitter: pick(jitter),
+        headAspect: pick(headAspect),
+        flare: pick(flare),
+        wobble: pick(wobble),
       },
     });
     // horizontal[r][c]: seam above row r (r = 0..rows); vertical[r][c]: seam left of col c.
@@ -164,6 +179,9 @@ export class JigsawTemplateGenerator {
         tabPosition: mid(tabPosition),
         neckAngle: mid(neckAngle),
         jitter: mid(jitter),
+        headAspect: mid(headAspect),
+        flare: mid(flare),
+        wobble: mid(wobble),
         sides: { top: top.shape, bottom: bottom.shape, left: left.shape, right: right.shape },
         seed,
       };
@@ -261,6 +279,9 @@ export class JigsawTemplateGenerator {
       tabPosition: range(0.3, 0.45, 0.55, 0.7),
       neckAngle: { min: Math.round(between(-20, -2)), max: Math.round(between(2, 20)) },
       jitter: range(0, 0.4, 0.5, 1),
+      headAspect: range(0.7, 0.95, 1.05, 1.4),
+      flare: range(0.2, 0.5, 0.6, 1),
+      wobble: range(0, 0.3, 0.4, 0.9),
       seed: Math.floor(rng() * 1_000_000),
     };
   }

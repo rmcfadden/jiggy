@@ -43,9 +43,24 @@ export type EdgeShape = {
   neckAngle: number;
   /** 0..1, amount of seeded random offset applied to the tab shape. */
   jitter: number;
+  /** Head height / head width. Above 1 is a tall oval knob, below 1 a wide one. */
+  headAspect: number;
+  /** 0..1, how gradually the edge curves up into the neck (0 is a sharp corner). */
+  flare: number;
+  /** 0..1, how far the whole edge, tab included, waves off the straight line. */
+  wobble: number;
 };
 
-export const SHAPE_KEYS = ["tabSize", "neckWidth", "tabPosition", "neckAngle", "jitter"] as const;
+export const SHAPE_KEYS = [
+  "tabSize",
+  "neckWidth",
+  "tabPosition",
+  "neckAngle",
+  "jitter",
+  "headAspect",
+  "flare",
+  "wobble",
+] as const;
 
 export type PieceParams = EdgeShape & {
   width: number;
@@ -62,6 +77,9 @@ export type PieceParams = EdgeShape & {
   edgeSeeds?: Partial<Record<keyof PieceEdges, number>>;
 };
 
+/** A tab or socket is this many consecutive cubic curves. */
+export const CURVES_PER_TAB = 6;
+
 export const SIDES = ["top", "right", "bottom", "left"] as const;
 
 const OPPOSITE: Record<Side, Side> = { top: "bottom", right: "left", bottom: "top", left: "right" };
@@ -77,6 +95,9 @@ export const DEFAULT_PIECE_PARAMS: PieceParams = {
   tabPosition: 0.5,
   neckAngle: 0,
   jitter: 0.3,
+  headAspect: 1,
+  flare: 0.7,
+  wobble: 0,
   seed: 1,
 };
 
@@ -183,11 +204,11 @@ export class PieceGenerator {
     for (let i = 0; i < 4; i++) {
       // Always draw the same number of random values per edge so changing one
       // edge's type does not reshuffle the jitter on the others.
-      const drawn = [rng(), rng(), rng(), rng()];
+      const drawn = [rng(), rng(), rng(), rng(), rng(), rng()];
       const edgeSeed = edgeSeeds?.[SIDES[i]];
       const source = edgeSeed === undefined ? drawn : (() => {
         const edgeRng = createRng(edgeSeed);
-        return [edgeRng(), edgeRng(), edgeRng(), edgeRng()];
+        return [edgeRng(), edgeRng(), edgeRng(), edgeRng(), edgeRng(), edgeRng()];
       })();
       const shape = this.shapeOf(SIDES[i]);
       const r = source.map((v) => (v * 2 - 1) * shape.jitter);
@@ -209,6 +230,9 @@ export class PieceGenerator {
       tabPosition: p.tabPosition,
       neckAngle: p.neckAngle,
       jitter: p.jitter,
+      headAspect: p.headAspect,
+      flare: p.flare,
+      wobble: p.wobble,
       ...p.sides?.[side],
     };
   }
@@ -261,32 +285,55 @@ export class PieceGenerator {
     const sign = type === "out" ? 1 : -1;
 
     const base = Math.min(width, height);
-    const tabH = tabSize * base * (1 + 0.8 * r[0]);
+    const tabH = tabSize * base * (1 + 0.5 * r[0]);
     // Mirror position when walking backwards so both sides of a seam agree.
     const position = reversed ? 1 - tabPosition : tabPosition;
     const offset = reversed ? -r[3] : r[3];
     const center = clamp(position + 0.2 * offset, 0.2, 0.8) * len;
     // Keep the neck symmetric about the centre so the shape reverses exactly.
-    const neckMax = Math.min(0.45 * len, center - 0.05 * len, 0.95 * len - center);
-    const neck = clamp(neckWidth * base * (1 + 0.8 * r[1]), 0.01 * base, neckMax);
-    const bulb = neck * 1.8 * (1 + 0.8 * r[2]);
-    const x1 = center - neck;
-    const x2 = center + neck;
+    const room = Math.min(center - 0.05 * len, 0.95 * len - center);
+    const neck = clamp(neckWidth * base * (1 + 0.4 * r[1]), 0.01 * base, Math.min(0.45 * len, room));
+    // The head is a steady multiple of the neck so it never balloons or collapses.
+    // headAspect trades width for height: the tab height stays put, only the head's width changes.
+    const aspect = clamp(shape.headAspect ?? 1, 0.5, 2);
+    const head = Math.min(neck * clamp((1.7 * (1 + 0.25 * r[2])) / aspect, 1.2, 2.6), room);
 
     // Shear along the edge in proportion to height. Walking backwards flips
     // the edge direction, so the canonical lean flips with it.
     const angle = clamp(shape.neckAngle, -45, 45);
     const lean = Math.tan((angle * Math.PI) / 180) * (reversed ? -1 : 1);
-    const pt = (t: number, h: number): Point => ({
-      x: a.x + ux * (t + h * lean) + nx * h * sign,
-      y: a.y + uy * (t + h * lean) + ny * h * sign,
-    });
-    const shoulder = tabH * 0.3;
-    const peak = tabH * 1.35;
+    // The wave is a function of the position along the seam in its canonical direction, pushed
+    // along the canonical normal, so both pieces sharing the seam move the same way.
+    const amp = clamp(shape.wobble ?? 0, 0, 1) * base * 0.05;
+    const flip = reversed ? -1 : 1;
+    const wave = (t: number) => {
+      const u = reversed ? 1 - t / len : t / len;
+      return amp * (r[4] * Math.sin(Math.PI * u) + 0.6 * r[5] * Math.sin(2 * Math.PI * u));
+    };
+    const pt = (t: number, h: number): Point => {
+      const w = wave(t) * flip;
+      return {
+        x: a.x + ux * (t + h * lean) + nx * (h * sign + w),
+        y: a.y + uy * (t + h * lean) + ny * (h * sign + w),
+      };
+    };
+    // Neck pinch at 35% of the height, widest part of the head at 70%.
+    const hNeck = tabH * 0.35;
+    const hWide = tabH * 0.7;
+    // Lower flare lifts the last control point, giving a sharper corner where the neck starts.
+    const flareH = hNeck * 0.6 * (1 - clamp(shape.flare ?? 0.7, 0, 1));
+    const l = center - neck;
+    const r2 = center + neck;
+    const wl = center - head;
+    const wr = center + head;
+    const top = pt(center, tabH);
 
-    out.push({ type: "C", c1: pt(x1 * 0.5, 0), c2: pt(x1, 0), to: pt(x1, shoulder) });
-    out.push({ type: "C", c1: pt(x1 - bulb, peak), c2: pt(x2 + bulb, peak), to: pt(x2, shoulder) });
-    out.push({ type: "C", c1: pt(x2, 0), c2: pt(x2 + (len - x2) * 0.5, 0), to: b });
+    out.push({ type: "C", c1: pt(l * 0.5, 0), c2: pt(l, flareH), to: pt(l, hNeck) });
+    out.push({ type: "C", c1: pt(l, hNeck + tabH * 0.15), c2: pt(wl, hWide - tabH * 0.2), to: pt(wl, hWide) });
+    out.push({ type: "C", c1: pt(wl, hWide + tabH * 0.17), c2: pt(center - head * 0.55, tabH), to: top });
+    out.push({ type: "C", c1: pt(center + head * 0.55, tabH), c2: pt(wr, hWide + tabH * 0.17), to: pt(wr, hWide) });
+    out.push({ type: "C", c1: pt(wr, hWide - tabH * 0.2), c2: pt(r2, hNeck + tabH * 0.15), to: pt(r2, hNeck) });
+    out.push({ type: "C", c1: pt(r2, flareH), c2: pt(r2 + (len - r2) * 0.5, 0), to: b });
   }
 
   /** Random but valid params. Pass a custom `rng` (returning [0,1)) for determinism. */
@@ -302,6 +349,9 @@ export class PieceGenerator {
       tabPosition: round2(between(0.4, 0.6)),
       neckAngle: Math.round(between(-10, 10)),
       jitter: round2(between(0, 1)),
+      headAspect: round2(between(0.8, 1.3)),
+      flare: round2(between(0.4, 1)),
+      wobble: round2(between(0, 0.6)),
       seed: Math.floor(rng() * 1_000_000),
     };
   }

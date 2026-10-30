@@ -1,4 +1,4 @@
-import { SIDES, type PieceVector, type Point, type Side } from "./piece-generator";
+import { CURVES_PER_TAB, SIDES, type PieceVector, type Point, type Side } from "./piece-generator";
 
 type Line = { a: Point; b: Point; edge: number };
 
@@ -28,8 +28,8 @@ function flatten({ segments }: PieceVector): Line[] {
         prev = p;
       }
       cur = s.to;
-      // A tab or socket is three consecutive curves.
-      if (++curves % 3 === 0) edge++;
+      // A tab or socket is CURVES_PER_TAB consecutive curves.
+      if (++curves % CURVES_PER_TAB === 0) edge++;
     }
   }
   return lines;

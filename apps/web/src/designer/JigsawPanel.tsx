@@ -55,7 +55,7 @@ export function JigsawPanel({ params, onChange, fullScreen, onFullScreenChange, 
     )
 
   const range = (
-    key: 'tabSize' | 'neckWidth' | 'tabPosition' | 'neckAngle' | 'jitter',
+    key: 'tabSize' | 'neckWidth' | 'tabPosition' | 'neckAngle' | 'jitter' | 'headAspect' | 'flare' | 'wobble',
     label: string,
     min: number,
     max: number,
@@ -161,6 +161,9 @@ export function JigsawPanel({ params, onChange, fullScreen, onFullScreenChange, 
       {range('tabPosition', 'Tab position', 0.3, 0.7)}
       {range('neckAngle', 'Neck angle (°)', -20, 20, 1)}
       {range('jitter', 'Jitter', 0, 1)}
+      {range('headAspect', 'Head aspect', 0.6, 1.6)}
+      {range('flare', 'Shoulder flare', 0, 1)}
+      {range('wobble', 'Edge wobble', 0, 1)}
       {num('seed', 'Seed', 0)}
 
       <SliderField
