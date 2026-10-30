@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { GAME_TYPES, START_SIDES, type GameConfig, type JigsawVector } from '@jiggy/shared'
 import type { PieceEffects } from './effects'
 import { PieceSettings } from './PieceSettings'
-import { GAME_PHOTOS, TEMPLATE_SIZES, TEMPLATE_STYLES } from './gameAssets'
+import { TEMPLATE_SIZES, TEMPLATE_STYLES } from './gameAssets'
+import { SavedItems, type SavedItemsProps } from './SavedItems'
 import { NumberField, Panel, field, input, primaryButton, type PieceBorders } from './controls'
 
 type Props = {
@@ -11,9 +12,17 @@ type Props = {
   onTemplateSize: (id: string) => void
   onTemplateStyle: (id: string) => void
   photoId: string
-  uploadName: string | null
+  /** Built-in photos first, then the user's saved images. */
+  photos: { id: string; name: string; src: string; builtin: boolean }[]
   onPhoto: (id: string) => void
+  /** Adds an image file to the library. */
   onUpload: (file: File) => void
+  onReplacePhoto: (id: string, file: File) => void
+  onRenamePhoto: (id: string, name: string) => void
+  onDeletePhoto: (id: string) => void
+  games: SavedItemsProps
+  templates: SavedItemsProps
+  libraryError: string | null
   config: GameConfig
   onConfig: (config: GameConfig) => void
   showGuide: boolean
@@ -54,15 +63,60 @@ function choice(active: boolean) {
   }`
 }
 
+function ImageEditor(props: { name: string; onRename: (name: string) => void; onReplace: (file: File) => void; onDelete: () => void }) {
+  const [name, setName] = useState(props.name)
+  const [confirming, setConfirming] = useState(false)
+  const trimmed = name.trim()
+  const small = 'rounded border border-slate-300 bg-white px-2 py-1 text-sm hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-white'
+  return (
+    <div className="flex flex-col gap-1.5 rounded border border-slate-200 bg-white p-2">
+      <div className="flex gap-1.5">
+        <input className={`${input} min-w-0 flex-1`} aria-label="Image name" value={name} onChange={(e) => setName(e.target.value)} />
+        <button className={small} disabled={!trimmed || trimmed === props.name} onClick={() => props.onRename(trimmed)}>
+          Rename
+        </button>
+      </div>
+      <label className={field}>
+        Replace image
+        <input type="file" accept="image/*" className="text-sm" onChange={(e) => {
+          const file = e.target.files?.[0]
+          if (file) props.onReplace(file)
+          e.target.value = ''
+        }} />
+      </label>
+      {confirming ? (
+        <button className="rounded border border-red-500 bg-red-50 px-2 py-1 text-sm font-medium text-red-700 hover:bg-red-100" onClick={props.onDelete} onBlur={() => setConfirming(false)} autoFocus>
+          Confirm delete
+        </button>
+      ) : (
+        <button className={small} onClick={() => setConfirming(true)}>
+          Delete image
+        </button>
+      )}
+    </div>
+  )
+}
+
 export function GamePanel(p: Props) {
   const { config, onConfig } = p
   const [open, setOpen] = useState(false)
   const [tab, setTab] = useState<'general' | 'pieces' | 'effects'>('general')
   const type = GAME_TYPES.find((t) => t.id === config.type)!
+  const chosenPhoto = p.photos.find((ph) => ph.id === p.photoId)
   const set = (patch: Partial<GameConfig>) => onConfig({ ...config, ...patch })
 
   return (
     <Panel>
+      {p.libraryError && (
+        <p role="alert" className="rounded border border-red-300 bg-red-50 px-2 py-1 text-sm text-red-700">
+          {p.libraryError}
+        </p>
+      )}
+      <section className="flex flex-col gap-1.5" aria-label="Games">
+        <h3 className={heading}>Games</h3>
+        <SavedItems noun="game" {...p.games} />
+      </section>
+
       <section className="flex flex-col gap-1.5" aria-label="Template">
         <h3 className={heading}>1. Template</h3>
         <label className={field}>
@@ -85,20 +139,34 @@ export function GamePanel(p: Props) {
             ))}
           </select>
         </label>
+        <SavedItems noun="template" {...p.templates} />
       </section>
 
       <section className="flex flex-col gap-1.5" aria-label="Background photo">
         <h3 className={heading}>2. Background photo</h3>
         <div className="grid grid-cols-2 gap-2">
-          {GAME_PHOTOS.map((ph) => (
+          {p.photos.map((ph) => (
             <button key={ph.id} aria-label={ph.name} aria-pressed={ph.id === p.photoId} className={`overflow-hidden rounded border-2 ${ph.id === p.photoId ? 'border-amber-500' : 'border-transparent'}`} onClick={() => p.onPhoto(ph.id)}>
               <img src={ph.src} alt="" className="aspect-[4/3] w-full object-cover" />
             </button>
           ))}
         </div>
+        {chosenPhoto && !chosenPhoto.builtin && (
+          <ImageEditor
+            key={chosenPhoto.id}
+            name={chosenPhoto.name}
+            onRename={(name) => p.onRenamePhoto(chosenPhoto.id, name)}
+            onReplace={(file) => p.onReplacePhoto(chosenPhoto.id, file)}
+            onDelete={() => p.onDeletePhoto(chosenPhoto.id)}
+          />
+        )}
         <label className={field}>
-          Upload your own{p.uploadName && <span className="text-slate-500"> — {p.uploadName}</span>}
-          <input type="file" accept="image/*" className="text-sm" onChange={(e) => e.target.files?.[0] && p.onUpload(e.target.files[0])} />
+          Add an image
+          <input type="file" accept="image/*" className="text-sm" onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) p.onUpload(file)
+            e.target.value = ''
+          }} />
         </label>
       </section>
 

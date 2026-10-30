@@ -14,13 +14,14 @@ import { GameBoard } from './GameBoard'
 import { GamePanel } from './GamePanel'
 import { DEFAULT_EFFECTS, type PieceEffects } from './effects'
 import { DEFAULT_PIECE_BORDERS, borderScale, type PieceBorders } from './controls'
-import { DEFAULT_TEMPLATE, GAME_PHOTOS, templateParams as buildTemplateParams } from './gameAssets'
+import { DEFAULT_TEMPLATE, GAME_PHOTOS, TEMPLATE_SIZES, TEMPLATE_STYLES, templateParams as buildTemplateParams } from './gameAssets'
+import { addItem, newId, readImage, removeItem, updateItem, useLibrary, type SavedGame } from './library'
 
 export function GameTab() {
   const [templateSize, setTemplateSize] = useState(DEFAULT_TEMPLATE.size)
   const [templateStyle, setTemplateStyle] = useState(DEFAULT_TEMPLATE.style)
   const [photoId, setPhotoId] = useState(GAME_PHOTOS[0].id)
-  const [upload, setUpload] = useState<{ name: string; src: string } | null>(null)
+  const { library, setLibrary, error: libraryError } = useLibrary()
   const [config, setConfig] = useState<GameConfig>(DEFAULT_GAME_CONFIG)
   const [showGuide, setShowGuide] = useState(true)
   const [borders, setBorders] = useState<PieceBorders>(DEFAULT_PIECE_BORDERS)
@@ -32,7 +33,8 @@ export function GameTab() {
   const jigsaw = useMemo(() => new JigsawVectorizer().vectorize(new JigsawTemplateGenerator(template).generate()), [template])
   const templateParams = { ...DEFAULT_JIGSAW_PARAMS, ...template }
   const total = jigsaw.pieces.length
-  const photo = photoId === 'upload' && upload ? upload.src : (GAME_PHOTOS.find((p) => p.id === photoId) ?? GAME_PHOTOS[0]).src
+  const photos = [...GAME_PHOTOS.map((p) => ({ ...p, builtin: true })), ...library.images.map((i) => ({ ...i, builtin: false }))]
+  const photo = (photos.find((p) => p.id === photoId) ?? photos[0]).src
 
   const [game, setGame] = useState(() => createGame(config, total))
   const restart = () => {
@@ -45,6 +47,61 @@ export function GameTab() {
   useEffect(restart, [JSON.stringify(gameConfig), total])
 
   const solved = isGameSolved(game)
+
+  const snapshot = (): Omit<SavedGame, 'id' | 'name'> => ({ templateSize, templateStyle, photoId, config, showGuide, borders, effects })
+  const imageName = (file: File) => file.name.replace(/\.[^.]+$/, '') || 'Image'
+  const addImage = (file: File, replaceId?: string) =>
+    readImage(file).then((src) => {
+      if (replaceId) {
+        setLibrary((l) => ({ ...l, images: updateItem(l.images, replaceId, { src }) }))
+        return
+      }
+      const id = newId()
+      setLibrary((l) => ({ ...l, images: addItem(l.images, { id, name: imageName(file), src }) }))
+      setPhotoId(id)
+    })
+
+  const games = {
+    items: library.games,
+    onLoad: (id: string) => {
+      const g = library.games.find((x) => x.id === id)
+      if (!g) return
+      setTemplateSize(g.templateSize)
+      setTemplateStyle(g.templateStyle)
+      setPhotoId(g.photoId)
+      setConfig(g.config)
+      setShowGuide(g.showGuide)
+      setBorders(g.borders)
+      setEffects(g.effects)
+    },
+    onAdd: (name: string) => {
+      const id = newId()
+      setLibrary((l) => ({ ...l, games: addItem(l.games, { id, name, ...snapshot() }) }))
+      return id
+    },
+    onSave: (id: string) => setLibrary((l) => ({ ...l, games: updateItem(l.games, id, snapshot()) })),
+    onRename: (id: string, name: string) => setLibrary((l) => ({ ...l, games: updateItem(l.games, id, { name }) })),
+    onDelete: (id: string) => setLibrary((l) => ({ ...l, games: removeItem(l.games, id) })),
+  }
+
+  const templates = {
+    items: library.templates,
+    onLoad: (id: string) => {
+      const t = library.templates.find((x) => x.id === id)
+      if (!t) return
+      // A template saved with a size or style that no longer exists falls back to the defaults.
+      setTemplateSize(TEMPLATE_SIZES.some((s) => s.id === t.size) ? t.size : DEFAULT_TEMPLATE.size)
+      setTemplateStyle(TEMPLATE_STYLES.some((s) => s.id === t.style) ? t.style : DEFAULT_TEMPLATE.style)
+    },
+    onAdd: (name: string) => {
+      const id = newId()
+      setLibrary((l) => ({ ...l, templates: addItem(l.templates, { id, name, size: templateSize, style: templateStyle }) }))
+      return id
+    },
+    onSave: (id: string) => setLibrary((l) => ({ ...l, templates: updateItem(l.templates, id, { size: templateSize, style: templateStyle }) })),
+    onRename: (id: string, name: string) => setLibrary((l) => ({ ...l, templates: updateItem(l.templates, id, { name }) })),
+    onDelete: (id: string) => setLibrary((l) => ({ ...l, templates: removeItem(l.templates, id) })),
+  }
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1">
@@ -103,16 +160,18 @@ export function GameTab() {
         onTemplateSize={setTemplateSize}
         onTemplateStyle={setTemplateStyle}
         photoId={photoId}
-        uploadName={upload?.name ?? null}
+        photos={photos}
         onPhoto={setPhotoId}
-        onUpload={(file) => {
-          const reader = new FileReader()
-          reader.onload = () => {
-            setUpload({ name: file.name, src: String(reader.result) })
-            setPhotoId('upload')
-          }
-          reader.readAsDataURL(file)
+        onUpload={(file) => void addImage(file)}
+        onReplacePhoto={(id, file) => void addImage(file, id)}
+        onRenamePhoto={(id, name) => setLibrary((l) => ({ ...l, images: updateItem(l.images, id, { name }) }))}
+        onDeletePhoto={(id) => {
+          setLibrary((l) => ({ ...l, images: removeItem(l.images, id) }))
+          setPhotoId(GAME_PHOTOS[0].id)
         }}
+        games={games}
+        templates={templates}
+        libraryError={libraryError}
         config={config}
         onConfig={setConfig}
         showGuide={showGuide}
