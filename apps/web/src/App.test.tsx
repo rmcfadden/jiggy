@@ -23,6 +23,28 @@ it('redirects / to the explorer and links puzzles to the player', () => {
   expect(screen.getByRole('heading', { name: 'Puzzle' })).toBeTruthy()
 })
 
+it('filters the catalog by category, including sub-categories', () => {
+  renderAt('/puzzles')
+  const count = () => screen.getAllByRole('link').filter((l) => l.getAttribute('href')?.startsWith('/puzzle?id=')).length
+  const all = count()
+  fireEvent.click(screen.getByRole('button', { name: 'Birds' }))
+  expect(screen.getByText('Atlantic Puffin')).toBeTruthy()
+  expect(screen.queryByText('Matterhorn at Sunset')).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: 'Nature' }))
+  expect(screen.getByText('Matterhorn at Sunset')).toBeTruthy()
+  expect(count()).toBeLessThan(all)
+  fireEvent.click(screen.getByRole('button', { name: 'All puzzles' }))
+  expect(count()).toBe(all)
+})
+
+it('plays a catalog puzzle with its title and reviews', () => {
+  renderAt('/puzzle?id=puffin')
+  expect(screen.getByText(/Atlantic Puffin · 0\/20 placed|Atlantic Puffin · 0\/20/)).toBeTruthy()
+  expect(screen.getByText(/Reviews \(2\)/)).toBeTruthy()
+  // puffin is configured as a next-pieces puzzle
+  expect(screen.getByRole('button', { name: 'Next pieces in panel' }).getAttribute('aria-pressed')).toBe('true')
+})
+
 it('navigates via the sidebar and collapses it', () => {
   renderAt('/puzzles')
   fireEvent.click(screen.getByRole('link', { name: 'Designer' }))

@@ -8,19 +8,36 @@ import {
   isGameSolved,
   placePiece,
   type GameConfig,
+  type JigsawVector,
   type PuzzleSpec,
 } from '@jiggy/shared'
 import { GameBoard, type Dock } from '../designer/GameBoard'
 import { GAME_PHOTOS } from '../designer/gameAssets'
 
 /** The "Next pieces in panel" game: the panel only offers the next few pieces. */
-export function NextPiecesGame({ spec, modeControls }: { spec: PuzzleSpec; modeControls: React.ReactNode }) {
+export function NextPiecesGame({
+  spec,
+  jigsaw: customJigsaw,
+  photo = GAME_PHOTOS[0].src,
+  title,
+  config: initialConfig,
+  modeControls,
+}: {
+  spec: PuzzleSpec
+  /** Custom template; defaults to a plain grid built from `spec`. */
+  jigsaw?: JigsawVector
+  photo?: string
+  /** Shown in the header instead of the puzzle id. */
+  title?: string
+  config?: GameConfig
+  modeControls: React.ReactNode
+}) {
   const jigsaw = useMemo(
-    () => new JigsawVectorizer().vectorize(new JigsawTemplateGenerator(spec).generate()),
-    [spec],
+    () => customJigsaw ?? new JigsawVectorizer().vectorize(new JigsawTemplateGenerator(spec).generate()),
+    [customJigsaw, spec],
   )
   const total = jigsaw.pieces.length
-  const [config, setConfig] = useState<GameConfig>({ ...DEFAULT_GAME_CONFIG, type: 'next-pieces', seed: spec.seed })
+  const [config, setConfig] = useState<GameConfig>(initialConfig ?? { ...DEFAULT_GAME_CONFIG, type: 'next-pieces', seed: spec.seed })
   const [game, setGame] = useState(() => createGame(config, total))
   const [selected, setSelected] = useState<number | null>(null)
 
@@ -37,7 +54,7 @@ export function NextPiecesGame({ spec, modeControls }: { spec: PuzzleSpec; modeC
         <h1 className="text-lg font-bold">Puzzle</h1>
         {modeControls}
         <span className="text-sm text-slate-600">
-          {encodePuzzleId(spec)} · {game.total - game.queue.length}/{game.total} placed · {game.mistakes} mistakes
+          {title ?? encodePuzzleId(spec)} · {game.total - game.queue.length}/{game.total} placed · {game.mistakes} mistakes
         </span>
         {solved && <span className="rounded bg-green-600 px-2 py-0.5 text-sm font-medium text-white">Solved!</span>}
         <label className="ml-auto flex items-center gap-2 text-sm">
@@ -78,7 +95,7 @@ export function NextPiecesGame({ spec, modeControls }: { spec: PuzzleSpec; modeC
       <main className="flex min-h-0 min-w-0 flex-1 flex-col bg-white p-4">
         <GameBoard
           jigsaw={jigsaw}
-          photo={GAME_PHOTOS[0].src}
+          photo={photo}
           game={game}
           selected={selected}
           showGuide
