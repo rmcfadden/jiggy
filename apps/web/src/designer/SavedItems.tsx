@@ -21,43 +21,54 @@ export function SavedItems({ noun, items, onLoad, onAdd, onSave, onRename, onDel
   noun: string
 }) {
   const [selectedId, setSelectedId] = useState('')
-  const [name, setName] = useState('')
   const [confirming, setConfirming] = useState(false)
+  const [dialog, setDialog] = useState<'new' | 'rename' | null>(null)
+  const [name, setName] = useState('')
   const selected = items.find((i) => i.id === selectedId)
   const trimmed = name.trim()
 
   const select = (id: string) => {
     setSelectedId(id)
-    setName(items.find((i) => i.id === id)?.name ?? '')
     setConfirming(false)
+  }
+  const open = (kind: 'new' | 'rename') => {
+    setName(kind === 'rename' ? (selected?.name ?? '') : '')
+    setDialog(kind)
+  }
+  const submit = () => {
+    if (!trimmed) return
+    if (dialog === 'new') select(onAdd(trimmed))
+    else if (selected) onRename(selected.id, trimmed)
+    setDialog(null)
   }
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label className={field}>
-        Saved {noun}s
-        <select className={input} value={selected ? selectedId : ''} onChange={(e) => select(e.target.value)}>
-          <option value="">{items.length ? `Choose a ${noun}…` : `No saved ${noun}s`}</option>
-          {items.map((i) => (
-            <option key={i.id} value={i.id}>
-              {i.name}
-            </option>
-          ))}
-        </select>
-      </label>
-      <div className="grid grid-cols-2 gap-1.5">
+      <select
+        aria-label={`Saved ${noun}s`}
+        className={input}
+        value={selected ? selectedId : ''}
+        onChange={(e) => select(e.target.value)}
+      >
+        <option value="">{items.length ? `Choose a ${noun}…` : `No saved ${noun}s`}</option>
+        {items.map((i) => (
+          <option key={i.id} value={i.id}>
+            {i.name}
+          </option>
+        ))}
+      </select>
+      <div className="flex flex-wrap gap-1">
         <button className={small} disabled={!selected} onClick={() => selected && onLoad(selected.id)}>
           Load
         </button>
-        <button className={small} disabled={!selected} onClick={() => selected && onSave(selected.id)}>
-          Save changes
+        <button className={small} title="Overwrite with the current setup" disabled={!selected} onClick={() => selected && onSave(selected.id)}>
+          Save
         </button>
-        <button
-          className={small}
-          disabled={!selected || !trimmed || trimmed === selected.name}
-          onClick={() => selected && onRename(selected.id, trimmed)}
-        >
-          Rename
+        <button className={small} onClick={() => open('new')}>
+          New…
+        </button>
+        <button className={small} disabled={!selected} onClick={() => open('rename')}>
+          Rename…
         </button>
         {confirming && selected ? (
           <button
@@ -77,25 +88,37 @@ export function SavedItems({ noun, items, onLoad, onAdd, onSave, onRename, onDel
           </button>
         )}
       </div>
-      <div className="flex gap-1.5">
-        <input
-          className={`${input} min-w-0 flex-1`}
-          aria-label={`${noun[0].toUpperCase() + noun.slice(1)} name`}
-          placeholder="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <button
-          className={small}
-          disabled={!trimmed}
-          onClick={() => {
-            const id = onAdd(trimmed)
-            setSelectedId(id)
-          }}
-        >
-          Add new
-        </button>
-      </div>
+      {dialog && (
+        <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/40" onClick={() => setDialog(null)}>
+          <form
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${dialog === 'new' ? 'New' : 'Rename'} ${noun}`}
+            className="flex w-80 max-w-[90vw] flex-col gap-3 rounded-lg bg-white p-5 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.key === 'Escape' && setDialog(null)}
+            onSubmit={(e) => {
+              e.preventDefault()
+              submit()
+            }}
+          >
+            <h3 className="text-lg font-semibold">{dialog === 'new' ? `New ${noun}` : `Rename ${noun}`}</h3>
+            {dialog === 'new' && <p className="text-sm text-slate-500">Saves the current setup under this name.</p>}
+            <label className={field}>
+              Name
+              <input className={input} value={name} onChange={(e) => setName(e.target.value)} autoFocus />
+            </label>
+            <div className="flex justify-end gap-2">
+              <button type="button" className={small} onClick={() => setDialog(null)}>
+                Cancel
+              </button>
+              <button type="submit" className={`${small} border-amber-500 bg-amber-500 font-medium text-white hover:bg-amber-600`} disabled={!trimmed}>
+                {dialog === 'new' ? 'Create' : 'Rename'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   )
 }
