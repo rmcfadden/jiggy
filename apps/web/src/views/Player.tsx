@@ -5,10 +5,16 @@ import { DEFAULT_PIECE_BORDERS, PieceBorderPath, type PieceBorders } from '../de
 import { useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { NextPiecesGame } from './NextPiecesGame'
+import { templateParams } from '../designer/gameAssets'
 import {
+  CATALOG,
+  JigsawTemplateGenerator,
+  JigsawVectorizer,
+  averageRating,
   buildPuzzle,
   decodePuzzleId,
   encodePuzzleId,
+  findPuzzle,
   isSolved,
   scatterOffsets,
   snapPiece,
@@ -16,6 +22,7 @@ import {
   viewMargins,
   type JigsawVector,
   type Offset,
+  type Puzzle,
   type ScatterOptions,
   type PuzzleSpec,
   type ZoomOrientation,
@@ -25,19 +32,85 @@ const DEFAULT_SPEC: PuzzleSpec = { cols: 4, rows: 3, seed: 1 }
 
 export default function Player() {
   const [params, setParams] = useSearchParams()
+  const catalogPuzzle = findPuzzle(CATALOG, params.get('id'))
   const spec = decodePuzzleId(params.get('id')) ?? DEFAULT_SPEC
-  const id = encodePuzzleId(spec)
-  const mode: Mode = params.get('mode') === 'next-pieces' ? 'next-pieces' : 'scrambled'
+  const id = catalogPuzzle?.id ?? encodePuzzleId(spec)
+  const requested = params.get('mode')
+  const mode: Mode =
+    requested === 'next-pieces' || requested === 'scrambled'
+      ? requested
+      : catalogPuzzle?.settings.type === 'next-pieces'
+        ? 'next-pieces'
+        : 'scrambled'
   const setMode = (m: Mode) => {
     const next = new URLSearchParams(params)
     next.set('mode', m)
     setParams(next, { replace: true })
   }
+  const controls = <ModeControls mode={mode} onMode={setMode} />
   // Remount on id or mode change so the game state resets.
+  if (catalogPuzzle) return <CatalogPlayer key={`${id}-${mode}`} puzzle={catalogPuzzle} mode={mode} modeControls={controls} />
   return mode === 'next-pieces' ? (
-    <NextPiecesGame key={id} spec={spec} modeControls={<ModeControls mode={mode} onMode={setMode} />} />
+    <NextPiecesGame key={id} spec={spec} modeControls={controls} />
   ) : (
-    <Game key={id} spec={spec} modeControls={<ModeControls mode={mode} onMode={setMode} />} />
+    <Game key={id} spec={spec} modeControls={controls} />
+  )
+}
+
+/** A catalog puzzle: its picture, template and game settings, with its reviews underneath. */
+function CatalogPlayer({ puzzle, mode, modeControls }: { puzzle: Puzzle; mode: Mode; modeControls: React.ReactNode }) {
+  const { settings } = puzzle
+  const template = useMemo(() => templateParams(puzzle.template.size, puzzle.template.style), [puzzle.template])
+  const jigsaw = useMemo(() => new JigsawVectorizer().vectorize(new JigsawTemplateGenerator(template).generate()), [template])
+  const cols = template.cols!
+  const rows = template.rows!
+  const spec: PuzzleSpec = { cols, rows, seed: template.seed! + settings.seed }
+  const average = averageRating(puzzle)
+  return (
+    <div className="flex h-full flex-col">
+      <div className="min-h-0 flex-1">
+        {mode === 'next-pieces' ? (
+          <NextPiecesGame
+            spec={spec}
+            jigsaw={jigsaw}
+            photo={puzzle.image.location}
+            title={puzzle.name}
+            config={{ ...settings, type: 'next-pieces' }}
+            modeControls={modeControls}
+          />
+        ) : (
+          <Game
+            spec={spec}
+            jigsaw={jigsaw}
+            photo={puzzle.image.location}
+            title={puzzle.name}
+            showGuide
+            zoomOrientation={settings.zoomOrientation}
+            modeControls={modeControls}
+            scatter={{
+              cell: { width: template.width! / cols, height: template.height! / rows },
+              viewPercent: settings.viewPercent,
+              side: settings.startSide,
+              spread: settings.spread,
+              count: settings.looseCount > 0 ? settings.looseCount : undefined,
+            }}
+          />
+        )}
+      </div>
+      <details className="border-t border-slate-200 bg-slate-100 px-4 py-2 text-sm">
+        <summary className="cursor-pointer font-medium">
+          Reviews ({puzzle.reviews.length}){average !== null && ` · ★ ${average.toFixed(1)}`}
+        </summary>
+        <ul className="mt-2 flex flex-col gap-1">
+          {puzzle.reviews.map((r, i) => (
+            <li key={i}>
+              <span aria-label={`${r.rating} stars`} className="text-amber-600">{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span> {r.comment}
+            </li>
+          ))}
+          {puzzle.reviews.length === 0 && <li className="text-slate-500">No reviews yet.</li>}
+        </ul>
+      </details>
+    </div>
   )
 }
 
@@ -80,6 +153,7 @@ export function Game({
   borders = DEFAULT_PIECE_BORDERS,
   effects = DEFAULT_EFFECTS,
   zoomOrientation,
+  title,
   modeControls,
 }: {
   spec: PuzzleSpec
@@ -97,6 +171,8 @@ export function Game({
   borders?: PieceBorders
   effects?: PieceEffects
   zoomOrientation?: ZoomOrientation
+  /** Shown in the header instead of the puzzle id. */
+  title?: string
   modeControls?: React.ReactNode
 }) {
   const puzzle = useMemo(() => jigsaw ?? buildPuzzle(spec), [jigsaw, spec])
@@ -170,7 +246,7 @@ export function Game({
         <h1 className="text-lg font-bold">Puzzle</h1>
         {modeControls}
         <span className="text-sm text-slate-600">
-          {encodePuzzleId(spec)} · {placed}/{offsets.length} placed
+          {title ?? encodePuzzleId(spec)} · {placed}/{offsets.length} placed
         </span>
         {solved && <span className="rounded bg-green-600 px-2 py-0.5 text-sm font-medium text-white">Solved!</span>}
         <button
