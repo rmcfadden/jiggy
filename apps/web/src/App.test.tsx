@@ -67,3 +67,18 @@ it('picks the player mode from the URL', () => {
   renderAt('/puzzle?id=2x2-5')
   expect(screen.getByLabelText('Puzzle board')).toBeTruthy()
 })
+
+it('switches color mode and palette from the sidebar', () => {
+  renderAt('/puzzles')
+  fireEvent.click(screen.getByRole('button', { name: 'Dark' }))
+  expect(document.documentElement.dataset.theme).toBe('dark')
+  fireEvent.click(screen.getByRole('button', { name: /Colors/ }))
+  fireEvent.click(screen.getByRole('button', { name: 'Violet palette' }))
+  expect(document.documentElement.dataset.palette).toBe('violet')
+  fireEvent.click(screen.getByRole('button', { name: 'Warm background' }))
+  expect(document.documentElement.dataset.bg).toBe('warm')
+  fireEvent.click(screen.getByRole('button', { name: 'Done' }))
+  expect(screen.queryByRole('dialog')).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: 'Light' }))
+  expect(document.documentElement.dataset.theme).toBe('light')
+})

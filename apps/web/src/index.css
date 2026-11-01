@@ -60,3 +60,111 @@
 .scrollbar-visible::-webkit-scrollbar { height: 8px; }
 .scrollbar-visible::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 4px; }
 .scrollbar-visible::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+
+/* Color palettes: remap the amber accent scale (the Tailwind classes keep saying "amber"). */
+:root[data-palette="blue"] {
+  --color-amber-50: #eff6ff; --color-amber-100: #dbeafe; --color-amber-200: #bfdbfe; --color-amber-300: #93c5fd;
+  --color-amber-400: #60a5fa; --color-amber-500: #3b82f6; --color-amber-600: #2563eb; --color-amber-700: #1d4ed8;
+  --color-amber-800: #1e40af; --color-amber-900: #1e3a8a;
+}
+:root[data-palette="emerald"] {
+  --color-amber-50: #ecfdf5; --color-amber-100: #d1fae5; --color-amber-200: #a7f3d0; --color-amber-300: #6ee7b7;
+  --color-amber-400: #34d399; --color-amber-500: #10b981; --color-amber-600: #059669; --color-amber-700: #047857;
+  --color-amber-800: #065f46; --color-amber-900: #064e3b;
+}
+:root[data-palette="rose"] {
+  --color-amber-50: #fff1f2; --color-amber-100: #ffe4e6; --color-amber-200: #fecdd3; --color-amber-300: #fda4af;
+  --color-amber-400: #fb7185; --color-amber-500: #f43f5e; --color-amber-600: #e11d48; --color-amber-700: #be123c;
+  --color-amber-800: #9f1239; --color-amber-900: #881337;
+}
+:root[data-palette="violet"] {
+  --color-amber-50: #f5f3ff; --color-amber-100: #ede9fe; --color-amber-200: #ddd6fe; --color-amber-300: #c4b5fd;
+  --color-amber-400: #a78bfa; --color-amber-500: #8b5cf6; --color-amber-600: #7c3aed; --color-amber-700: #6d28d9;
+  --color-amber-800: #5b21b6; --color-amber-900: #4c1d95;
+}
+:root[data-palette="red"] {
+  --color-amber-50: #fef2f2; --color-amber-100: #fee2e2; --color-amber-200: #fecaca; --color-amber-300: #fca5a5; --color-amber-400: #f87171;
+  --color-amber-500: #ef4444; --color-amber-600: #dc2626; --color-amber-700: #b91c1c; --color-amber-800: #991b1b; --color-amber-900: #7f1d1d;
+}
+:root[data-palette="orange"] {
+  --color-amber-50: #fff7ed; --color-amber-100: #ffedd5; --color-amber-200: #fed7aa; --color-amber-300: #fdba74; --color-amber-400: #fb923c;
+  --color-amber-500: #f97316; --color-amber-600: #ea580c; --color-amber-700: #c2410c; --color-amber-800: #9a3412; --color-amber-900: #7c2d12;
+}
+:root[data-palette="lime"] {
+  --color-amber-50: #f7fee7; --color-amber-100: #ecfccb; --color-amber-200: #d9f99d; --color-amber-300: #bef264; --color-amber-400: #a3e635;
+  --color-amber-500: #84cc16; --color-amber-600: #65a30d; --color-amber-700: #4d7c0f; --color-amber-800: #3f6212; --color-amber-900: #365314;
+}
+:root[data-palette="teal"] {
+  --color-amber-50: #f0fdfa; --color-amber-100: #ccfbf1; --color-amber-200: #99f6e4; --color-amber-300: #5eead4; --color-amber-400: #2dd4bf;
+  --color-amber-500: #14b8a6; --color-amber-600: #0d9488; --color-amber-700: #0f766e; --color-amber-800: #115e59; --color-amber-900: #134e4a;
+}
+:root[data-palette="cyan"] {
+  --color-amber-50: #ecfeff; --color-amber-100: #cffafe; --color-amber-200: #a5f3fc; --color-amber-300: #67e8f9; --color-amber-400: #22d3ee;
+  --color-amber-500: #06b6d4; --color-amber-600: #0891b2; --color-amber-700: #0e7490; --color-amber-800: #155e75; --color-amber-900: #164e63;
+}
+:root[data-palette="indigo"] {
+  --color-amber-50: #eef2ff; --color-amber-100: #e0e7ff; --color-amber-200: #c7d2fe; --color-amber-300: #a5b4fc; --color-amber-400: #818cf8;
+  --color-amber-500: #6366f1; --color-amber-600: #4f46e5; --color-amber-700: #4338ca; --color-amber-800: #3730a3; --color-amber-900: #312e81;
+}
+:root[data-palette="fuchsia"] {
+  --color-amber-50: #fdf4ff; --color-amber-100: #fae8ff; --color-amber-200: #f5d0fe; --color-amber-300: #f0abfc; --color-amber-400: #e879f9;
+  --color-amber-500: #d946ef; --color-amber-600: #c026d3; --color-amber-700: #a21caf; --color-amber-800: #86198f; --color-amber-900: #701a75;
+}
+:root[data-palette="pink"] {
+  --color-amber-50: #fdf2f8; --color-amber-100: #fce7f3; --color-amber-200: #fbcfe8; --color-amber-300: #f9a8d4; --color-amber-400: #f472b6;
+  --color-amber-500: #ec4899; --color-amber-600: #db2777; --color-amber-700: #be185d; --color-amber-800: #9d174d; --color-amber-900: #831843;
+}
+:root[data-palette="slate"] {
+  --color-amber-50: #f8fafc; --color-amber-100: #f1f5f9; --color-amber-200: #e2e8f0; --color-amber-300: #cbd5e1; --color-amber-400: #94a3b8;
+  --color-amber-500: #64748b; --color-amber-600: #475569; --color-amber-700: #334155; --color-amber-800: #1e293b; --color-amber-900: #0f172a;
+}
+
+/* Dark mode: invert the slate scale and white, and darken the accent tints. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-white: #172033;
+  --color-slate-50: #0f172a; --color-slate-100: #1e293b; --color-slate-200: #334155; --color-slate-300: #475569;
+  --color-slate-400: #64748b; --color-slate-500: #94a3b8; --color-slate-600: #cbd5e1; --color-slate-700: #e2e8f0;
+  --color-slate-800: #f1f5f9; --color-slate-900: #f8fafc;
+  --color-amber-50: color-mix(in oklab, var(--color-amber-500) 12%, #0f172a);
+  --color-amber-100: color-mix(in oklab, var(--color-amber-500) 22%, #0f172a);
+  --color-amber-200: color-mix(in oklab, var(--color-amber-500) 35%, #0f172a);
+  /* Text on the tints above: light shades of the accent (amber-100/200 are redefined as dark tints here). */
+  --color-amber-700: var(--color-amber-300);
+  --color-amber-800: color-mix(in oklab, var(--color-amber-400) 45%, white);
+  --color-amber-900: color-mix(in oklab, var(--color-amber-400) 25%, white);
+}
+/* Background choices: tint the surface and the slate-50/100 panels derived from it (dark variants follow the dark theme). */
+:root[data-bg="warm"] { --bg: #fffbeb; }
+:root[data-bg="cool"] { --bg: #eff6ff; }
+:root[data-bg="mint"] { --bg: #ecfdf5; }
+:root[data-bg="gray"] { --bg: #f1f5f9; }
+:root[data-theme="dark"][data-bg="warm"] { --bg: #231c14; }
+:root[data-theme="dark"][data-bg="cool"] { --bg: #12202f; }
+:root[data-theme="dark"][data-bg="mint"] { --bg: #122520; }
+:root[data-theme="dark"][data-bg="gray"] { --bg: #0b1220; }
+:root[data-bg="rose"] { --bg: #fff1f2; }
+:root[data-bg="lavender"] { --bg: #f5f3ff; }
+:root[data-bg="sky"] { --bg: #f0f9ff; }
+:root[data-bg="sand"] { --bg: #faf5ea; }
+:root[data-bg="peach"] { --bg: #fff4ed; }
+:root[data-bg="sage"] { --bg: #f1f5ee; }
+:root[data-bg="lilac"] { --bg: #fdf4ff; }
+:root[data-bg="black"] { --bg: #e5e7eb; }
+:root[data-theme="dark"][data-bg="rose"] { --bg: #261419; }
+:root[data-theme="dark"][data-bg="lavender"] { --bg: #1b1830; }
+:root[data-theme="dark"][data-bg="sky"] { --bg: #0e2230; }
+:root[data-theme="dark"][data-bg="sand"] { --bg: #221e16; }
+:root[data-theme="dark"][data-bg="peach"] { --bg: #26180f; }
+:root[data-theme="dark"][data-bg="sage"] { --bg: #171f17; }
+:root[data-theme="dark"][data-bg="lilac"] { --bg: #241328; }
+:root[data-theme="dark"][data-bg="black"] { --bg: #000000; }
+:root[data-bg]:not([data-bg="default"]) {
+  --color-white: var(--bg);
+  --color-slate-50: color-mix(in oklab, var(--bg) 94%, #64748b);
+  --color-slate-100: color-mix(in oklab, var(--bg) 88%, #64748b);
+}
+body {
+  background: var(--color-white);
+  color: var(--color-slate-900);
+}

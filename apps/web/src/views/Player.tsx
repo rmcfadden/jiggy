@@ -1,8 +1,8 @@
 import { ZoomControls, useZoom } from '../designer/zoom'
 import { PieceSparkles } from '../designer/sparkles'
 import { NEAR_COLOR, DEFAULT_EFFECTS, effectClass, sparklePieces, useFlash, type PieceEffects } from '../designer/effects'
-import { DEFAULT_PIECE_BORDERS, PieceBorderPath, type PieceBorders } from '../designer/controls'
-import { useMemo, useRef, useState } from 'react'
+import { DEFAULT_PIECE_BORDERS, PieceBorderPath, SET_ALPHA, type PieceBorders } from '../designer/controls'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { NextPiecesGame } from './NextPiecesGame'
 import { templateParams } from '../designer/gameAssets'
@@ -15,7 +15,9 @@ import {
   decodePuzzleId,
   encodePuzzleId,
   findPuzzle,
+  connectedPieces,
   scatterOffsets,
+  settleGroup,
   snapPiece,
   toSvgPath,
   viewMargins,
@@ -76,6 +78,7 @@ function CatalogPlayer({ puzzle, mode }: { puzzle: Puzzle; mode: Mode }) {
             photo={puzzle.image.location}
             showGuide
             zoomOrientation={settings.zoomOrientation}
+            freeBuild={settings.freeBuild}
             scatter={{
               cell: { width: template.width! / cols, height: template.height! / rows },
               viewPercent: settings.viewPercent,
@@ -116,6 +119,7 @@ export function Game({
   borders = DEFAULT_PIECE_BORDERS,
   effects = DEFAULT_EFFECTS,
   zoomOrientation,
+  freeBuild = false,
 }: {
   spec: PuzzleSpec
   scatter?: ScatterOptions
@@ -132,14 +136,19 @@ export function Game({
   borders?: PieceBorders
   effects?: PieceEffects
   zoomOrientation?: ZoomOrientation
+  /** Pieces join each other anywhere on the board and joined pieces drag together. */
+  freeBuild?: boolean
 }) {
   const puzzle = useMemo(() => jigsaw ?? buildPuzzle(spec), [jigsaw, spec])
   const paths = useMemo(() => puzzle.pieces.map((p) => toSvgPath(p.vector)), [puzzle])
   const [offsets, setOffsets] = useState<Offset[]>(() => scatterOffsets(spec, scatter))
+  // Shape of the window the board sits in, so loose pieces can use all of it.
+  const [aspect, setAspect] = useState<number>()
+  const touched = useRef(false)
   // Pieces drawn last are on top; dragging brings a piece to the front.
   const [order, setOrder] = useState(() => puzzle.pieces.map((_, i) => i))
   const svgRef = useRef<SVGSVGElement>(null)
-  const drag = useRef<{ index: number; last: Offset; pos: Offset } | null>(null)
+  const drag = useRef<{ index: number; group: number[]; last: Offset; pos: Offset } | null>(null)
   /** The piece being dragged while it is within snapping distance of its slot. */
   const [near, setNear] = useState<number | null>(null)
 
@@ -148,7 +157,7 @@ export function Game({
 
   // Snap distance follows the piece size, so small pieces of big puzzles don't snap from afar.
   const snapTolerance = scatter?.cell ? Math.min(scatter.cell.width, scatter.cell.height) * 0.25 : undefined
-  const margin = viewMargins(spec, scatter?.viewPercent, scatter?.cell)
+  const margin = viewMargins(spec, scatter?.viewPercent, scatter?.cell, aspect)
   const { minX, minY } = puzzle.bounds
   const viewBox = `${minX - margin.x} ${minY - margin.y} ${puzzle.width + margin.x * 2} ${puzzle.height + margin.y * 2}`
 
@@ -157,6 +166,28 @@ export function Game({
   const outlineWidth = pixel * outlineScale
 
   const z = useZoom((puzzle.width + margin.x * 2) / (puzzle.height + margin.y * 2))
+
+  // Measure the frame before paint, and re-scatter to fill it until the player moves a piece.
+  const frame = z.frameRef
+  const latest = useRef({ aspect, spec, scatter })
+  latest.current = { aspect, spec, scatter }
+  useLayoutEffect(() => {
+    const el = frame.current
+    if (!el) return
+    const fill = () => {
+      const { aspect: prev, spec, scatter } = latest.current
+      if (touched.current || el.clientWidth <= 0 || el.clientHeight <= 0) return
+      const next = el.clientWidth / el.clientHeight
+      if (prev !== undefined && Math.abs(next - prev) / prev < 0.05) return
+      setAspect(next)
+      setOffsets(scatterOffsets(spec, { ...scatter, aspect: next }))
+    }
+    fill()
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(fill)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [frame])
 
   const toPuzzle = (e: React.PointerEvent): Offset => {
     const svg = svgRef.current!
@@ -171,9 +202,11 @@ export function Game({
 
   const onDown = (index: number) => (e: React.PointerEvent) => {
     if (offsets[index].x === 0 && offsets[index].y === 0) return
+    touched.current = true
     e.currentTarget.setPointerCapture?.(e.pointerId)
-    drag.current = { index, last: toPuzzle(e), pos: offsets[index] }
-    setOrder((o) => [...o.filter((i) => i !== index), index])
+    const group = freeBuild ? connectedPieces(offsets, spec.cols, index) : [index]
+    drag.current = { index, group, last: toPuzzle(e), pos: offsets[index] }
+    setOrder((o) => [...o.filter((i) => !group.includes(i)), ...group])
   }
 
   const onMove = (e: React.PointerEvent) => {
@@ -185,7 +218,7 @@ export function Game({
     d.last = now
     d.pos = { x: d.pos.x + dx, y: d.pos.y + dy }
     setNear(snapPiece(d.pos, snapTolerance).snapped ? d.index : null)
-    setOffsets((os) => os.map((o, i) => (i === d.index ? { x: o.x + dx, y: o.y + dy } : o)))
+    setOffsets((os) => os.map((o, i) => (d.group.includes(i) ? { x: o.x + dx, y: o.y + dy } : o)))
   }
 
   const onUp = () => {
@@ -193,7 +226,9 @@ export function Game({
     drag.current = null
     setNear(null)
     if (!d) return
-    setOffsets((os) => os.map((o, i) => (i === d.index ? snapPiece(o, snapTolerance).offset : o)))
+    setOffsets((os) =>
+      freeBuild ? settleGroup(os, spec.cols, d.group, snapTolerance) : os.map((o, i) => (i === d.index ? snapPiece(o, snapTolerance).offset : o)),
+    )
   }
 
   return (
@@ -258,7 +293,7 @@ export function Game({
                 <path
                   d={paths[i]}
                   fill={photo ? '#ffffff' : `hsl(${(row * 40 + col * 25) % 360} 85% 80%)`}
-                  stroke={photo ? 'none' : near === i && effects.near.border ? NEAR_COLOR : '#92400e'}
+                  stroke={photo ? 'none' : near === i && effects.near.border ? NEAR_COLOR : borders.template.color}
                   strokeWidth={1.5}
                   strokeLinejoin="round"
                 />
@@ -273,7 +308,7 @@ export function Game({
                       preserveAspectRatio="xMidYMid slice"
                       clipPath={`url(#scatter-clip-${i})`}
                     />
-                    <PieceBorderPath d={paths[i]} border={home ? borders.set : near === i && effects.near.border ? { ...borders.moving, width: 'thick' } : borders.moving} unit={pixel / 2} color={home ? '#ffffff88' : near === i && effects.near.border ? NEAR_COLOR : '#92400e'} />
+                    <PieceBorderPath d={paths[i]} border={home ? borders.set : near === i && effects.near.border ? { ...borders.moving, width: 'thick' } : borders.moving} unit={pixel / 2} color={home ? borders.set.color + SET_ALPHA : near === i && effects.near.border ? NEAR_COLOR : borders.moving.color} />
                   </>
                 )}
                 </g>
@@ -288,7 +323,7 @@ export function Game({
           </g>
         </svg>
       </div>
-      <ZoomControls z={z} orientation={zoomOrientation} />
+      <ZoomControls z={z} orientation={zoomOrientation} preview={photo ? { photo, svg: svgRef, box: { x: minX, y: minY, width: puzzle.width, height: puzzle.height } } : undefined} />
       </div>
     </div>
   )

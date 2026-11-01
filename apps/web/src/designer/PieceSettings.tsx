@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { toSvgPath, type JigsawVector } from '@jiggy/shared'
 import {
   PieceBorderPath,
+  SET_ALPHA,
   field,
   input,
   type BorderLine,
@@ -10,6 +11,8 @@ import {
   type PieceBorders,
   type PieceLocation,
   type PieceLook,
+  type PieceGradient,
+  type PieceShadow,
   type TemplateBorder,
 } from './controls'
 
@@ -28,11 +31,13 @@ type Props = {
   photo: string
   borders: PieceBorders
   onBorders: (borders: PieceBorders) => void
+  /** Scrambled pieces never shows the selector tray, so it opens on Moving. */
+  scrambled?: boolean
 }
 
 /** Border settings for each place a piece is drawn, with a draggable preview piece. */
-export function PieceSettings({ jigsaw, photo, borders, onBorders }: Props) {
-  const [loc, setLoc] = useState<Place>('selector')
+export function PieceSettings({ jigsaw, photo, borders, onBorders, scrambled = false }: Props) {
+  const [loc, setLoc] = useState<Place>(scrambled ? 'moving' : 'selector')
   const [drag, setDrag] = useState<{ x: number; y: number } | null>(null)
   const isTemplate = loc === 'template'
   const b = isTemplate ? { ...borders.template, look: 'flat' as PieceLook } : borders[loc]
@@ -119,10 +124,13 @@ export function PieceSettings({ jigsaw, photo, borders, onBorders }: Props) {
           />
           )}
           {showTemplate && b.line === 'none' ? null : (
-            <PieceBorderPath d={d} border={{ ...shown, line: shown.line === 'none' ? 'solid' : shown.line }} unit={unit} color={!drag && loc === 'set' ? '#ffffff88' : undefined} />
+            <PieceBorderPath d={d} border={{ ...shown, line: shown.line === 'none' ? 'solid' : shown.line }} unit={unit} color={!drag && loc === 'set' ? shown.color + SET_ALPHA : shown.color} />
           )}
         </svg>
       </div>
+      {scrambled && loc === 'selector' && (
+        <p className="text-xs text-amber-800">The selector tray isn't used by Scrambled pieces, so these settings won't show in this game.</p>
+      )}
       <p className="text-xs text-slate-500">
         {drag ? 'Showing the Moving border.' : `Showing ${LOCATIONS.find(([id]) => id === loc)![1]}. Drag the piece to preview Moving.`}
       </p>
@@ -150,6 +158,38 @@ export function PieceSettings({ jigsaw, photo, borders, onBorders }: Props) {
             <select className={input} value={b.look} onChange={(e) => change({ look: e.target.value as PieceLook })}>
               <option value="flat">Flat</option>
               <option value="3d">3D</option>
+            </select>
+          </label>
+        )}
+        <label className={field}>
+          Color
+          <input
+            type="color"
+            aria-label="Border color"
+            className="h-8 w-full cursor-pointer rounded border border-slate-300 bg-white p-0.5"
+            value={b.color}
+            onChange={(e) => change({ color: e.target.value })}
+          />
+        </label>
+        {!isTemplate && (
+          <label className={field}>
+            Drop shadow
+            <select className={input} value={b.shadow} onChange={(e) => change({ shadow: e.target.value as PieceShadow })}>
+              <option value="none">None</option>
+              <option value="soft">Soft</option>
+              <option value="medium">Medium</option>
+              <option value="strong">Strong</option>
+            </select>
+          </label>
+        )}
+        {!isTemplate && (
+          <label className={field}>
+            Gradient
+            <select className={input} value={b.gradient} onChange={(e) => change({ gradient: e.target.value as PieceGradient })}>
+              <option value="none">None</option>
+              <option value="subtle">Subtle</option>
+              <option value="medium">Medium</option>
+              <option value="strong">Strong</option>
             </select>
           </label>
         )}

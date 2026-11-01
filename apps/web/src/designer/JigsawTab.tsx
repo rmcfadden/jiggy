@@ -52,8 +52,8 @@ export function JigsawTab() {
   const matrixJson = useMemo(() => JSON.stringify(matrix, null, 2), [matrix])
 
   return (
-    <div className="flex min-h-0 flex-1">
-      <main ref={mainRef} className="flex flex-1 items-center justify-center overflow-hidden bg-white p-4">
+    <div className="flex flex-col md:flex-row min-h-0 flex-1">
+      <main ref={mainRef} className="flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-white p-4">
         <JigsawView jigsaw={jigsaw} />
       </main>
       <JigsawPanel

@@ -35,6 +35,8 @@ export type GameConfig = {
   looseCount: number;
   /** scrambled: how far apart loose pieces are pushed, 0-100; 0 is purely random. */
   spread: number;
+  /** scrambled: pieces can be joined to each other anywhere, and joined pieces move together. */
+  freeBuild: boolean;
   /** Layout of the zoom control on the board. */
   zoomOrientation: ZoomOrientation;
 };
@@ -50,6 +52,7 @@ export const DEFAULT_GAME_CONFIG: GameConfig = {
   startSide: "random",
   looseCount: 0,
   spread: 30,
+  freeBuild: true,
   zoomOrientation: "vertical",
 };
 

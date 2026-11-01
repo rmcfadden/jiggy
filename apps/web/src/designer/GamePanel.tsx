@@ -322,6 +322,10 @@ export function GamePanel(p: Props) {
                     ))}
                   </select>
                 </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={config.freeBuild} onChange={(e) => set({ freeBuild: e.target.checked })} />
+                  Allow building pieces off template
+                </label>
               </>
             )}
             <label className="flex items-center gap-2 text-sm">
@@ -347,7 +351,7 @@ export function GamePanel(p: Props) {
                 </fieldset>
               </div>
             )}
-            {tab === 'pieces' && <PieceSettings jigsaw={p.jigsaw} photo={p.photo} borders={p.borders} onBorders={p.onBorders} />}
+            {tab === 'pieces' && <PieceSettings jigsaw={p.jigsaw} photo={p.photo} borders={p.borders} onBorders={p.onBorders} scrambled={config.type === 'scrambled'} />}
             <button className={`self-end ${primaryButton}`} autoFocus onClick={() => setOpen(false)}>
               Done
             </button>
