@@ -26,8 +26,8 @@ export function PieceTab() {
   }, [params, neighbour])
 
   return (
-    <div className="flex min-h-0 flex-1">
-      <main className="flex flex-1 items-center justify-center overflow-hidden bg-white">
+    <div className="flex flex-col md:flex-row min-h-0 flex-1">
+      <main className="flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-white">
         <PieceView pieces={pieces} />
       </main>
       <PropertiesPanel

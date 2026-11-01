@@ -45,6 +45,8 @@ export type ScatterOptions = {
   spread?: number;
   /** Size of one piece cell; default {@link PIECE_SIZE} square. Set it when using a custom template. */
   cell?: { width: number; height: number };
+  /** Width / height of the window the board is shown in; the free space grows to fill it. */
+  aspect?: number;
 };
 
 export const DEFAULT_VIEW_PERCENT = 40;
@@ -55,15 +57,22 @@ export function viewMargins(
   spec: PuzzleSpec,
   viewPercent = DEFAULT_VIEW_PERCENT,
   cell = { width: PIECE_SIZE, height: PIECE_SIZE },
+  aspect?: number,
 ): Offset {
   const f = Math.min(0.8, Math.max(0.2, viewPercent / 100));
   const w = spec.cols * cell.width;
   const h = spec.rows * cell.height;
   // Never so tight that a piece can't rest beside the board.
-  return {
-    x: Math.max(cell.width * 1.25, (w / f - w) / 2),
-    y: Math.max(cell.height * 1.25, (h / f - h) / 2),
-  };
+  let x = Math.max(cell.width * 1.25, (w / f - w) / 2);
+  let y = Math.max(cell.height * 1.25, (h / f - h) / 2);
+  // Grow the short axis so the view matches the window and no canvas goes unused.
+  if (aspect && aspect > 0) {
+    const vw = w + x * 2;
+    const vh = h + y * 2;
+    if (vw / vh < aspect) x = (vh * aspect - w) / 2;
+    else y = (vw / aspect - h) / 2;
+  }
+  return { x, y };
 }
 
 /**
@@ -75,7 +84,7 @@ export function scatterOffsets(spec: PuzzleSpec, options: ScatterOptions = {}): 
   const total = spec.cols * spec.rows;
   const count = Math.min(total, Math.max(1, Math.floor(options.count ?? total)));
   const rng = createRng(spec.seed ^ 0x5bd1e995);
-  const m = viewMargins(spec, viewPercent, cell);
+  const m = viewMargins(spec, viewPercent, cell, options.aspect);
   const w = spec.cols * cell.width;
   const h = spec.rows * cell.height;
   const half = Math.max(cell.width, cell.height) / 2;
@@ -136,6 +145,50 @@ export function scatterOffsets(spec: PuzzleSpec, options: ScatterOptions = {}): 
 export function snapPiece(offset: Offset, tolerance = PIECE_SIZE * 0.25): { offset: Offset; snapped: boolean } {
   if (Math.hypot(offset.x, offset.y) <= tolerance) return { offset: { x: 0, y: 0 }, snapped: true };
   return { offset, snapped: false };
+}
+
+/** Pieces joined to `index`: grid neighbours (row-major, `cols` wide) that share its offset, so they sit together as built. */
+export function connectedPieces(offsets: Offset[], cols: number, index: number, epsilon = 0.5): number[] {
+  const seen = new Set([index]);
+  const stack = [index];
+  while (stack.length) {
+    const i = stack.pop()!;
+    const col = i % cols;
+    const next = [col > 0 ? i - 1 : -1, col < cols - 1 ? i + 1 : -1, i - cols, i + cols];
+    for (const j of next) {
+      if (j < 0 || j >= offsets.length || seen.has(j)) continue;
+      if (Math.abs(offsets[j].x - offsets[i].x) < epsilon && Math.abs(offsets[j].y - offsets[i].y) < epsilon) {
+        seen.add(j);
+        stack.push(j);
+      }
+    }
+  }
+  return [...seen];
+}
+
+/**
+ * Drops a group of joined pieces: it locks onto the template when close enough, otherwise it
+ * locks onto the nearest grid neighbour it is within `tolerance` of being correctly placed against.
+ */
+export function settleGroup(offsets: Offset[], cols: number, group: number[], tolerance = PIECE_SIZE * 0.25): Offset[] {
+  const own = offsets[group[0]];
+  const home = snapPiece(own, tolerance);
+  let target: Offset | null = home.snapped ? home.offset : null;
+  if (!target) {
+    const members = new Set(group);
+    let best = tolerance;
+    for (const i of group) {
+      const col = i % cols;
+      for (const j of [col > 0 ? i - 1 : -1, col < cols - 1 ? i + 1 : -1, i - cols, i + cols]) {
+        if (j < 0 || j >= offsets.length || members.has(j)) continue;
+        const gap = Math.hypot(offsets[j].x - own.x, offsets[j].y - own.y);
+        if (gap <= best) [best, target] = [gap, offsets[j]];
+      }
+    }
+  }
+  if (!target) return offsets;
+  const to = target;
+  return offsets.map((o, i) => (group.includes(i) ? { ...to } : o));
 }
 
 export const isSolved = (offsets: Offset[]) => offsets.every((o) => o.x === 0 && o.y === 0);

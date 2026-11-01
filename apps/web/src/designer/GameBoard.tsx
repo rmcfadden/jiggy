@@ -1,4 +1,4 @@
-import { PieceBorderPath, borderScale, type PieceBorders, DEFAULT_PIECE_BORDERS } from './controls'
+import { PieceBorderPath, SET_ALPHA, borderScale, type PieceBorders, DEFAULT_PIECE_BORDERS } from './controls'
 import { PieceSparkles } from './sparkles'
 import { NEAR_COLOR, DEFAULT_EFFECTS, effectClass, sparklePieces, useFlash, type PieceEffects } from './effects'
 import { ZoomControls, useZoom } from './zoom'
@@ -190,7 +190,7 @@ export function GameBoard({ jigsaw, photo, game, selected, showGuide, borders = 
             game.placed[i] ? (
               <g key={i} data-testid="placed" className={fxFor(i, true)}>
                 <PieceImage jigsaw={jigsaw} photo={photo} clipId={`piece-clip-${i}`} />
-                <PieceBorderPath d={d} border={borders.set} unit={unit} color="#ffffff88" />
+                <PieceBorderPath d={d} border={borders.set} unit={unit} color={borders.set.color + SET_ALPHA} />
               </g>
             ) : (
               <path
@@ -199,7 +199,7 @@ export function GameBoard({ jigsaw, photo, game, selected, showGuide, borders = 
                 data-slot-index={i}
                 d={d}
                 fill={lit === i ? `${NEAR_COLOR}55` : selected !== null ? '#fbbf2433' : 'transparent'}
-                stroke={lit === i ? NEAR_COLOR : borders.template.line === 'none' ? 'none' : '#92400e'}
+                stroke={lit === i ? NEAR_COLOR : borders.template.line === 'none' ? 'none' : borders.template.color}
                 strokeDasharray={borders.template.line === 'dotted' ? `${4 * unit} ${4 * unit}` : undefined}
                 strokeWidth={(lit === i ? 3 : 1.5 * borderScale(borders.template.width)) * unit}
                
@@ -217,7 +217,7 @@ export function GameBoard({ jigsaw, photo, game, selected, showGuide, borders = 
           </g>
         </svg>
       </div>
-      <ZoomControls z={z} orientation={zoomOrientation} />
+      <ZoomControls z={z} orientation={zoomOrientation} preview={{ photo, svg: boardSvg, box: { x: minX, y: minY, width: jigsaw.width, height: jigsaw.height } }} />
       </div>
       <div
         className={`flex shrink-0 items-center gap-3 rounded border border-slate-200 bg-slate-50 p-3 [&::-webkit-scrollbar-thumb]:rounded [&::-webkit-scrollbar-thumb]:bg-slate-400 [&::-webkit-scrollbar-track]:bg-slate-200 ${

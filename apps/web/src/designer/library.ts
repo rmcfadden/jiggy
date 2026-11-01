@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { DEFAULT_GAME_CONFIG, type GameConfig } from '@jiggy/shared'
 import { DEFAULT_EFFECTS, type PieceEffects } from './effects'
 import type { ImageEdits } from './imageFilters'
-import { DEFAULT_PIECE_BORDERS, type PieceBorders } from './controls'
+import { normalizeBorders, type PieceBorders } from './controls'
 
 type Named = { id: string; name: string }
 
@@ -43,7 +43,7 @@ function normalizeGame(g: SavedGame): SavedGame {
   return {
     ...g,
     config: { ...DEFAULT_GAME_CONFIG, ...g.config },
-    borders: { ...DEFAULT_PIECE_BORDERS, ...g.borders },
+    borders: normalizeBorders(g.borders),
     effects: {
       near: { ...DEFAULT_EFFECTS.near, ...g.effects?.near },
       placed: { ...DEFAULT_EFFECTS.placed, ...g.effects?.placed },

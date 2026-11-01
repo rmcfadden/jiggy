@@ -1,4 +1,5 @@
 import type React from 'react'
+import type { RefObject } from 'react'
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 
 const MIN_ZOOM = 1
@@ -89,10 +90,71 @@ type ZoomState = ReturnType<typeof useZoom>
 
 const btn = 'h-7 min-w-7 rounded px-1.5 text-sm font-medium hover:bg-slate-200 disabled:opacity-40'
 
-/** Floating +/−/reset buttons; place inside a `relative` wrapper around the scroll frame. */
-export function ZoomControls({ z, orientation = 'vertical' }: { z: ZoomState; orientation?: 'vertical' | 'horizontal' }) {
-  const vertical = orientation === 'vertical'
+/** The finished picture and where it sits on the board svg, in the svg's user units. */
+export type PuzzlePreview = {
+  photo: string
+  svg: RefObject<SVGSVGElement | null>
+  box: { x: number; y: number; width: number; height: number }
+}
+
+/** The finished picture laid exactly over the puzzle on the board, at its current size and zoom. */
+function PreviewOverlay({ preview, onClose }: { preview: PuzzlePreview; onClose: () => void }) {
+  const [rect, setRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
+  useEffect(() => {
+    const measure = () => {
+      const svg = preview.svg.current
+      const m = svg?.getScreenCTM()
+      if (!m) return setRect(null)
+      const { x, y, width, height } = preview.box
+      setRect({ left: m.e + m.a * x, top: m.f + m.d * y, width: m.a * width, height: m.d * height })
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    window.addEventListener('scroll', measure, true)
+    return () => {
+      window.removeEventListener('resize', measure)
+      window.removeEventListener('scroll', measure, true)
+    }
+  }, [preview])
+  if (!rect) return null
   return (
+    <div className="fixed inset-0 z-50 bg-white/70" onClick={onClose}>
+      <img
+        src={preview.photo}
+        alt="Finished puzzle"
+        draggable={false}
+        className="absolute max-w-none object-cover shadow-lg"
+        style={{ left: rect.left, top: rect.top, width: rect.width, height: rect.height }}
+      />
+      <button
+        type="button"
+        autoFocus
+        aria-label="Close"
+        className="absolute rounded border border-slate-300 bg-white px-2 py-1 text-sm font-medium shadow hover:bg-slate-200"
+        style={{ left: Math.max(8, rect.left + rect.width - 70), top: Math.max(8, rect.top + 8) }}
+        onClick={onClose}
+      >
+        Close
+      </button>
+    </div>
+  )
+}
+
+/** Floating +/−/reset buttons; place inside a `relative` wrapper around the scroll frame. */
+export function ZoomControls({
+  z,
+  orientation = 'vertical',
+  preview,
+}: {
+  z: ZoomState
+  orientation?: 'vertical' | 'horizontal'
+  /** The finished picture; adds an eye button that shows it in a popup. */
+  preview?: PuzzlePreview
+}) {
+  const vertical = orientation === 'vertical'
+  const [open, setOpen] = useState(false)
+  return (
+    <>
     <div
       role="group"
       aria-label="Zoom"
@@ -109,6 +171,16 @@ export function ZoomControls({ z, orientation = 'vertical' }: { z: ZoomState; or
       <button type="button" className={`${btn} ${vertical ? 'order-4' : ''}`} aria-label="Reset zoom" disabled={z.zoom === 1} onClick={z.reset}>
         Reset
       </button>
+      {preview && (
+        <button type="button" className={`${btn} ${vertical ? 'order-5' : ''}`} aria-label="Show finished puzzle" title="Show finished puzzle" onClick={() => setOpen(true)}>
+          <svg viewBox="0 0 24 24" className="mx-auto h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        </button>
+      )}
     </div>
+    {preview && open && <PreviewOverlay preview={preview} onClose={() => setOpen(false)} />}
+    </>
   )
 }

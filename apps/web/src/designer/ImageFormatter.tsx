@@ -85,11 +85,11 @@ export function ImageFormatter({ image, onClose, onReplace, onSaveNew }: Props) 
         <h3 className="text-lg font-semibold">Format image — {image.name}</h3>
         <p className="-mt-2 text-sm text-slate-500">Your original picture is never changed; these edits are applied on top of it.</p>
         {failed && <p role="alert" className="text-sm text-red-700">This image could not be loaded for editing.</p>}
-        <div className="flex min-h-0 flex-1 gap-4 overflow-hidden">
+        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto md:flex-row md:overflow-hidden">
           <div className="flex min-w-0 flex-1 items-center justify-center overflow-hidden rounded border border-slate-200 bg-slate-100 p-2">
             <canvas ref={preview} aria-label="Preview" className="max-h-[60vh] max-w-full object-contain" />
           </div>
-          <div className="flex w-72 shrink-0 flex-col gap-4 overflow-y-auto pr-1">
+          <div className="flex w-full shrink-0 flex-col gap-4 md:w-72 md:overflow-y-auto md:pr-1">
             <fieldset className="flex flex-col gap-2">
               <legend className="mb-1 text-sm font-semibold uppercase tracking-wide text-slate-500">Crop</legend>
               <div role="group" aria-label="Crop shape" className="flex flex-wrap gap-1">

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PIECE_SIZE, viewMargins, buildPuzzle, decodePuzzleId, encodePuzzleId, isSolved, scatterOffsets, snapPiece } from "./puzzle";
+import { PIECE_SIZE, viewMargins, buildPuzzle, decodePuzzleId, encodePuzzleId, isSolved, scatterOffsets, snapPiece, connectedPieces, settleGroup } from "./puzzle";
 
 const spec = { cols: 4, rows: 3, seed: 42 };
 
@@ -61,5 +61,27 @@ describe("scatter options", () => {
 
   it("gives a larger view margin for a smaller puzzle share", () => {
     expect(viewMargins(spec, 25).x).toBeGreaterThan(viewMargins(spec, 70).x);
+  });
+});
+
+describe("window aspect", () => {
+  const wide = { cols: 6, rows: 4, seed: 3 };
+  const view = (aspect?: number) => {
+    const m = viewMargins(wide, 40, undefined, aspect);
+    return (wide.cols * PIECE_SIZE + m.x * 2) / (wide.rows * PIECE_SIZE + m.y * 2);
+  };
+
+  it("grows the free space to match a wide or tall window", () => {
+    expect(view(3)).toBeCloseTo(3);
+    expect(view(0.5)).toBeCloseTo(0.5);
+    expect(view()).toBeCloseTo(1.5);
+  });
+
+  it("scatters pieces across the whole window", () => {
+    const m = viewMargins(wide, 40, undefined, 3);
+    const cx = (i: number) => ((i % wide.cols) + 0.5) * PIECE_SIZE;
+    const xs = scatterOffsets(wide, { viewPercent: 40, aspect: 3 }).map((o, i) => o.x + cx(i));
+    expect(Math.min(...xs)).toBeLessThan(-m.x * 0.6);
+    expect(Math.max(...xs)).toBeGreaterThan(wide.cols * PIECE_SIZE + m.x * 0.6);
   });
 });

@@ -108,7 +108,7 @@ export function GameTab() {
   }
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-1">
+    <div className="flex flex-col md:flex-row min-h-0 min-w-0 flex-1">
       <main className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-hidden bg-white p-4">
         {config.type === 'scrambled' ? (
           // Scrambled pieces is the Puzzle view: loose pieces scattered around the board.
@@ -124,6 +124,7 @@ export function GameTab() {
               borders={borders}
               effects={effects}
               zoomOrientation={config.zoomOrientation}
+              freeBuild={config.freeBuild}
               scatter={{
                 cell: { width: templateParams.width / templateParams.cols, height: templateParams.height / templateParams.rows },
                 viewPercent: config.viewPercent,
