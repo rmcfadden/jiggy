@@ -1,0 +1,20 @@
+import type { Categories } from "../types/generated/views/categories";
+import { CRUDRepository, CRUDRepositoryBuilder, DictionaryMapper, ReadonlyRepository, Schema, type IConnection } from "@deterministic-code/datasources";
+const options = (connection: IConnection) =>
+  new CRUDRepositoryBuilder<Categories>()
+    .add({ entity: "Categories", entityMapper: new DictionaryMapper([["Categories", "categories"]]), propertyMappings: new DictionaryMapper([["categoryId", "category_id"], ["isEnabled", "is_enabled"], ["isDeleted", "is_deleted"]]), ids: ["id"], createProperties: ["categoryId", "name", "description", "isEnabled", "isDeleted"], updateProperties: ["uuid", "categoryId", "name", "description", "isEnabled", "isDeleted"], readProperties: ["id", "uuid", "created", "updated", "version", "categoryId", "name", "description", "isEnabled", "isDeleted"], schema: new Schema({ id: { type: "biginteger", nullable: false, hasDefault: false, isId: true }, uuid: { type: "uuid", nullable: false, hasDefault: true }, created: { type: "datetime", nullable: false, hasDefault: true }, updated: { type: "datetime", nullable: false, hasDefault: true }, version: { type: "binary", nullable: false, hasDefault: true } }) })
+    .add("sqlite", { entity: "Categories", entityMapper: new DictionaryMapper([["Categories", "categories"]]), propertyMappings: new DictionaryMapper([["categoryId", "category_id"], ["isEnabled", "is_enabled"], ["isDeleted", "is_deleted"]]), ids: ["id"], createProperties: ["uuid", "created", "version", "categoryId", "name", "description", "isEnabled", "isDeleted"], updateProperties: ["uuid", "created", "version", "categoryId", "name", "description", "isEnabled", "isDeleted"], readProperties: ["id", "uuid", "created", "updated", "version", "categoryId", "name", "description", "isEnabled", "isDeleted"], schema: new Schema({ id: { type: "biginteger", nullable: false, hasDefault: false, isId: true }, uuid: { type: "uuid", nullable: false, hasDefault: true }, created: { type: "datetime", nullable: false, hasDefault: true }, updated: { type: "datetime", nullable: false, hasDefault: true }, version: { type: "binary", nullable: false, hasDefault: true } }) })
+    .for(connection);
+
+const readonlyOptions = (connection: IConnection) =>
+  new CRUDRepositoryBuilder<Categories>()
+    .add({ entity: "Categories", entityMapper: new DictionaryMapper([["Categories", "categories"]]), propertyMappings: new DictionaryMapper([["categoryId", "category_id"], ["isEnabled", "is_enabled"], ["isDeleted", "is_deleted"]]), readProperties: ["id", "uuid", "created", "updated", "version", "categoryId", "name", "description", "isEnabled", "isDeleted"], schema: new Schema({ id: { type: "biginteger", nullable: false, hasDefault: false, isId: true }, uuid: { type: "uuid", nullable: false, hasDefault: true }, created: { type: "datetime", nullable: false, hasDefault: true }, updated: { type: "datetime", nullable: false, hasDefault: true }, version: { type: "binary", nullable: false, hasDefault: true } }) })
+    .add("sqlite", { entity: "Categories", entityMapper: new DictionaryMapper([["Categories", "categories"]]), propertyMappings: new DictionaryMapper([["categoryId", "category_id"], ["isEnabled", "is_enabled"], ["isDeleted", "is_deleted"]]), readProperties: ["id", "uuid", "created", "updated", "version", "categoryId", "name", "description", "isEnabled", "isDeleted"], schema: new Schema({ id: { type: "biginteger", nullable: false, hasDefault: false, isId: true }, uuid: { type: "uuid", nullable: false, hasDefault: true }, created: { type: "datetime", nullable: false, hasDefault: true }, updated: { type: "datetime", nullable: false, hasDefault: true }, version: { type: "binary", nullable: false, hasDefault: true } }) })
+    .for(connection);
+
+export class CategoriesRepository extends CRUDRepository<Categories> {
+  constructor(connection: IConnection) {
+    super(connection, options(connection));
+  }
+  static createReadonly = (connection: IConnection) => new ReadonlyRepository<Categories>(connection, readonlyOptions(connection));
+}

@@ -4,3 +4,6 @@ dist
 .expo
 .DS_Store
 *.log
+target
+bin
+obj
