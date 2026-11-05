@@ -1,0 +1,5 @@
+command.reader = new MockReader([{ id: 1, name: "a" }]);
+const parameters = [{ name: "id", value: 9 }];
+const call = new ExecuteStoredProcedureStatement("get_user", parameters);
+const rows: Cells[] = [];
+for await (const row of repo.read(call, parameters)) rows.push(row);

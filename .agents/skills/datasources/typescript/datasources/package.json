@@ -1,0 +1,35 @@
+{
+  "name": "@deterministic-code/datasources",
+  "version": "0.1.2",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./mocks": {
+      "types": "./dist/mocks/index.d.ts",
+      "import": "./dist/mocks/index.js",
+      "default": "./dist/mocks/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@deterministic-code/datasources-json": "*",
+    "@deterministic-code/datasources-memory": "*"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && node ../rewrite-declaration-extensions.mjs dist",
+    "prepack": "npm run build",
+    "test": "vitest run --coverage",
+    "typecheck": "tsc --noEmit"
+  }
+}

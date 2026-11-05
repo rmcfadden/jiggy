@@ -1,0 +1,69 @@
+using System.Collections;
+using System.Reflection;
+
+namespace Datasources;
+
+public class ReadonlyRepositoryBuilder<T> where T : new()
+{
+    protected IMapper<string, string> EntityMappers { get; private set; } = new IdentityMapper<string>();
+    protected IMapper<string, string> PropertyMappers { get; private set; } = new IdentityMapper<string>();
+
+    public BuiltRepository<T> Parts(IConnection connection, ReadonlyRepositoryMappingOptions<T> options)
+    {
+        var entity = options.EntityMapper ?? new IdentityMapper<string>();
+        var property = options.PropertyMappings ?? new IdentityMapper<string>();
+        EntityMappers = entity;
+        PropertyMappers = property;
+        var names = options.ReadProperties is { Count: > 0 } listed ? listed : Columns();
+        var columns = names
+            .OrderBy(name => property.Map(name), StringComparer.Ordinal)
+            .ToArray();
+        var converter = options.ObjectConverter ?? new MetaDataRowTypeConverter<T> { ShouldCoerceId = true };
+        if (converter is MetaDataRowTypeConverter<T> meta)
+        {
+            meta.References.Clear();
+            meta.ReferenceColumns = property;
+            meta.Ids = options.Schema?.Ids is { Count: > 0 } keyed ? keyed : Ids(options);
+            foreach (var name in names)
+                if (typeof(T).GetProperty(name) is { } prop && IsReference(prop.PropertyType))
+                    meta.References.Add(name);
+        }
+        var types = options.RowTypeConverters ?? DatasourceFactory.RowTypeConverters(connection.Provider);
+        var rows = options.RowConverter
+            ?? (options.Schema is { } schema && types is not null
+                ? RowTypeConverter.From(types, schema.Types)
+                : null);
+        return new(
+            connection,
+            rows,
+            converter,
+            property,
+            entity,
+            Statements(options.Entity ?? typeof(T).Name, columns),
+            Ids(options));
+    }
+
+    protected virtual IReadOnlyList<string> Ids(ReadonlyRepositoryMappingOptions<T> options) => [];
+
+    protected virtual ReadonlyRepositoryStatements Statements(string table, IReadOnlyList<string> columns) =>
+        new(table, columns);
+
+    static string[] Columns() =>
+        typeof(IDictionary).IsAssignableFrom(typeof(T))
+            ? []
+            : [.. typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(prop => prop.CanRead && prop.GetIndexParameters().Length == 0 && Included(prop.PropertyType))
+                .Select(prop => prop.Name)
+                .OrderBy(name => name)];
+
+    static bool Included(Type type) => IsColumn(type) || IsReference(type);
+
+    static bool IsColumn(Type type) =>
+        (Nullable.GetUnderlyingType(type) ?? type) is { } kind
+        && (kind == typeof(string) || kind == typeof(byte[])
+            || kind.IsValueType && !typeof(IEnumerable).IsAssignableFrom(kind));
+
+    static bool IsReference(Type type) =>
+        (Nullable.GetUnderlyingType(type) ?? type) is { } kind
+        && kind.IsClass && kind != typeof(string) && !typeof(IEnumerable).IsAssignableFrom(kind);
+}

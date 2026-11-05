@@ -1,15 +1,16 @@
 version: 1.0.0
 includes:
-  - file: user-roles-simple-cli-types.yaml
+  - file: base.yaml
+  - file: user-roles.yaml
     combine_options:
       source:
         remove_types: [base]
-  - file: contacts-crud-enriched-medium-rest-types.yaml
+  - file: contacts.yaml
     combine_options:
       source:
         remove_types: [base]
         add_fields:
-          - type: contacts_base
+          - type: contact_base
             add_field:
               user_id:
                 references: user.id
@@ -18,67 +19,13 @@ includes:
             def:
               type: biginteger
 types:
-  - base:
-      fields:
-        - id:
-            type: biginteger
-            is_id: true
-        - uuid:
-            type: uuid
-            default_value: NewId
-        - created:
-            type: datetime
-            default_value: UtcNow
-        - updated:
-            type: datetime
-            default_value: UtcNow
-        - version:
-            type: binary
-            default_value: Hex('00')
-  - user_settings:
-      tags: [datasource_type]
-      inherits: base
-      fields:
-        - user_id:
-            references: user.id
-        - name:
-            type: string
-            size: 128
-        - value:
-            type: string
-            size: unlimited
-  - user_settings_map:
-      tags: [view_type]
-      inherits: dictionary
-      fields:
-        - key:
-            type: string
-            size: 128
-            references: user_settings.name
-        - value:
-            type: string
-            size: unlimited
-            references: user_settings.value
-  - users:
-      tags: [view_type]
-      inherits: user
-      fields:
-        - settings:
-            type: user_settings_map{}
-            references: user_settings.user_id
-        - roles:
-            type: role[]
-            references: user_role.user_id
-        - groups:
-            type: group[]
-            references: user_group.user_id
-  - categories:
+  - category:
       tags: [datasource_type, view_type]
       inherits: base
       fields:
         - category_id:
             # null is a root category
-            references: categories.id
+            references: category.id
             is_nullable: true
         - name:
             type: string
@@ -92,7 +39,7 @@ types:
         - is_deleted:
             type: boolean
             default_value: false
-  - games_base:
+  - game_base:
       tags: [datasource_type]
       inherits: base
       fields:
@@ -111,55 +58,55 @@ types:
         - is_deleted:
             type: boolean
             default_value: false
-  - games_categories:
+  - game_category:
       tags: [datasource_type, many_to_many]
       inherits: base
       fields:
         - game_id:
-            references: games_base.id
+            references: game_base.id
         - category_id:
-            references: categories.id
-  - game_states:
+            references: category.id
+  - game_state:
       tags: [datasource_type]
       inherits: base
       fields:
         - game_id:
-            references: games_base.id
+            references: game_base.id
         - user_id:
             references: user.id
         - state:
             type: string
             size: 256
-  - game_settings:
+  - game_setting:
       tags: [datasource_type]
       inherits: base
       fields:
         - game_id:
-            references: games_base.id
+            references: game_base.id
         - name:
             type: string
             size: 128
         - value:
             type: string
             size: unlimited
-  - game_settings_map:
+  - game_setting_map:
       tags: [view_type]
       inherits: dictionary
       fields:
         - key:
             type: string
             size: 128
-            references: game_settings.name
+            references: game_setting.name
         - value:
             type: string
             size: unlimited
-            references: game_settings.value
-  - reviews:
+            references: game_setting.value
+  - review:
       tags: [datasource_type]
       inherits: base
       fields:
         - game_id:
-            references: games_base.id
+            references: game_base.id
         - user_id:
             references: user.id
         - description:
@@ -171,13 +118,13 @@ types:
         - is_approved:
             type: boolean
             default_value: false
-  - games:
+  - game:
       tags: [view_type]
-      inherits: games_base
+      inherits: game_base
       fields:
         - settings:
-            type: game_settings_map{}
-            references: game_settings.game_id
+            type: game_setting_map{}
+            references: game_setting.game_id
         - categories:
-            type: categories[]
-            references: games_categories.game_id
+            type: category[]
+            references: game_category.game_id

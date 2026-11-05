@@ -1,0 +1,118 @@
+using Datasources;
+
+public sealed class ContactsRepository : CRUDRepository<Backend.Types.View.Contact>
+{
+    public AddressesRepository Address { get; }
+    public PhonesRepository Phone { get; }
+    public ContactSettingsRepository ContactSetting { get; }
+    public ContactPreferencesRepository ContactPreference { get; }
+    public ContactSourcesRepository ContactSource { get; }
+
+    public ContactsRepository(IConnection connection) : base(connection, Options(connection))
+    {
+        Address = new AddressesRepository(connection);
+        Phone = new PhonesRepository(connection);
+        ContactSetting = new ContactSettingsRepository(connection);
+        ContactPreference = new ContactPreferencesRepository(connection);
+        ContactSource = new ContactSourcesRepository(connection);
+        AddEnriched(new("Addresses", "Id", "ContactId", Type: EnrichmentPropertyType.List), Address);
+        AddEnriched(new("Phones", "Id", "ContactId", Type: EnrichmentPropertyType.List), Phone);
+        AddEnriched(new("Settings", "Id", "ContactId", "Value", Type: EnrichmentPropertyType.Dictionary), ContactSetting);
+        AddEnriched(new("Prefs", "Id", "ContactId", Type: EnrichmentPropertyType.Dictionary), ContactPreference);
+        AddEnriched(new("ContactSourceName", "ContactSourceId", "Id", "Name"), ContactSource);
+    }
+
+    public static IReadonlyRepository<Backend.Types.View.Contact> CreateReadonly(IConnection connection)
+    {
+        var repo = new ReadonlyRepository<Backend.Types.View.Contact>(connection, Options(connection));
+        var Address = new AddressesRepository(connection);
+        var Phone = new PhonesRepository(connection);
+        var ContactSetting = new ContactSettingsRepository(connection);
+        var ContactPreference = new ContactPreferencesRepository(connection);
+        var ContactSource = new ContactSourcesRepository(connection);
+        repo.AddEnriched(new("Addresses", "Id", "ContactId", Type: EnrichmentPropertyType.List), Address);
+        repo.AddEnriched(new("Phones", "Id", "ContactId", Type: EnrichmentPropertyType.List), Phone);
+        repo.AddEnriched(new("Settings", "Id", "ContactId", "Value", Type: EnrichmentPropertyType.Dictionary), ContactSetting);
+        repo.AddEnriched(new("Prefs", "Id", "ContactId", Type: EnrichmentPropertyType.Dictionary), ContactPreference);
+        repo.AddEnriched(new("ContactSourceName", "ContactSourceId", "Id", "Name"), ContactSource);
+        return repo;
+    }
+
+    static CRUDRepositoryOptions<Backend.Types.View.Contact> Options(IConnection connection) =>
+        new CRUDRepositoryBuilder<Backend.Types.View.Contact>()
+            .Add(new()
+            {
+                Entity = "Contact",
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["Contact"] = "contact_bases" }),
+                PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
+                {
+                    ["Id"] = "id",
+                    ["Uuid"] = "uuid",
+                    ["Created"] = "created",
+                    ["Updated"] = "updated",
+                    ["Version"] = "version",
+                    ["ContactSourceId"] = "contact_source_id",
+                    ["FirstName"] = "first_name",
+                    ["LastName"] = "last_name",
+                    ["Email"] = "email",
+                    ["Notes"] = "notes",
+                    ["UserId"] = "user_id",
+                }),
+                Ids = ["Id"],
+                ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "ContactSourceId", "FirstName", "LastName", "Email", "Notes", "UserId"],
+                CreateProperties = ["ContactSourceId", "FirstName", "LastName", "Email", "Notes", "UserId"],
+                UpdateProperties = ["Uuid", "ContactSourceId", "FirstName", "LastName", "Email", "Notes", "UserId"],
+                Schema = new(new Dictionary<string, SchemaColumn>
+                {
+                    ["Id"] = new("biginteger", false, false, true),
+                    ["Uuid"] = new("uuid", false, true),
+                    ["Created"] = new("datetime", false, true),
+                    ["Updated"] = new("datetime", false, true),
+                    ["Version"] = new("binary", false, true),
+                    ["ContactSourceId"] = new("biginteger", false, false),
+                    ["FirstName"] = new("string", false, false),
+                    ["LastName"] = new("string", false, false),
+                    ["Email"] = new("string", true, false),
+                    ["Notes"] = new("string", true, false),
+                    ["UserId"] = new("biginteger", false, false),
+                }),
+            })
+            .Add("sqlite", new()
+            {
+                Entity = "Contact",
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["Contact"] = "contact_bases" }),
+                PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
+                {
+                    ["Id"] = "id",
+                    ["Uuid"] = "uuid",
+                    ["Created"] = "created",
+                    ["Updated"] = "updated",
+                    ["Version"] = "version",
+                    ["ContactSourceId"] = "contact_source_id",
+                    ["FirstName"] = "first_name",
+                    ["LastName"] = "last_name",
+                    ["Email"] = "email",
+                    ["Notes"] = "notes",
+                    ["UserId"] = "user_id",
+                }),
+                Ids = ["Id"],
+                ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "ContactSourceId", "FirstName", "LastName", "Email", "Notes", "UserId"],
+                CreateProperties = ["Uuid", "Created", "Version", "ContactSourceId", "FirstName", "LastName", "Email", "Notes", "UserId"],
+                UpdateProperties = ["Uuid", "Created", "Version", "ContactSourceId", "FirstName", "LastName", "Email", "Notes", "UserId"],
+                Schema = new(new Dictionary<string, SchemaColumn>
+                {
+                    ["Id"] = new("biginteger", false, false, true),
+                    ["Uuid"] = new("uuid", false, true),
+                    ["Created"] = new("datetime", false, true),
+                    ["Updated"] = new("datetime", false, true),
+                    ["Version"] = new("binary", false, true),
+                    ["ContactSourceId"] = new("biginteger", false, false),
+                    ["FirstName"] = new("string", false, false),
+                    ["LastName"] = new("string", false, false),
+                    ["Email"] = new("string", true, false),
+                    ["Notes"] = new("string", true, false),
+                    ["UserId"] = new("biginteger", false, false),
+                }),
+            })
+            .For(connection);
+}

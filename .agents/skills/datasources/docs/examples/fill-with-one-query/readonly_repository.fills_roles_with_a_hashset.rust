@@ -1,0 +1,53 @@
+let built = datasource();
+let ds: &dyn Datasource = &*built;
+execute_sql(&connection, &seed()).await;
+let mut users_options = create_readonly_repository_mapping_options::<UsersView>();
+users_options.entity_mapper = Some(std::sync::Arc::new(DictionaryMapper::new([(
+    "UsersView".to_string(),
+    "user".to_string(),
+)])));
+users_options.property_mappings = Some(std::sync::Arc::new(DictionaryMapper::new([
+    ("Key".to_string(), "id".to_string()),
+    ("Login".to_string(), "username".to_string()),
+    ("Active".to_string(), "is_enabled".to_string()),
+    ("Opened".to_string(), "created".to_string()),
+    ("UserType".to_string(), "user_type_id".to_string()),
+])));
+let mut type_options = create_readonly_repository_mapping_options::<UserType>();
+type_options.entity_mapper =
+    Some(std::sync::Arc::new(ChangeCasingMapper::new(Casing::Pascal, Casing::Snake)));
+type_options.property_mappings =
+    Some(std::sync::Arc::new(ChangeCasingMapper::new(Casing::Pascal, Casing::Snake)));
+let mut role_options = create_readonly_repository_mapping_options::<UserRole>();
+role_options.entity_mapper = Some(std::sync::Arc::new(DictionaryMapper::new([(
+    "UserRole".to_string(),
+    "user_roles".to_string(),
+)])));
+role_options.property_mappings = Some(std::sync::Arc::new(DictionaryMapper::new([
+    ("UserId".to_string(), "user_id".to_string()),
+    ("Name".to_string(), "name".to_string()),
+])));
+let mut users_repo =
+    ReadonlyRepository::<Row>::new(connection.clone(), users_options).unwrap();
+let types = ds.create_readonly_repository::<UserType>(
+    Some(connection.clone()),
+    Some(type_options),
+);
+let roles =
+    ds.create_readonly_repository::<UserRole>(Some(connection), Some(role_options));
+let strategy = Arc::new(HashsetOptimizedReadonlyEnrichmentStrategy);
+users_repo.add_enriched(
+    datasources::Enrichment::new("UserType", "UserType", "Id", Some("Name".into()), datasources::EnrichmentPropertyType::Object),
+    types,
+    Some(strategy.clone()),
+);
+users_repo.add_enriched(
+    datasources::Enrichment::new("Roles", "Key", "UserId", None, datasources::EnrichmentPropertyType::List),
+    roles,
+    Some(strategy),
+);
+let users_view = users_repo
+    .read_single(&Where::binary("Key", eq, ADA))
+    .await
+    .unwrap()
+    .unwrap();

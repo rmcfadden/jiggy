@@ -1,0 +1,12 @@
+const ds = new Datasource("sqlite", new SqliteDriver(), { DATASOURCE_URL: "sqlite:///:memory:" });
+await executeSql(connection, `
+  INSERT INTO users (id, username, is_enabled) VALUES
+    (1, 'ada', 1),
+    (2, 'grace', 0);
+`);
+const usersRepo = ds.createReadonlyRepository(User, connection, {
+  entityMapper: snakeThenPlural(),
+  propertyMappings: snake(),
+  objectConverter: new UserConverter(),
+});
+const user = await usersRepo.readSingle(new Where("Id", eq, 1));

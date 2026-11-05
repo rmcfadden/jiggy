@@ -1,0 +1,19 @@
+const ds = Datasource.default;
+const command = await ds.createCommand();
+await command.executeNative(new Native("INSERT INTO users (id, username, contact_name) VALUES (1, 'bobby', 'bob')"));
+await command.executeNative(new Native("INSERT INTO users (id, username, contact_name) VALUES (1, 'bobby', 'roberta')"));
+await using reader = await command.executeReader("SELECT id, username, contact_name FROM users");
+const rows = await Array.fromAsync(reader.read());
+const mapper = new FlatToNestedMapper<{
+  id: number;
+  username: string;
+  contacts: { name: string }[];
+}>({
+  key: "id",
+  fields: {
+    id: "id",
+    username: "username",
+    contacts: { key: "contact_name", fields: { name: "contact_name" } },
+  },
+});
+const nested = mapper.map(rows);

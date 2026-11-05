@@ -1,0 +1,783 @@
+use crate::built_repository::BuiltRepository;
+use crate::command_middleware::CommandMiddleware;
+use crate::connection::Connection;
+use crate::crud_repository_builder::{write_statements, CRUDRepositoryBuilder};
+use crate::crud_repository_options::CRUDRepositoryOptions;
+use crate::crud_repository_statements::CRUDRepositoryStatements;
+use crate::datasource_error::DatasourceError;
+use crate::entity::Entity;
+use crate::default_readonly_enrichment_strategy::DefaultReadonlyEnrichmentStrategy;
+use crate::converters::SchemaObject;
+use crate::default_write_enrichment_strategy::DefaultWriteEnrichmentStrategy;
+use crate::enrichment_via::EnrichmentVia;
+use crate::i_repository::IRepository;
+use crate::i_unit_of_work::IUnitOfWork;
+use crate::IWhere;
+use crate::id_key::IdKey;
+use crate::parameter::Parameter;
+use crate::read_input::ReadInput;
+use crate::readonly_enrichment_strategy::ReadonlyEnrichmentStrategy;
+use crate::readonly_repository::ReadonlyRepository;
+use crate::create_enrichment_strategy::merge_lookups;
+use crate::repository::{map_row, to_stored, ICRUDRepository, IReadonlyRepository};
+use crate::repository_tree::RepositoryTree;
+use crate::repository_tree_node::RepositoryTreeNode;
+use crate::response::Response;
+use crate::result::Result;
+use crate::row::Row;
+use crate::stored_enrichment::StoredEnrichment;
+use crate::stubs::StubRepository;
+use crate::unit_of_work_transaction::UnitOfWorkTransaction;
+use crate::value::Value;
+use crate::write_enrichment_strategy::WriteEnrichmentStrategy;
+use crate::write_mode::WriteMode;
+use crate::{Expression, Literal, Operator, Where};
+use async_trait::async_trait;
+use futures_core::Stream;
+use futures_util::TryStreamExt;
+use std::any::TypeId;
+use std::marker::PhantomData;
+use std::ops::{Deref, DerefMut};
+use std::pin::Pin;
+use std::sync::Arc;
+
+pub struct CRUDRepository<T: Entity = Row> {
+    readonly: ReadonlyRepository<T>,
+    ids: Vec<String>,
+    create_properties: Option<Vec<String>>,
+    update_properties: Option<Vec<String>>,
+    create_zeros: Row,
+    crud_statements: CRUDRepositoryStatements,
+    tree: RepositoryTree<T>,
+    write: Arc<dyn WriteEnrichmentStrategy<T>>,
+    entity: PhantomData<T>,
+}
+
+pub(crate) fn tree_for<T: Entity>(readonly: &ReadonlyRepository<T>) -> RepositoryTree<T> {
+    RepositoryTree::new(RepositoryTreeNode::new(
+        Arc::new(StubRepository::new("crud")),
+        "",
+        readonly.enrichments.clone(),
+    ))
+}
+
+impl CRUDRepository<Row> {
+    pub fn new(connection: Arc<dyn Connection>, options: CRUDRepositoryOptions) -> Result<Self> {
+        let write = options.write.clone();
+        let mut repo = Self::from_options(connection, options)?;
+        if let Some(write) = write {
+            repo.write = write;
+        }
+        Ok(repo)
+    }
+}
+
+impl<T: SchemaObject> CRUDRepository<T> {
+    pub fn new(connection: Arc<dyn Connection>, options: CRUDRepositoryOptions) -> Result<Self> {
+        Self::from_options(connection, options)
+    }
+}
+
+impl<T: Entity> CRUDRepository<T> {
+    fn from_options(connection: Arc<dyn Connection>, options: CRUDRepositoryOptions) -> Result<Self> {
+        let create_properties = options.create_properties.clone();
+        let update_properties = options.update_properties.clone();
+        let built = CRUDRepositoryBuilder::parts(connection, options)?;
+        let crud_statements = write_statements(&built.statements);
+        Self::from_built(built, crud_statements, create_properties, update_properties)
+    }
+
+    fn from_built(
+        built: BuiltRepository,
+        crud_statements: CRUDRepositoryStatements,
+        create_properties: Option<Vec<String>>,
+        update_properties: Option<Vec<String>>,
+    ) -> Result<Self> {
+        let id = if built.ids.is_empty() {
+            built.schema.ids()
+        } else {
+            built.ids.clone()
+        };
+        let readonly = ReadonlyRepository::from_built(built);
+        let tree = tree_for(&readonly);
+        Ok(Self {
+            readonly,
+            crud_statements,
+            ids: id,
+            create_properties,
+            update_properties,
+            create_zeros: Row::new(),
+            tree,
+            write: Arc::new(DefaultWriteEnrichmentStrategy::<T>::default()),
+            entity: PhantomData,
+        })
+    }
+
+    #[allow(dead_code)]
+    pub(crate) fn memory(items: Vec<Row>) -> Self {
+        Self::memory_with(items, None)
+    }
+
+    #[allow(dead_code)]
+    pub(crate) fn memory_with(items: Vec<Row>, write: Option<Arc<dyn WriteEnrichmentStrategy<T>>>) -> Self {
+        let ids = vec!["id".into()];
+        let readonly = ReadonlyRepository::memory(items);
+        let tree = tree_for(&readonly);
+        Self {
+            readonly,
+            crud_statements: CRUDRepositoryStatements::empty(),
+            ids,
+            create_properties: None,
+            update_properties: None,
+            create_zeros: Row::new(),
+            tree,
+            write: write.unwrap_or_else(|| Arc::new(DefaultWriteEnrichmentStrategy::<T>::default())),
+            entity: PhantomData,
+        }
+    }
+
+    pub fn with_write(mut self, write: Arc<dyn WriteEnrichmentStrategy<T>>) -> Self {
+        self.write = write;
+        self
+    }
+
+    pub fn with_create_zeros(mut self, zeros: Row) -> Self {
+        self.create_zeros = zeros;
+        self
+    }
+
+    pub fn fill_create_zeros(&self, record: &Row) -> Row {
+        let mut filled = record.clone();
+        if self.create_zeros.is_empty() {
+            self.apply_empty_defaults(&mut filled, &self.create_properties, true);
+        } else {
+            for (key, value) in &self.create_zeros {
+                filled.entry(key.clone()).or_insert_with(|| value.clone());
+            }
+            self.apply_empty_defaults(&mut filled, &self.create_properties, false);
+        }
+        filled
+    }
+
+    fn apply_empty_defaults(
+        &self,
+        filled: &mut Row,
+        properties: &Option<Vec<String>>,
+        fill_missing: bool,
+    ) {
+        for (key, column) in &self.readonly.schema().columns {
+            if self.ids.iter().any(|id| id == key)
+                || !listed(properties, key, true)
+                || column.has_default
+                || self.enrichment_source(key)
+            {
+                continue;
+            }
+            let zero = crate::schema_default::of(column);
+            match filled.get(key) {
+                Some(Value::Text(text)) if text.is_empty() && !column.nullable => {
+                    filled.insert(key.clone(), zero);
+                }
+                None if fill_missing && language_zero(&zero) => {
+                    filled.insert(key.clone(), zero);
+                }
+                _ => {}
+            }
+        }
+    }
+
+    pub fn add_enriched<TRelated: Entity>(
+        &mut self,
+        enrichment: crate::enrichment::Enrichment,
+        via: impl EnrichmentVia<TRelated>,
+        strategy: Option<Arc<dyn ReadonlyEnrichmentStrategy<T, TRelated>>>,
+    ) -> &mut Self {
+        let strategy = strategy.unwrap_or_else(|| Arc::new(DefaultReadonlyEnrichmentStrategy));
+        let (via, persist) = via.into_repos();
+        self.readonly
+            .enrichments
+            .lock()
+            .expect("enrichments")
+            .push(StoredEnrichment::direct(enrichment, via, persist, strategy));
+        self
+    }
+
+    pub fn add_linked<TRelated: Entity, TLink: Entity>(
+        &mut self,
+        enrichment: crate::enrichment::Enrichment,
+        via: impl EnrichmentVia<TRelated>,
+        link: Arc<dyn ICRUDRepository<TLink>>,
+        strategy: Option<Arc<dyn ReadonlyEnrichmentStrategy<T, TRelated>>>,
+    ) -> &mut Self {
+        let strategy = strategy.unwrap_or_else(|| Arc::new(DefaultReadonlyEnrichmentStrategy));
+        let (via, _) = via.into_repos();
+        self.readonly
+            .enrichments
+            .lock()
+            .expect("enrichments")
+            .push(StoredEnrichment::linked(enrichment, via, link, strategy));
+        self
+    }
+
+    pub fn add_middleware(&self, middleware: Arc<dyn CommandMiddleware>) {
+        crate::push_middleware(&self.readonly, middleware);
+    }
+
+    fn enriched(&self) -> bool {
+        self.readonly.enriched()
+    }
+
+    fn use_transaction(&self) -> bool {
+        self.write.use_transaction()
+    }
+
+    async fn in_transaction<R, F, Fut>(
+        transactional: bool,
+        connection: Arc<dyn Connection>,
+        write: F,
+    ) -> Result<R>
+    where
+        F: FnOnce() -> Fut,
+        Fut: std::future::Future<Output = Result<R>>,
+    {
+        if !connection.is_open() {
+            connection.open().await?;
+        }
+        if !transactional {
+            return write().await;
+        }
+        let mut work = UnitOfWorkTransaction::new(connection);
+        work.begin().await?;
+        let result = write().await;
+        match &result {
+            Ok(_) => {
+                if let Err(error) = work.commit().await {
+                    work.abort().await?;
+                    return Err(error);
+                }
+            }
+            Err(_) => {
+                work.abort().await?;
+            }
+        }
+        result
+    }
+
+    async fn insert_parent(&self, item: &mut Row) -> Result<Row> {
+        if let Some(memory) = self.readonly.memory_items().cloned() {
+            let mut stored = self.without_enrichment(item);
+            let created = memory.insert(&mut stored);
+            if let [column] = self.ids.as_slice() {
+                if let Some(id) = created.get(column).filter(|id| **id != Value::Null) {
+                    item.insert(column.clone(), id.clone());
+                }
+            }
+            return Ok(item.clone());
+        }
+        let stored = item.clone();
+        self.execute_insert(&stored, item).await?;
+        Ok(item.clone())
+    }
+
+    async fn read_row_by_id(&self, id: &dyn IdKey) -> Result<Option<Row>> {
+        if let Some(memory) = self.readonly.memory_items() {
+            let mut row = memory.by_id(id)?;
+            if self.enriched() {
+                if let Some(item) = row.take() {
+                    return Ok(Some(item));
+                }
+            }
+            return Ok(row);
+        }
+        let record = self.id_record(id)?;
+        let clause = self.id_where(&record)?;
+        let row = self
+            .readonly
+            .read_rows(Some(&clause), None, None)
+            .try_next()
+            .await?;
+        Ok(row)
+    }
+
+    fn params(&self, record: &Row, include_ids: bool) -> Result<Vec<Parameter>> {
+        self.fields(
+            record,
+            |key, _| {
+                let fallback = include_ids || !self.ids.iter().any(|id| id == key);
+                if include_ids {
+                    fallback
+                } else {
+                    listed(&self.update_properties, key, fallback)
+                }
+            },
+            include_ids,
+        )
+    }
+
+    fn insert_params(&self, record: &Row) -> Result<Vec<Parameter>> {
+        self.fields(
+            record,
+            |key, value| {
+                listed(
+                    &self.create_properties,
+                    key,
+                    !self.ids.iter().any(|id| id == key) || assigned(value),
+                )
+            },
+            true,
+        )
+    }
+
+    fn fields(
+        &self,
+        record: &Row,
+        include: impl Fn(&str, &Value) -> bool,
+        omit_null: bool,
+    ) -> Result<Vec<Parameter>> {
+        let entries = self.readonly.enrichments.lock().expect("enrichments");
+        let columns = self.crud_statements.read_columns();
+        let extras = |key: &str| {
+            entries.iter().any(|entry| {
+                entry.enrichment.r#type == crate::EnrichmentPropertyType::Object
+                    && entry.enrichment.association.is_none()
+                    && entry.enrichment.source_property == key
+            })
+        };
+        let mut pairs: Vec<_> = record
+            .iter()
+            .filter(|(key, value)| {
+                !(omit_null && matches!(value, Value::Null))
+                    && (extras(key)
+                        || include(key, value)
+                            && (columns.is_empty()
+                                || columns.iter().any(|name| {
+                                    name == *key || self.readonly.column(name) == **key
+                                }))
+                            && !entries
+                                .iter()
+                                .any(|entry| entry.enrichment.destination_property == **key))
+            })
+            .map(|(key, value)| (key.clone(), value.clone()))
+            .collect();
+        drop(entries);
+        pairs.sort_by(|left, right| left.0.cmp(&right.0));
+        pairs
+            .into_iter()
+            .map(|(name, value)| {
+                Ok(Parameter::new(
+                    name.clone(),
+                    self.readonly.cell(&name, &value, true)?,
+                ))
+            })
+            .collect()
+    }
+
+    fn id_where(&self, record: &Row) -> Result<Where> {
+        let children = self
+            .ids
+            .iter()
+            .map(|col| {
+                let value = record.get(col).ok_or_else(|| {
+                    DatasourceError::message(format!("Missing Id value \"{col}\""))
+                })?;
+                Ok(Expression::from(Operator::equals(
+                    col.clone(),
+                    value.clone(),
+                )))
+            })
+            .collect::<Result<Vec<_>>>()?;
+        Ok(Where::new(and_all(children)))
+    }
+
+    fn reverse_convert(&self, item: &T) -> Result<Row> {
+        let row = to_stored(item)?;
+        let mut row = match &self.readonly.row_converter {
+            Some(converter) => converter.reverse_convert(&row)?,
+            None => row,
+        };
+        merge_lookups(item, &mut row);
+        Ok(row)
+    }
+
+    async fn execute_insert(&self, stored: &Row, target: &mut Row) -> Result<Response> {
+        let record = self.fill_create_zeros(&self.readonly.reverse_convert(stored)?);
+        let fields = self.insert_params(&record)?;
+        let statement = self.crud_statements.insert(&fields);
+        let response = self
+            .readonly
+            .command()
+            .execute_statement(&statement, Some(statement.fields()))
+            .await?;
+        if self.ids.len() == 1 && !fields.iter().any(|field| field.name == self.ids[0]) {
+            self.copy_inserted_id(target, statement.fields()).await?;
+        }
+        Ok(response)
+    }
+
+    async fn copy_inserted_id(&self, item: &mut Row, fields: &[Parameter]) -> Result<()> {
+        let _ = fields;
+        let column = self.ids[0].clone();
+        let inserted = self.crud_statements.select_inserted_id(&column);
+        let sql_column = inserted.column.clone();
+        let reader = self
+            .readonly
+            .command()
+            .execute_reader_statement(&inserted, None)
+            .await?;
+        if !reader.next().await? {
+            return Ok(());
+        }
+        let current = reader
+            .current()
+            .ok_or_else(|| DatasourceError::message("Reader current must be a row"))?;
+        let row = identified(named(current, &column, &sql_column), &column);
+        let cells = match &self.readonly.row_converter {
+            Some(converter) => converter.convert(&row)?,
+            None => row,
+        };
+        let mapped = self.readonly.object_converter.convert(&cells)?;
+        if let Some(value) = mapped.get(&column).filter(|value| **value != Value::Null) {
+            item.insert(column, value.clone());
+        }
+        Ok(())
+    }
+
+    fn id_value(&self, item: &Row) -> Value {
+        if self.ids.len() != 1 {
+            return Value::Null;
+        }
+        item.get(&self.ids[0]).cloned().unwrap_or(Value::Null)
+    }
+
+    fn without_enrichment(&self, item: &Row) -> Row {
+        let entries = self.readonly.enrichments.lock().expect("enrichments");
+        item.iter()
+            .filter(|(key, _)| {
+                !entries
+                    .iter()
+                    .any(|entry| entry.enrichment.destination_property == **key)
+            })
+            .map(|(key, value)| (key.clone(), value.clone()))
+            .collect()
+    }
+
+    #[allow(dead_code)]
+    pub(crate) fn enrichment_into(&self, name: &str) -> bool {
+        self.readonly
+            .enrichments
+            .lock()
+            .expect("enrichments")
+            .iter()
+            .any(|entry| entry.enrichment.destination_property == name)
+    }
+
+    fn enrichment_source(&self, name: &str) -> bool {
+        self.readonly
+            .enrichments
+            .lock()
+            .expect("enrichments")
+            .iter()
+            .any(|entry| entry.enrichment.source_property == name)
+    }
+
+    async fn save(&self, item: &Row, by_where: Option<&dyn IWhere>) -> Result<Response> {
+        if self.readonly.memory_items().is_some() {
+            let stored = self.without_enrichment(item);
+            return Ok(self.readonly.memory_items().expect("memory").save(&stored));
+        }
+        let record = self.readonly.reverse_convert(item)?;
+        let mut record = record;
+        self.apply_empty_defaults(&mut record, &self.update_properties, false);
+        let fields = self.params(&record, false)?;
+        if fields.is_empty() {
+            return Err(DatasourceError::message(
+                "Update requires at least one non-Id field",
+            ));
+        }
+        let owned;
+        let predicate: &dyn IWhere = match by_where {
+            Some(clause) => clause,
+            None => {
+                owned = self.id_where(&record)?;
+                &owned
+            }
+        };
+        let applied = by_where.is_none();
+        let statements = &self.crud_statements;
+        let statement = statements.update(&fields, predicate, &|name, value| {
+            self.readonly.cell(name, value, applied)
+        })?;
+        let parameters = statement.parameters();
+        self.readonly
+            .command()
+            .execute_statement(&statement, Some(&parameters))
+            .await
+    }
+
+    async fn remove(&self, item: &Row, by_where: Option<&dyn IWhere>) -> Result<Response> {
+        if let Some(memory) = self.readonly.memory_items() {
+            return Ok(memory.remove(item, by_where));
+        }
+        let record = self.readonly.reverse_convert(item)?;
+        let owned;
+        let predicate: &dyn IWhere = match by_where {
+            Some(clause) => clause,
+            None => {
+                owned = self.id_where(&record)?;
+                &owned
+            }
+        };
+        let applied = by_where.is_none();
+        let statements = &self.crud_statements;
+        let statement = statements.delete(predicate, &|name, value| {
+            self.readonly.cell(name, value, applied)
+        })?;
+        let parameters = statement
+            .where_clause()
+            .map(|clause| clause.parameters())
+            .unwrap_or_default();
+        let parameters = if parameters.is_empty()
+            && crate::DefaultStatementTextRenderer::instance()
+                .render(&statement)
+                .contains('$')
+        {
+            self.params(&record, true)?
+        } else {
+            parameters
+        };
+        self.readonly
+            .command()
+            .execute_statement(&statement, Some(&parameters))
+            .await
+    }
+
+    fn id_record(&self, id: &dyn IdKey) -> Result<Row> {
+        if self.ids.is_empty() {
+            return Err(DatasourceError::message(
+                "ReadSingleById requires an Id column",
+            ));
+        }
+        match (id.as_value(), id.as_row()) {
+            (Some(value), _) if self.ids.len() == 1 => {
+                let mut row = Row::new();
+                row.insert(self.ids[0].clone(), value.clone());
+                Ok(row)
+            }
+            (Some(_), _) => Err(DatasourceError::message(
+                "Composite id requires a row keyed by each Id column",
+            )),
+            (_, Some(row)) => Ok(row.clone()),
+            _ => Err(DatasourceError::message(
+                "ReadSingleById requires an Id column",
+            )),
+        }
+    }
+
+    pub async fn create(&self, item: T) -> Result<T> {
+        ICRUDRepository::create(self, item).await
+    }
+
+    pub async fn update(&self, item: T) -> Result<Response> {
+        ICRUDRepository::update(self, item, None).await
+    }
+
+    pub async fn delete(&self, item: T) -> Result<Response> {
+        ICRUDRepository::delete(self, item, None).await
+    }
+
+    pub async fn read_single_by_id(&self, id: &dyn IdKey) -> Result<Option<T>> {
+        ICRUDRepository::read_single_by_id(self, id).await
+    }
+
+    async fn into_entity(&self, row: Row) -> Result<T> {
+        let source = row.clone();
+        let mut items = vec![map_row(row)?];
+        if self.enriched() {
+            self.readonly.fill(&mut items, Some(&[Some(source)])).await?;
+        }
+        Ok(items.pop().expect("mapped row"))
+    }
+}
+
+impl<T: Entity> Deref for CRUDRepository<T> {
+    type Target = ReadonlyRepository<T>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.readonly
+    }
+}
+
+impl<T: Entity> DerefMut for CRUDRepository<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.readonly
+    }
+}
+
+impl<T: Entity> IRepository for CRUDRepository<T> {
+    fn entity_type(&self) -> TypeId {
+        self.readonly.entity_type()
+    }
+}
+
+#[async_trait]
+impl<T: Entity> IReadonlyRepository<T> for CRUDRepository<T> {
+    fn to_crud(self: Arc<Self>) -> Option<Arc<dyn ICRUDRepository<T>>> {
+        Some(self)
+    }
+
+    async fn read_single(&self, query: &dyn ReadInput) -> Result<Option<T>> {
+        self.readonly.read_single(query).await
+    }
+
+    fn read<'a>(&'a self, query: &'a dyn ReadInput) -> Pin<Box<dyn Stream<Item = Result<T>> + Send + 'a>> {
+        self.readonly.read(query)
+    }
+}
+
+#[async_trait]
+impl<T: Entity> ICRUDRepository<T> for CRUDRepository<T> {
+    async fn create(&self, item: T) -> Result<T> {
+        Self::in_transaction(
+            self.use_transaction(),
+            Arc::clone(&self.readonly.connection),
+            || async {
+                let mut item = Box::new(item);
+                self.write
+                    .resolve_lookups(&self.tree, std::slice::from_mut(&mut *item))
+                    .await?;
+                let mut row = self.reverse_convert(&*item)?;
+                let created = self.insert_parent(&mut row).await?;
+                copy_cells(&created, &mut *item, &self.ids)?;
+                if !self.enriched() {
+                    return Ok(*item);
+                }
+                self.write
+                    .persist(&self.tree, std::slice::from_mut(&mut *item), WriteMode::Create)
+                    .await?;
+                let id = self.id_value(&created);
+                if self.ids.len() == 1 && !matches!(id, Value::Null) {
+                    if let Some(row) = self.read_row_by_id(&id).await? {
+                        return self.into_entity(row).await;
+                    }
+                }
+                Ok(*item)
+            },
+        )
+        .await
+    }
+
+    async fn update(&self, item: T, by_where: Option<&dyn IWhere>) -> Result<Response> {
+        Self::in_transaction(
+            self.use_transaction(),
+            Arc::clone(&self.readonly.connection),
+            || async {
+                let mut item = Box::new(item);
+                self.write
+                    .resolve_lookups(&self.tree, std::slice::from_mut(&mut *item))
+                    .await?;
+                let row = self.reverse_convert(&*item)?;
+                let response = self.save(&row, by_where).await?;
+                if self.enriched() {
+                    self.write
+                        .persist(&self.tree, std::slice::from_mut(&mut *item), WriteMode::Update)
+                        .await?;
+                }
+                Ok(response)
+            },
+        )
+        .await
+    }
+
+    async fn delete(&self, mut item: T, by_where: Option<&dyn IWhere>) -> Result<Response> {
+        Self::in_transaction(
+            self.use_transaction(),
+            Arc::clone(&self.readonly.connection),
+            || async {
+                if self.enriched() {
+                    self.write
+                        .persist(&self.tree, std::slice::from_mut(&mut item), WriteMode::Delete)
+                        .await?;
+                }
+                self.remove(&self.reverse_convert(&item)?, by_where).await
+            },
+        )
+        .await
+    }
+
+    fn id_names(&self) -> Vec<String> {
+        self.ids.clone()
+    }
+
+    fn add_middleware(&self, middleware: Arc<dyn CommandMiddleware>) {
+        crate::push_middleware(&self.readonly, middleware);
+    }
+
+    async fn read_single_by_id(&self, id: &dyn IdKey) -> Result<Option<T>> {
+        match self.read_row_by_id(id).await? {
+            Some(row) => Ok(Some(self.into_entity(row).await?)),
+            None => Ok(None),
+        }
+    }
+}
+
+fn copy_cells<T: Entity>(from: &Row, into: &mut T, names: &[String]) -> Result<()> {
+    for name in names {
+        if let Some(value) = from.get(name).cloned() {
+            into.set_cell(name, value)?;
+        }
+    }
+    Ok(())
+}
+
+fn named(mut row: Row, property: &str, sql_column: &str) -> Row {
+    if property == sql_column {
+        return row;
+    }
+    if let Some(cell) = row.remove(sql_column) {
+        row.insert(property.to_string(), cell);
+    }
+    row
+}
+
+fn identified(row: Row, column: &str) -> Row {
+    if row.contains_key(column) || row.len() != 1 {
+        return row;
+    }
+    let value = row.into_values().next().unwrap_or(Value::Null);
+    let mut named = Row::new();
+    named.insert(column.to_string(), value);
+    named
+}
+
+fn listed(list: &Option<Vec<String>>, key: &str, fallback: bool) -> bool {
+    match list {
+        Some(names) => names.iter().any(|name| name == key),
+        None => fallback,
+    }
+}
+
+fn language_zero(value: &Value) -> bool {
+    matches!(value, Value::Text(text) if text.is_empty()) || matches!(value, Value::Bool(false))
+}
+
+fn assigned(value: &Value) -> bool {
+    match value {
+        Value::Null => false,
+        Value::Text(text) => !text.is_empty(),
+        Value::Int(0) => false,
+        _ => true,
+    }
+}
+
+fn and_all(parts: Vec<Expression>) -> Expression {
+    parts
+        .into_iter()
+        .reduce(|left, right| Operator::and(left, right).into())
+        .unwrap_or_else(|| {
+            Operator::Equals {
+                left: Box::new(Expression::Literal(Literal::new(1_i64))),
+                right: Box::new(Expression::Literal(Literal::new(1_i64))),
+            }
+            .into()
+        })
+}

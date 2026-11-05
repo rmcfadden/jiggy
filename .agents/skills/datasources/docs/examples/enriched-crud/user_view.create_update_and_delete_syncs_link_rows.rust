@@ -1,0 +1,49 @@
+let (mut users, seeded) = open(None).await;
+users
+    .add_enriched(
+        Enrichment::new("user_type", "user_type_id", "id", None, datasources::EnrichmentPropertyType::Object),
+        seeded.user_types.clone(),
+        None,
+    )
+    .add_linked(
+        Enrichment::new("roles", "id", "id", None, datasources::EnrichmentPropertyType::Object)
+            .linked(Association::new("user_id", "role_id")),
+        seeded.roles.clone(),
+        seeded.user_roles.clone(),
+        None,
+    )
+    .add_linked(
+        Enrichment::new("groups", "id", "id", None, datasources::EnrichmentPropertyType::Object)
+            .linked(Association::new("user_id", "group_id")),
+        seeded.groups.clone(),
+        seeded.user_groups.clone(),
+        None,
+    );
+let created = users
+    .create(ada(
+        &seeded,
+        encode_rows(&[seeded.admin_role.clone(), seeded.editor_role.clone()]),
+        encode_rows(&[seeded.engineering.clone()]),
+    ))
+    .await
+    .unwrap();
+let created_role_links = seeded.user_roles.read(&()).try_collect::<Vec<_>>().await.unwrap();
+let created_group_links = seeded.user_groups.read(&()).try_collect::<Vec<_>>().await.unwrap();
+let mut next = ada(
+    &seeded,
+    encode_rows(&[seeded.editor_role.clone()]),
+    encode_rows(&[seeded.engineering.clone(), seeded.ops.clone()]),
+);
+next.insert("id".into(), created.get("id").unwrap().clone());
+let saved = users.update(next).await.unwrap();
+let updated = users
+    .read_single_by_id(created.get("id").unwrap())
+    .await
+    .unwrap()
+    .unwrap();
+let updated_role_links = seeded.user_roles.read(&()).try_collect::<Vec<_>>().await.unwrap();
+let updated_group_links = seeded.user_groups.read(&()).try_collect::<Vec<_>>().await.unwrap();
+let removed = users
+    .delete(record(&[("id", created.get("id").unwrap().clone())]))
+    .await
+    .unwrap();

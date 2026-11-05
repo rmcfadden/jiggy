@@ -1,0 +1,469 @@
+now: "2026-09-22T00:00:00.000Z"
+steps:
+  - method: POST
+    path: /contacts/
+    saveId: true
+    save:
+      homeAddressId: addresses.0.id
+      strandAddressId: addresses.1.id
+      mobilePhoneId: phones.0.id
+      workPhoneId: phones.1.id
+    body:
+      firstName: Ada
+      lastName: Lovelace
+      email: ada@example.com
+      notes: poet
+      contactSourceName: Manual
+      addresses:
+        - line1: 12 Analytical Engine
+          line2: Room 12
+          city: London
+          region: England
+          postalCode: "SW1A 1AA"
+          country: GB
+          addressTypeName: Home
+        - line1: 1 Strand
+          city: London
+          addressTypeName: Work
+      phones:
+        - number: "555-0100"
+          label: Mobile
+          phoneTypeName: Mobile
+        - number: "555-0199"
+          label: Work
+          phoneTypeName: Mobile
+      settings:
+        theme: dark
+        density: comfortable
+      prefs:
+        home:
+          locale: en-GB
+          timezone: Europe/London
+        travel:
+          locale: en-US
+          timezone: America/New_York
+  - method: POST
+    path: /contacts
+    save:
+      graceId: id
+    body:
+      firstName: Grace
+      lastName: Hopper
+      uuid: "22222222-2222-2222-2222-222222222222"
+      created: "2024-01-02T00:00:00Z"
+      contactSourceName: Imported
+      addresses:
+        - uuid: "33333333-3333-3333-3333-333333333333"
+          created: "2024-01-02T00:00:00Z"
+          line1: "1"
+          city: NY
+          addressTypeName: Home
+        - uuid: "55555555-5555-5555-5555-555555555555"
+          created: "2024-01-02T00:00:00Z"
+          line1: "2"
+          city: Boston
+          addressTypeName: Home
+      phones:
+        - uuid: "44444444-4444-4444-4444-444444444444"
+          created: "2024-01-02T00:00:00Z"
+          number: "1"
+          phoneTypeName: Mobile
+        - uuid: "66666666-6666-6666-6666-666666666666"
+          created: "2024-01-02T00:00:00Z"
+          number: "2"
+          phoneTypeName: Mobile
+      settings:
+        imported: yes
+        source: csv
+  - method: GET
+    path: /contacts/
+  - method: PUT
+    path: /contacts/?id=$id
+    body:
+      firstName: Ada
+      lastName: Byron
+      email: ""
+      notes: ""
+      contactSourceName: Manual
+      addresses:
+        - id: $homeAddressId
+          line1: 12 Analytical Engine
+          line2: ""
+          city: Cambridge
+          region: ""
+          country: FR
+          addressTypeName: Work
+        - line1: 10 Downing
+          city: London
+          addressTypeName: Home
+      phones:
+        - id: $mobilePhoneId
+          number: "555-0101"
+          label: Mobile
+          phoneTypeName: Mobile
+        - number: "555-0200"
+          label: Office
+          phoneTypeName: Mobile
+      settings:
+        theme: light
+        locale: en
+      prefs:
+        home:
+          locale: en-GB
+          timezone: Europe/Paris
+        work:
+          locale: en-US
+          timezone: America/New_York
+  - method: GET
+    path: /contacts/?firstName=Ada&lastName=Byron&id=$id
+  - method: DELETE
+    path: /contacts/?id=$id
+  - method: GET
+    path: /contacts/
+  - method: POST
+    path: /contacts/
+    save:
+      sparseId: id
+    body:
+      firstName: Sparse
+      lastName: Defaults
+      contactSourceName: Manual
+  - method: GET
+    path: /contacts/?id=$sparseId
+    expect:
+      status: 200
+      body:
+        - firstName: Sparse
+          lastName: Defaults
+          notes: none
+          contactSourceName: Manual
+          addresses: []
+          phones: []
+          settings: {}
+          prefs: {}
+  - method: POST
+    path: /contacts/
+    save:
+      partialId: id
+      partialAddressId: addresses.0.id
+    body:
+      firstName: Partial
+      lastName: Children
+      contactSourceName: Manual
+      addresses:
+        - line1: 9 Partial
+          city: Boston
+          addressTypeName: Home
+      settings:
+        theme: dark
+  - method: GET
+    path: /contacts/?id=$partialId
+    expect:
+      status: 200
+      body:
+        - firstName: Partial
+          lastName: Children
+          notes: none
+          addresses:
+            - line1: 9 Partial
+              city: Boston
+              country: US
+              addressTypeName: Home
+          phones: []
+          settings:
+            theme: dark
+          prefs: {}
+  - method: POST
+    path: /contacts/
+    save:
+      phoneId: id
+    body:
+      firstName: Phone
+      lastName: Default
+      contactSourceName: Manual
+      phones:
+        - number: "555-0300"
+          phoneTypeName: Mobile
+  - method: GET
+    path: /contacts/?id=$phoneId
+    expect:
+      status: 200
+      body:
+        - firstName: Phone
+          phones:
+            - number: "555-0300"
+              label: Main
+              phoneTypeName: Mobile
+  - method: POST
+    path: /contact_groups
+    save:
+      groupId: id
+    body:
+      name: Coverage
+      description: Coverage group
+      members:
+        - id: $graceId
+        - id: $sparseId
+    expect:
+      status: 201
+  - method: GET
+    path: /contact_groups/?id=$groupId
+    expect:
+      status: 200
+      body:
+        - name: Coverage
+          description: Coverage group
+          members:
+            - firstName: Grace
+            - firstName: Sparse
+  - method: PUT
+    path: /contacts/?id=$partialId
+    body:
+      firstName: Partial
+      lastName: Children
+      contactSourceName: Manual
+      addresses: []
+      phones: []
+      settings: {}
+      prefs: {}
+  - method: GET
+    path: /contacts/?id=$partialId
+    expect:
+      status: 200
+      body:
+        - firstName: Partial
+          addresses: []
+          phones: []
+          settings: {}
+          prefs: {}
+  - method: POST
+    path: /contacts/
+    save:
+      lookupId: id
+      lookupAddressId: addresses.0.id
+    body:
+      firstName: Lookup
+      lastName: Change
+      contactSourceName: Manual
+      addresses:
+        - line1: 4 Work Ave
+          city: London
+          addressTypeName: Home
+  - method: PUT
+    path: /contacts/?id=$lookupId
+    body:
+      firstName: Lookup
+      lastName: Change
+      contactSourceName: Manual
+      addresses:
+        - id: $lookupAddressId
+          line1: 4 Work Ave
+          city: London
+          addressTypeName: Work
+  - method: GET
+    path: /contacts/?id=$lookupId
+    expect:
+      status: 200
+      body:
+        - firstName: Lookup
+          addresses:
+            - line1: 4 Work Ave
+              addressTypeName: Work
+  - method: POST
+    path: /contacts/
+    save:
+      settingsId: id
+    body:
+      firstName: Settings
+      lastName: Edit
+      contactSourceName: Manual
+      settings:
+        theme: dark
+        density: comfortable
+        source: csv
+  - method: PUT
+    path: /contacts/?id=$settingsId
+    body:
+      firstName: Settings
+      lastName: Edit
+      contactSourceName: Manual
+      settings:
+        theme: light
+        locale: en
+  - method: GET
+    path: /contacts/?id=$settingsId
+    expect:
+      status: 200
+      body:
+        - firstName: Settings
+          settings:
+            theme: light
+            locale: en
+  - method: POST
+    path: /contacts/
+    save:
+      prefsId: id
+    body:
+      firstName: Prefs
+      lastName: Edit
+      contactSourceName: Manual
+      prefs:
+        home:
+          locale: en-GB
+          timezone: Europe/London
+        travel:
+          locale: en-US
+          timezone: America/New_York
+  - method: PUT
+    path: /contacts/?id=$prefsId
+    body:
+      firstName: Prefs
+      lastName: Edit
+      contactSourceName: Manual
+      prefs:
+        home:
+          locale: en-GB
+          timezone: Europe/Paris
+        work:
+          locale: en-US
+          timezone: America/New_York
+  - method: GET
+    path: /contacts/?id=$prefsId
+    expect:
+      status: 200
+      body:
+        - firstName: Prefs
+          prefs:
+            home:
+              locale: en-GB
+              timezone: Europe/Paris
+            work:
+              locale: en-US
+              timezone: America/New_York
+  - method: PUT
+    path: /contact_groups/?id=$groupId
+    body:
+      name: Coverage
+      members:
+        - id: $graceId
+  - method: GET
+    path: /contact_groups/?id=$groupId
+    expect:
+      status: 200
+      body:
+        - name: Coverage
+          members:
+            - firstName: Grace
+  - method: POST
+    path: /contacts/
+    save:
+      outlierId: id
+      outlierAddressId: addresses.0.id
+    body:
+      firstName: Outlier
+      lastName: Types
+      contactSourceName: Manual
+      addresses:
+        - line1: 1 Null Lane
+          city: London
+          addressTypeName: Home
+    expect:
+      status: 201
+      body:
+        firstName: Outlier
+        addresses:
+          - latitude: null
+            labelNote: null
+            floor: null
+            score: null
+            externalId: null
+            isVerified: null
+            verifiedAt: null
+            stamp: null
+  - method: PUT
+    path: /contacts/?id=$outlierId
+    body:
+      firstName: Outlier
+      lastName: Types
+      contactSourceName: Manual
+      addresses:
+        - id: $outlierAddressId
+          line1: 1 Null Lane
+          city: London
+          addressTypeName: Home
+          latitude: 51
+          labelNote: side
+          floor: 2
+          score: "10.5"
+          externalId: "550e8400-e29b-41d4-a716-446655440000"
+          isVerified: true
+          verifiedAt: "2020-01-02T03:04:05.000Z"
+          stamp: AQ==
+  - method: GET
+    path: /contacts/?id=$outlierId
+    expect:
+      status: 200
+      body:
+        - firstName: Outlier
+          addresses:
+            - latitude: 51
+              labelNote: side
+              floor: 2
+              score: "10.5"
+              externalId: "550e8400-e29b-41d4-a716-446655440000"
+              isVerified: true
+              verifiedAt: "2020-01-02T03:04:05.000Z"
+              stamp: AQ==
+  - method: PUT
+    path: /contacts/?id=$outlierId
+    body:
+      firstName: Outlier
+      lastName: Types
+      contactSourceName: Manual
+      addresses:
+        - id: $outlierAddressId
+          line1: 1 Null Lane
+          city: London
+          addressTypeName: Home
+          latitude: 0
+          labelNote: ""
+          floor: 0
+          score: "0"
+          externalId: null
+          isVerified: false
+          verifiedAt: null
+          stamp: null
+  - method: GET
+    path: /contacts/?id=$outlierId
+    expect:
+      status: 200
+      body:
+        - firstName: Outlier
+          addresses:
+            - latitude: 0
+              labelNote: ""
+              floor: 0
+              score: "0"
+              isVerified: false
+              verifiedAt: null
+              stamp: null
+  - method: POST
+    path: /legacy_contacts/
+    body:
+      key: ada
+      firstName: Ada
+      lastName: Lovelace
+      email: ada@example.com
+      importedAt: "2024-06-01T00:00:00Z"
+  - method: GET
+    path: /legacy_contacts/?firstName=Ada
+  - method: PUT
+    path: /legacy_contacts/?key=ada
+    body:
+      firstName: Augusta
+      lastName: Lovelace
+      email: ""
+  - method: DELETE
+    path: /legacy_contacts/?key=ada
+  - method: GET
+    path: /legacy_contacts

@@ -1,0 +1,3 @@
+let factory = RepositoryFactory::new();
+factory.register(Arc::new(StubRepository::typed::<Item>("memory")));
+let created = factory.create::<Item>().unwrap();

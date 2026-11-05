@@ -1,0 +1,103 @@
+name: repository-user-crud
+schema: repository-user
+type:
+  name: user
+  table: user
+  ids: [id]
+  fields:
+    id: int
+    uuid: uuid
+    username: string
+    is_enabled: bool
+    balance: decimal
+    location: float
+    created: datetime
+    version: binary
+  converters: {}
+  mappings: {}
+steps:
+  - CREATE:
+      row: &alice
+        id: 1
+        uuid: 550e8400-e29b-41d4-a716-446655440000
+        username: alice
+        is_enabled: true
+        balance: "10.50"
+        location: 1.5
+        created: "2024-01-15T10:00:00Z"
+        version: AQIDBA==
+  - CREATE:
+      row: &bob
+        id: 2
+        uuid: 6ba7b810-9dad-11d1-80b4-00c04fd430c8
+        username: bob
+        is_enabled: false
+        balance: "0.00"
+        location: 2.25
+        created: "2024-02-20T15:30:00Z"
+        version: BQUFBQ==
+
+  - READ:
+      id: 1
+      expect: *alice
+  - READBY:
+      where:
+        username: alice
+      expect: *alice
+  - READBY:
+      where:
+        uuid: 550e8400-e29b-41d4-a716-446655440000
+      expect: *alice
+  - READBY:
+      where:
+        is_enabled: true
+      expect: *alice
+  - READBY:
+      where:
+        created: "2024-01-15T10:00:00Z"
+      expect: *alice
+  - QUERY:
+      expect:
+        - *alice
+        - *bob
+
+  - UPDATEBY:
+      where:
+        uuid: 6ba7b810-9dad-11d1-80b4-00c04fd430c8
+      row: &bobEnabled
+        id: 2
+        uuid: 6ba7b810-9dad-11d1-80b4-00c04fd430c8
+        username: bob
+        is_enabled: true
+        balance: "0.00"
+        location: 2.25
+        created: "2024-02-20T15:30:00Z"
+        version: BQUFBQ==
+      expect:
+        rowsAffected: 1
+  - READBY:
+      where:
+        uuid: 6ba7b810-9dad-11d1-80b4-00c04fd430c8
+      expect: *bobEnabled
+  - READBY:
+      where:
+        created: "2024-02-20T15:30:00Z"
+      expect: *bobEnabled
+  - QUERY:
+      where:
+        is_enabled: true
+      expect:
+        - *alice
+        - *bobEnabled
+
+  - DELETEBY:
+      where:
+        created: "2024-02-20T15:30:00Z"
+      expect:
+        rowsAffected: 1
+  - READ:
+      id: 2
+      expect: null
+  - QUERY:
+      expect:
+        - *alice

@@ -1,0 +1,5 @@
+let create_table = CreateTableStatement::new(
+    "users",
+    &[Column::new("id", "INTEGER"), Column::new("name", "TEXT")],
+    &[],
+);

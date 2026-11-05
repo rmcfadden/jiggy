@@ -1,0 +1,19 @@
+let connection = setup(&mut []).await;
+let mut options = CRUDRepositoryOptions::default();
+options.entity = "Parent".into();
+options.write = Some(Arc::new(DefaultWriteEnrichmentStrategy::new(
+    None, None, None, true,
+)));
+let parents = BulkCRUDRepository::new(connection, options).unwrap();
+let created = parents
+    .create_bulk(&mut [
+        record(&[("label", Value::from("a"))]),
+        record(&[("label", Value::from("b"))]),
+    ])
+    .await
+    .unwrap();
+let stored = parents.read(&()).try_collect::<Vec<_>>().await.unwrap();
+let mut created_ids: Vec<_> = created.iter().map(|row| num(row, "id")).collect();
+let mut stored_ids: Vec<_> = stored.iter().map(|row| num(row, "id")).collect();
+created_ids.sort();
+stored_ids.sort();

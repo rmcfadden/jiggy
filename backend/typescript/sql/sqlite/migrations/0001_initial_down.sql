@@ -7,13 +7,11 @@ DROP TABLE IF EXISTS "game_settings";
 GO
 DROP TABLE IF EXISTS "game_states";
 GO
-DROP TABLE IF EXISTS "games_categories";
+DROP TABLE IF EXISTS "game_categories";
 GO
-DROP TABLE IF EXISTS "games_bases";
+DROP TABLE IF EXISTS "game_bases";
 GO
 DROP TABLE IF EXISTS "categories";
-GO
-DROP TABLE IF EXISTS "user_settings";
 GO
 DROP TABLE IF EXISTS "contact_change_logs";
 GO
@@ -25,19 +23,21 @@ DROP TABLE IF EXISTS "contact_preferences";
 GO
 DROP TABLE IF EXISTS "contact_settings";
 GO
-DROP TABLE IF EXISTS "contact_groups_bases";
+DROP TABLE IF EXISTS "contact_group_bases";
 GO
 DROP TABLE IF EXISTS "phone_bases";
 GO
 DROP TABLE IF EXISTS "address_bases";
 GO
-DROP TABLE IF EXISTS "contacts_bases";
+DROP TABLE IF EXISTS "contact_bases";
 GO
 DROP TABLE IF EXISTS "phone_types";
 GO
 DROP TABLE IF EXISTS "address_types";
 GO
 DROP TABLE IF EXISTS "contact_sources";
+GO
+DROP TABLE IF EXISTS "user_settings";
 GO
 DROP TABLE IF EXISTS "user_roles";
 GO

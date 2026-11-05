@@ -1,0 +1,6 @@
+connection:
+  kind: url
+  env: POSTGRES_URL
+createUserTable: command-user
+createUserTableVersioned: command-user-versioned
+dirtyReadRows: []

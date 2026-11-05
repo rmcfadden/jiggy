@@ -1,0 +1,8 @@
+let ds = {
+    let _guard = super::env_lock();
+    clear_env();
+    default().expect("default")
+};
+let connection = ds.create_connection().await.expect("connection");
+connection.open().await.unwrap();
+connection.close().await.unwrap();

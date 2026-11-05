@@ -1,0 +1,48 @@
+let connection = setup(&mut []).await;
+let mut parents = mapped_crud(connection.clone(), "Parent");
+let children = Arc::new(mapped_crud(connection, "Child"));
+let parent = parents
+    .create(record(&[("Label", Value::from("p"))]))
+    .await
+    .unwrap();
+assert!(num(&parent, "Id") > 0);
+let parent_id = parent.get("Id").unwrap().clone();
+let kept = children
+    .create(record(&[
+        ("ParentId", parent_id.clone()),
+        ("Label", Value::from("a")),
+    ]))
+    .await
+    .unwrap();
+assert!(num(&kept, "Id") > 0);
+let dropped = children
+    .create(record(&[
+        ("ParentId", parent_id.clone()),
+        ("Label", Value::from("b")),
+    ]))
+    .await
+    .unwrap();
+assert!(num(&dropped, "Id") > 0);
+parents.add_enriched(
+    Enrichment::new("Children", "Id", "ParentId", None, datasources::EnrichmentPropertyType::List),
+    children.clone(),
+    None,
+);
+let updated_row_2 = record(&[
+            ("Id", parent_id.clone()),
+            ("Label", Value::from("p")),
+            (
+                "Children",
+                encode_rows(&[
+                    record(&[
+                        ("Id", kept.get("Id").unwrap().clone()),
+                        ("Label", Value::from("aa")),
+                    ]),
+                    record(&[("Label", Value::from("c"))]),
+                ]),
+            ),
+        ]);
+let updated = parents
+    .update(updated_row_2)
+    .await
+    .unwrap();

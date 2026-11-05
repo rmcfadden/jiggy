@@ -1,0 +1,295 @@
+title: Datasources
+pages:
+  - path: introduction.md
+    title: Introduction
+  - path: quickstart.md
+    title: Quick Start
+  - path: quickstarts/contacts-cli.md
+    title: Contacts CLI
+    parent: Quick Start
+  - path: skill.md
+    title: Using the skill
+  - path: features.md
+    title: Features
+  - path: repository-generation.md
+    title: Repository Generation
+  - path: drivers.md
+    title: Languages and Datasource Providers
+  - path: examples.md
+    title: Examples
+  - path: tutorials/mapping-converting-pipelines.md
+    title: The Mapping and Converting Pipelines
+    group: Articles
+  - path: sections/datasource.md
+    title: Datasource
+    group: Code Reference
+  - path: sections/connection.md
+    title: Connection
+    group: Code Reference
+  - path: sections/transaction.md
+    title: Transaction
+    group: Code Reference
+  - path: sections/command.md
+    title: Command
+    group: Code Reference
+  - path: sections/reader.md
+    title: Reader
+    group: Code Reference
+  - path: sections/repository.md
+    title: Repositories
+    group: Code Reference
+  - path: sections/readonly-repository.md
+    title: Readonly Repository
+    group: Code Reference
+    parent: Repositories
+  - path: sections/crud-repository.md
+    title: CRUD Repository
+    group: Code Reference
+    parent: Repositories
+  - path: sections/bulk-repository.md
+    title: Bulk Repository
+    group: Code Reference
+    parent: Repositories
+  - path: sections/repository-factories.md
+    title: Repository Factories
+    group: Code Reference
+    parent: Repositories
+  - path: sections/mappers.md
+    title: Mappers
+    group: Code Reference
+  - path: sections/identity-mapper.md
+    title: Identity Mapper
+    group: Code Reference
+    parent: Mappers
+  - path: sections/dictionary-mapper.md
+    title: Dictionary Mapper
+    group: Code Reference
+    parent: Mappers
+  - path: sections/pluralizer-mapper.md
+    title: Pluralizer Mapper
+    group: Code Reference
+    parent: Mappers
+  - path: sections/change-casing-mapper.md
+    title: Change Casing Mapper
+    group: Code Reference
+    parent: Mappers
+  - path: sections/transform-mapper.md
+    title: Transform Mapper
+    group: Code Reference
+    parent: Mappers
+  - path: sections/flat-to-nested-mapper.md
+    title: Flat To Nested Mapper
+    group: Code Reference
+    parent: Mappers
+  - path: sections/type-converters.md
+    title: Type Converters
+    group: Code Reference
+  - path: sections/metadata-row-type-converter.md
+    title: Metadata Row Type Converter
+    group: Code Reference
+    parent: Type Converters
+  - path: sections/statements.md
+    title: Statements
+    group: Code Reference
+  - path: sections/native.md
+    title: Native
+    group: Code Reference
+    parent: Statements
+  - path: sections/select-statement.md
+    title: Select Statement
+    group: Code Reference
+    parent: Statements
+  - path: sections/insert-statement.md
+    title: Insert Statement
+    group: Code Reference
+    parent: Statements
+  - path: sections/update-statement.md
+    title: Update Statement
+    group: Code Reference
+    parent: Statements
+  - path: sections/delete-statement.md
+    title: Delete Statement
+    group: Code Reference
+    parent: Statements
+  - path: sections/create-table-statement.md
+    title: Create Table Statement
+    group: Code Reference
+    parent: Statements
+  - path: sections/create-index-statement.md
+    title: Create Index Statement
+    group: Code Reference
+    parent: Statements
+  - path: sections/alter-table-statement.md
+    title: Alter Table Statement
+    group: Code Reference
+    parent: Statements
+  - path: sections/drop-index-statement.md
+    title: Drop Index Statement
+    group: Code Reference
+    parent: Statements
+  - path: sections/drop-trigger-statement.md
+    title: Drop Trigger Statement
+    group: Code Reference
+    parent: Statements
+  - path: sections/execute-stored-procedure-statement.md
+    title: Execute Stored Procedure Statement
+    group: Code Reference
+    parent: Statements
+  - path: sections/return-statement.md
+    title: Return Statement
+    group: Code Reference
+    parent: Statements
+  - path: sections/where-clause.md
+    title: Where
+    group: Code Reference
+    parent: Statements
+  - path: sections/expressions.md
+    title: Expressions
+    group: Code Reference
+    parent: Statements
+  - path: sections/expression-evaluator.md
+    title: Expression Evaluator
+    group: Code Reference
+    parent: Statements
+  - path: sections/statement-evaluator.md
+    title: Statement Evaluator
+    group: Code Reference
+    parent: Statements
+  - path: sections/other.md
+    title: Other
+    group: Code Reference
+  - path: sections/datasource-factory.md
+    title: Datasource Factory
+    group: Code Reference
+    parent: Other
+  - path: sections/datasource-url.md
+    title: Datasource URL
+    group: Code Reference
+    parent: Other
+  - path: sections/advanced.md
+    title: Advanced
+    group: Code Reference
+    collapsed: true
+  - path: sections/advanced.md
+    title: Enrichment
+    group: Code Reference
+    parent: Advanced
+    hash: enrichment
+    collapsed: true
+  - path: sections/i-enriched.md
+    title: IEnriched
+    group: Code Reference
+    parent: Enrichment
+  - path: sections/enrichment.md
+    title: Enrichment
+    group: Code Reference
+    parent: Enrichment
+  - path: sections/i-readonly-enrichment-strategy.md
+    title: IReadonlyEnrichmentStrategy
+    group: Code Reference
+    parent: Enrichment
+  - path: sections/default-readonly-enrichment-strategy.md
+    title: DefaultReadonlyEnrichmentStrategy
+    group: Code Reference
+    parent: Enrichment
+  - path: sections/hashset-optimized-readonly-enrichment-strategy.md
+    title: HashsetOptimizedReadonlyEnrichmentStrategy
+    group: Code Reference
+    parent: Enrichment
+  - path: sections/nested-to-object-enrichment-strategy.md
+    title: NestedToObjectEnrichmentStrategy
+    group: Code Reference
+    parent: Enrichment
+  - path: sections/i-write-enrichment-strategy.md
+    title: IWriteEnrichmentStrategy
+    group: Code Reference
+    parent: Enrichment
+  - path: sections/default-write-enrichment-strategy.md
+    title: DefaultWriteEnrichmentStrategy
+    group: Code Reference
+    parent: Enrichment
+  - path: sections/lazy-write-enrichment-strategy.md
+    title: LazyWriteEnrichmentStrategy
+    group: Code Reference
+    parent: Enrichment
+  - path: sections/create-enrichment-strategy.md
+    title: CreateEnrichmentStrategy
+    group: Code Reference
+    parent: Enrichment
+  - path: sections/default-create-enrichment-strategy.md
+    title: DefaultCreateEnrichmentStrategy
+    group: Code Reference
+    parent: Enrichment
+  - path: sections/update-enrichment-strategy.md
+    title: UpdateEnrichmentStrategy
+    group: Code Reference
+    parent: Enrichment
+  - path: sections/default-update-enrichment-strategy.md
+    title: DefaultUpdateEnrichmentStrategy
+    group: Code Reference
+    parent: Enrichment
+  - path: sections/cascade-delete-update-enrichment-strategy.md
+    title: CascadeDeleteUpdateEnrichmentStrategy
+    group: Code Reference
+    parent: Enrichment
+  - path: sections/delete-enrichment-strategy.md
+    title: DeleteEnrichmentStrategy
+    group: Code Reference
+    parent: Enrichment
+  - path: sections/cascade-delete-enrichment-strategy.md
+    title: CascadeDeleteEnrichmentStrategy
+    group: Code Reference
+    parent: Enrichment
+  - path: sections/advanced.md
+    title: Bulk
+    group: Code Reference
+    parent: Advanced
+    hash: bulk
+    collapsed: true
+  - path: sections/i-bulk-write-strategy.md
+    title: IBulkWriteStrategy
+    group: Code Reference
+    parent: Bulk
+  - path: sections/single-command-i-bulk-write-strategy.md
+    title: SingleCommandIBulkWriteStrategy
+    group: Code Reference
+    parent: Bulk
+  - path: sections/batch-command-i-bulk-write-strategy.md
+    title: BatchCommandIBulkWriteStrategy
+    group: Code Reference
+    parent: Bulk
+  - path: sections/stored-procedure-bulk-write-strategy.md
+    title: StoredProcedureBulkWriteStrategy
+    group: Code Reference
+    parent: Bulk
+  - path: cli.md
+    title: Setup
+    group: Command Line (CLI)
+    hash: setup
+  - path: cli.md
+    title: Add
+    group: Command Line (CLI)
+    hash: add
+  - path: cli.md
+    title: Remove
+    group: Command Line (CLI)
+    hash: remove
+  - path: cli.md
+    title: Generate
+    group: Command Line (CLI)
+    hash: generate
+  - path: cli.md
+    title: Migrate
+    group: Command Line (CLI)
+    hash: migrations
+  - path: cli.md
+    title: .env
+    group: Command Line (CLI)
+    hash: env
+  - path: writing-providers.md
+    title: Driver
+    group: Writing Providers
+  - path: skill-queries.md
+    title: Testing Skills
+    group: Advanced
+

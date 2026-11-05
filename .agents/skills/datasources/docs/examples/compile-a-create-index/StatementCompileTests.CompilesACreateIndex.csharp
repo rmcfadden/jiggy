@@ -1,0 +1,1 @@
+var createIndex = new CreateIndexStatement("idx_orders_user", "orders", ["user_id"]);

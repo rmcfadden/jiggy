@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "datasources": {
+      "source": "deterministic-code/datasources",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "ddc9b122f4df68341c21aa18499b8e0371c89fe9d50ad80826ba96c1ce26679f"
+    }
+  }
+}

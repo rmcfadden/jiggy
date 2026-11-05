@@ -1,0 +1,78 @@
+var ds = new Datasource("sqlite", new SqliteDriver(), new Dictionary<string, string?> { ["DATASOURCE_URL"] = "sqlite:///:memory:" });
+await Execute(connection, Seed());
+var usersRepo = new ReadonlyRepository<UsersView>(connection, new ReadonlyRepositoryMappingOptions<UsersView>
+{
+    Entity = "User",
+    EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string>
+    {
+        ["User"] = "user",
+        ["UserType"] = "user_type",
+        ["UserRole"] = "user_roles",
+        ["Role"] = "roles",
+    }),
+    PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
+    {
+        ["Key"] = "id",
+        ["Login"] = "username",
+        ["Active"] = "is_enabled",
+        ["Opened"] = "created",
+        ["UserType"] = "user_type.name",
+        ["UserTypeId"] = "user_type_id",
+        ["UserId"] = "user_id",
+        ["RoleId"] = "role_id",
+        ["Name"] = "roles.name",
+        ["Id"] = "id",
+    }),
+});
+var joined = new SelectStatement(new()
+{
+    Table = "User",
+    Fields =
+    [
+        "User.Key",
+        "User.Login",
+        "User.Active",
+        "User.Opened",
+        "User.UserType",
+        "UserRole.UserId",
+        "UserRole.RoleId",
+        "Role.Name",
+    ],
+    Joins =
+    [
+        new Join(JoinKind.Left, "UserType", "UserType.Id", "User.UserTypeId"),
+        new Join(JoinKind.Left, "UserRole", "UserRole.UserId", "User.Key"),
+        new Join(JoinKind.Left, "Role", "Role.Id", "UserRole.RoleId"),
+    ],
+});
+usersRepo.AddEnriched(
+    new("Roles", "Key", "UserId", Type: EnrichmentPropertyType.List),
+    usersRepo,
+    new NestedToObjectEnrichmentStrategy<UsersView>(new Datasources.TypeMap
+    {
+        Key = "Key",
+        Fields = new Dictionary<string, TypeMapField>
+        {
+            ["Key"] = "Key",
+            ["Login"] = "Login",
+            ["Active"] = "Active",
+            ["Opened"] = "Opened",
+            ["UserType"] = "UserType",
+            ["Roles"] = new TypeMapGroup
+            {
+                Key = "RoleId",
+                Fields = new Dictionary<string, TypeMapField>
+                {
+                    ["RoleId"] = "RoleId",
+                    ["UserId"] = "UserId",
+                    ["Name"] = "Name",
+                }
+            }
+        }
+    }));
+var items = new List<UsersView>();
+await foreach (var item in usersRepo.Read(joined))
+    items.Add(item);
+var ada = Assert.Single(items, item => item.Login == "ada");
+var grace = Assert.Single(items, item => item.Login == "grace");
+var lin = Assert.Single(items, item => item.Login == "lin");

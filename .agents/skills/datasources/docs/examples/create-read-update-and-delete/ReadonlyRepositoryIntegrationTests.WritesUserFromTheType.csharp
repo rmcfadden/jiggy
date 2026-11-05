@@ -1,0 +1,17 @@
+var ds = Datasource.Default;
+var casing = new ChangeCasingMapper(Casing.Pascal, Casing.Snake);
+var usersRepo = ds.CreateRepository<User>(connection, new CRUDRepositoryOptions<User>
+{
+    PropertyMappings = casing,
+    Ids = ["Id"],
+});
+var created = await usersRepo.Create(new User { Username = "ada", IsEnabled = true });
+var byId = await usersRepo.ReadSingleById(created.Id);
+var matches = new List<User>();
+await foreach (var row in usersRepo.Read(new Where("Username", eq, "ada").And("IsEnabled", eq, true)))
+    matches.Add(row);
+created.Username = "ada-v2";
+var updated = await usersRepo.Update(created);
+var renamed = await usersRepo.ReadSingleById(created.Id);
+var removed = await usersRepo.Delete(created);
+var gone = await usersRepo.ReadSingleById(created.Id);

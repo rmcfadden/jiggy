@@ -1,0 +1,5 @@
+var converter = new MetaDataRowTypeConverter<Dictionary<string, Value>>(new Dictionary<string, TypeConverter<Value, Value>>
+{
+    ["flag"] = new OnlyOne()
+});
+var dest = converter.Convert(new Row { ["flag"] = 1L, ["name"] = "a" });

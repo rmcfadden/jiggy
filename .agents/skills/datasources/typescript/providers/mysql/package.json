@@ -1,0 +1,37 @@
+{
+  "name": "@deterministic-code/datasources-mysql",
+  "version": "0.1.2",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && node ../../rewrite-declaration-extensions.mjs dist",
+    "prepack": "npm run build",
+    "test": "vitest run --coverage --exclude tests/**/*.integration.test.ts",
+    "test:integration": "vitest run tests/mysql.integration.test.ts tests/mysql.repository.integration.test.ts tests/contacts.repository.integration.test.ts --fileParallelism=false --testTimeout=30000",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@deterministic-code/datasources": "*",
+    "mysql2": "^3.14.0"
+  },
+  "devDependencies": {
+    "@deterministic-code/datasources-code-generators": "*",
+    "@deterministic-code/deterministic-generators-common": "github:deterministic-code/deterministic-generators-common#main",
+    "@deterministic-code/generators-common": "github:deterministic-code/generators-common#main",
+    "yaml": "^2.8.0"
+  }
+}

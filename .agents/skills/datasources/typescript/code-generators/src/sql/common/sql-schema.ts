@@ -1,0 +1,206 @@
+import type {
+  DatasourceFieldOverlay,
+  DatasourceIndex,
+  DatasourceTable,
+  IDeterministic,
+  Type,
+  TypeField,
+} from "@deterministic-code/deterministic-generators-common/parser";
+import {
+  datasourceTypesOf,
+  dictionaryUniqueColumns,
+  identityColumns,
+  persistedColumnFields,
+  tableByName,
+} from "@deterministic-code/generators-common/spec-types";
+import { CreateTableStatement, type StatementNaming } from "@deterministic-code/datasources";
+import { inferReferenceFieldTypes } from "./infer-reference-types.ts";
+import { referenceTarget } from "./reference-target.ts";
+
+export { referenceTarget };
+
+/** Flattened `datasource.*` flags. Stored procedures are opt-in `"true"`. */
+export const datasourceSettings = (settings: Record<string, string>) => ({
+  useStoredProcedures:
+    String(settings["datasource.use_stored_procedures"]) === "true",
+});
+
+export type SqlTable = Omit<Type, "mapping"> & {
+  tableName?: string;
+  indexes: DatasourceIndex[];
+  uniqueIndexFields: string[];
+  mapping?: string;
+  overlays: DatasourceFieldOverlay[];
+};
+
+export type LiveTable = SqlTable & { tableName: string };
+
+export const overlayOf = (table: SqlTable): DatasourceTable => ({
+  name: table.name,
+  fields: table.overlays,
+  indexes: table.indexes,
+  uniqueIndexFields: table.uniqueIndexFields,
+  ...(table.mapping !== undefined ? { mapping: table.mapping } : {}),
+});
+
+export const fieldOverlay = (
+  table: SqlTable,
+  fieldName: string,
+): DatasourceFieldOverlay | undefined =>
+  table.overlays.find((overlay) => overlay.name === fieldName);
+
+const requireIdIsId = (spec: IDeterministic): void => {
+  for (const type of spec.types) {
+    for (const field of type.fields) {
+      if (field.name === "id" && field.isId !== true) {
+        throw new Error(`${type.name}.id must have is_id: true`);
+      }
+    }
+  }
+};
+
+export const tableIdentity = (table: SqlTable): string[] => {
+  const keys = identityColumns(table, overlayOf(table));
+  if (keys.length > 1) {
+    return keys.every((col) => table.fields.some((f) => f.name === col))
+      ? keys
+      : [];
+  }
+  const col = keys[0];
+  if (col === undefined) return [];
+  if (table.fields.some((f) => f.name === col) || table.inherits === "set") {
+    return [col];
+  }
+  return [];
+};
+
+export const isGeneratedIdentity = (table: SqlTable): boolean => {
+  const keys = tableIdentity(table);
+  if (keys.length !== 1) return false;
+  return fieldOverlay(table, keys[0]!)?.isFixedId !== true;
+};
+
+export const usesGeneratedIdColumn = (
+  table: SqlTable,
+  field: TypeField,
+): boolean => field.isId === true && isGeneratedIdentity(table);
+
+export const sqlTablesFrom = (spec: IDeterministic): SqlTable[] => {
+  requireIdIsId(spec);
+  spec = { ...spec, expandedTypes: inferReferenceFieldTypes(spec.expandedTypes) };
+  const overlays = tableByName(spec);
+  const byName = new Map(spec.expandedTypes.map((t) => [t.name, t]));
+  return datasourceTypesOf(spec).map((type) => {
+    const table = overlays.get(type.name);
+    const { mapping: _typeMapping, ...rest } = type;
+    const uniqueCols = dictionaryUniqueColumns(type, byName);
+    const indexes = [...(table?.indexes ?? [])];
+    if (
+      uniqueCols.length > 0 &&
+      !indexes.some(
+        (idx) =>
+          idx.isUnique &&
+          idx.fields.length === uniqueCols.length &&
+          idx.fields.every((name, i) => name === uniqueCols[i]),
+      )
+    ) {
+      indexes.push({
+        name: "owner_key",
+        fields: uniqueCols,
+        isUnique: true,
+      });
+    }
+    return {
+      ...rest,
+      fields: persistedColumnFields(type, byName),
+      indexes,
+      uniqueIndexFields: table?.uniqueIndexFields ?? [],
+      ...(table?.mapping !== undefined ? { mapping: table.mapping } : {}),
+      overlays: table?.fields ?? [],
+    };
+  });
+};
+
+export const hasAuditColumns = (table: {
+  fields: { name: string }[];
+}): boolean =>
+  table.fields.some((f) => f.name === "created") &&
+  table.fields.some((f) => f.name === "updated");
+
+export type SqlFile = { path: string; content: string };
+
+const referenceParents = (
+  references: TypeField["references"],
+): string[] => {
+  if (references === undefined) return [];
+  if (Array.isArray(references)) return [references[0]];
+  return [references.split(".")[0]!];
+};
+
+const topoSort = (tables: LiveTable[]): LiveTable[] => {
+  const names = new Set(tables.map((t) => t.name));
+  const deps = new Map(
+    tables.map((t) => [
+      t.name,
+      new Set(
+        t.fields.flatMap((f) =>
+          referenceParents(f.references).filter(
+            (dep) => names.has(dep) && dep !== t.name,
+          ),
+        ),
+      ),
+    ]),
+  );
+  const out: LiveTable[] = [];
+  const done = new Set<string>();
+  const pending = tables.slice();
+  while (pending.length > 0) {
+    const idx = pending.findIndex((t) =>
+      [...(deps.get(t.name) ?? [])].every((d) => done.has(d)),
+    );
+    if (idx === -1) {
+      out.push(...pending);
+      break;
+    }
+    const [t] = pending.splice(idx, 1);
+    out.push(t);
+    done.add(t.name);
+  }
+  return out;
+};
+
+export const tableStem = (table: SqlTable): string => table.mapping ?? table.name;
+
+export const fieldStem = (table: SqlTable, fieldName: string): string =>
+  fieldOverlay(table, fieldName)?.mapping ?? fieldName;
+
+export const tableOf = (tables: readonly SqlTable[], logicalName: string): SqlTable => {
+  const table = tables.find((item) => item.name === logicalName);
+  if (!table) throw new Error(`foreign key references unknown table "${logicalName}"`);
+  return table;
+};
+
+export const resolveReference = (
+  tables: readonly SqlTable[],
+  naming: StatementNaming,
+  field: TypeField,
+): { tableName: string; columnName: string } => {
+  const [logicalTable, logicalCol] = referenceTarget(field.references!);
+  const target = tableOf(tables, logicalTable);
+  return {
+    tableName: CreateTableStatement.tableName(tableStem(target), naming),
+    columnName: CreateTableStatement.columnName(fieldStem(target, logicalCol), naming),
+  };
+};
+
+/** Attach physical names and order parent tables before children. */
+export const buildLiveTables = (
+  types: SqlTable[],
+  naming: StatementNaming,
+): LiveTable[] =>
+  topoSort(
+    types.map((t) => ({
+      ...t,
+      tableName: CreateTableStatement.tableName(tableStem(t), naming),
+    })),
+  );

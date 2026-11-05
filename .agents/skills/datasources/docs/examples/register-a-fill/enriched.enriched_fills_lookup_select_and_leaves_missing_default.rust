@@ -1,0 +1,21 @@
+let mut seeds = [
+    record(&[("name", Value::from("person"))]),
+    record(&[("name", Value::from("gone"))]),
+];
+let types_connection = setup(&mut seeds).await;
+let person = seeds[0].clone();
+let gone = seeds[1].clone();
+drop_row(&types_connection, &gone).await;
+let mut parents = [
+    record(&[("type_id", person.get("id").unwrap().clone())]),
+    record(&[("type_id", gone.get("id").unwrap().clone())]),
+];
+let connection = setup(&mut parents).await;
+let mut parents_repo = mapped(connection, "Parent");
+let types_repo = Arc::new(mapped(types_connection, "UserType"));
+parents_repo.add_enriched(
+    Enrichment::new("TypeName", "Type", "Id", Some("Name".into()), datasources::EnrichmentPropertyType::Object),
+    types_repo,
+    None,
+);
+let items = parents_repo.read(&()).try_collect::<Vec<_>>().await.unwrap();

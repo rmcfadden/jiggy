@@ -1,0 +1,65 @@
+let connection = setup(&mut []).await;
+let mut parents = mapped_crud(connection.clone(), "Parent").with_write(Arc::new(
+    DefaultWriteEnrichmentStrategy::new(
+        None,
+        Some(Arc::new(CascadeDeleteUpdateEnrichmentStrategy)),
+        None,
+        false,
+    ),
+));
+let mut children_repo = mapped_crud(connection.clone(), "Child");
+let notes = Arc::new(mapped_crud(connection, "Note"));
+let parent = parents
+    .create(record(&[("Label", Value::from("p"))]))
+    .await
+    .unwrap();
+assert!(num(&parent, "Id") > 0);
+let parent_id = parent.get("Id").unwrap().clone();
+let child = children_repo
+    .create(record(&[
+        ("ParentId", parent_id.clone()),
+        ("Label", Value::from("a")),
+    ]))
+    .await
+    .unwrap();
+assert!(num(&child, "Id") > 0);
+let other = children_repo
+    .create(record(&[("Label", Value::from("other"))]))
+    .await
+    .unwrap();
+assert!(num(&other, "Id") > 0);
+let child_id = child.get("Id").unwrap().clone();
+let note = notes
+    .create(record(&[
+        ("ChildId", child_id.clone()),
+        ("Text", Value::from("n")),
+    ]))
+    .await
+    .unwrap();
+assert!(num(&note, "Id") > 0);
+children_repo.add_enriched(
+    Enrichment::new("Notes", "Id", "ChildId", None, datasources::EnrichmentPropertyType::List),
+    notes.clone(),
+    None,
+);
+let children = Arc::new(children_repo);
+parents.add_enriched(
+    Enrichment::new("Children", "Id", "ParentId", None, datasources::EnrichmentPropertyType::List),
+    children.clone(),
+    None,
+);
+let updated_row_3 = record(&[
+            ("Id", parent_id.clone()),
+            ("Label", Value::from("p")),
+            (
+                "Children",
+                encode_rows(&[record(&[
+                    ("Id", child_id.clone()),
+                    ("Label", Value::from("fresh")),
+                ])]),
+            ),
+        ]);
+let updated = parents
+    .update(updated_row_3)
+    .await
+    .unwrap();

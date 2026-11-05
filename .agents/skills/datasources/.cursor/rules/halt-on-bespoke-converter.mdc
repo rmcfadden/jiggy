@@ -1,0 +1,8 @@
+---
+description: Stop instead of inventing a new converter type
+alwaysApply: true
+---
+
+# Halt on a bespoke type converter
+
+Call `MetaDataRowTypeConverter` and the catalog converters on `RowTypeConverters` / `rowTypeConverters` / `row_type_converters`. Do not add a converter type.

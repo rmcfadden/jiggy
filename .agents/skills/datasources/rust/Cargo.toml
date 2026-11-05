@@ -1,0 +1,26 @@
+[workspace]
+resolver = "2"
+members = [
+    "datasources",
+    "datasources-tests",
+    "code-generators",
+    "providers/*",
+]
+
+[workspace.package]
+version = "0.1.24"
+edition = "2021"
+license = "MIT"
+authors = ["deterministic-code"]
+repository = "https://github.com/deterministic-code/datasources"
+
+[workspace.lints.rust]
+warnings = "deny"
+
+[workspace.dependencies]
+async-trait = "0.1"
+ctor = "0.4"
+datasources = { path = "datasources", version = "0.1.24" }
+tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread"] }
+serde_json = "1"
+rusqlite = { version = "0.32", features = ["bundled", "column_decltype"] }

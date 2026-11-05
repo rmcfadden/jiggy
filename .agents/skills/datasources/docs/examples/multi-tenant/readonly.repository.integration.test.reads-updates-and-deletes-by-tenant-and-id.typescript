@@ -1,0 +1,20 @@
+const ds = new Datasource("sqlite", new SqliteDriver(), { DATASOURCE_URL: "sqlite:///:memory:" });
+await executeSql(connection, `
+  INSERT INTO account (tenant_id, id, name) VALUES
+    (1, 1, 'ada'),
+    (2, 1, 'grace');
+`);
+const casing = new ChangeCasingMapper("pascalCase", "snakeCase");
+const accountsRepo = new CRUDRepository(connection, {
+  ...createCRUDRepositoryOptions(Account),
+  entityMapper: casing,
+  propertyMappings: casing,
+  ids: ["TenantId", "Id"],
+});
+const ada = await accountsRepo.readSingleById({ TenantId: 1, Id: 1 });
+ada!.Name = "ada-v2";
+const updated = await accountsRepo.update(ada!);
+const renamed = await accountsRepo.readSingleById({ TenantId: 1, Id: 1 });
+const removed = await accountsRepo.delete(ada!);
+const gone = await accountsRepo.readSingleById({ TenantId: 1, Id: 1 });
+const graceRow = await accountsRepo.readSingleById({ TenantId: 2, Id: 1 });

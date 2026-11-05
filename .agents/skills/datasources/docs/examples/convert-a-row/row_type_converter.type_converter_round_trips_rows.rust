@@ -1,0 +1,3 @@
+let converter = RowTypeConverter::new(vec!["id".into(), "name".into()]);
+let row = record(&[("id", Value::Int(7)), ("name", Value::from("ada"))]);
+let dest = converter.convert(&row).unwrap();

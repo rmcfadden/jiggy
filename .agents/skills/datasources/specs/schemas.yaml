@@ -1,0 +1,274 @@
+fragments:
+  audit:
+    - { name: id, type: int, primaryKey: true }
+    - { name: uuid, type: uuid, notNull: true }
+    - { name: created, type: datetime, notNull: true }
+    - { name: updated, type: datetime, notNull: true }
+    - { name: version, type: binary, notNull: true }
+  lookup:
+    - { name: name, type: string, notNull: true }
+    - { name: description, type: string }
+
+schemas:
+  minimal-users:
+    - name: users
+      columns:
+        - { name: id, type: int, primaryKey: true }
+        - { name: username, type: string, notNull: true }
+        - { name: is_enabled, type: bool, notNull: true }
+
+  pipeline-users:
+    - name: users
+      columns:
+        - { name: id, type: int, primaryKey: true }
+        - { name: uuid, type: uuid, notNull: true }
+        - { name: name, type: string, notNull: true }
+        - { name: is_enabled, type: bool, notNull: true }
+        - { name: created, type: datetime, notNull: true }
+
+  user-account:
+    - name: user
+      columns:
+        - { name: id, type: uuid, primaryKey: true }
+        - { name: username, type: string, notNull: true }
+        - { name: is_enabled, type: bool, notNull: true }
+        - { name: created, type: datetime, notNull: true }
+
+  user-type-lookup:
+    - name: user_type
+      columns:
+        - { name: id, type: int, primaryKey: true }
+        - { name: name, type: string, notNull: true }
+    - name: user
+      columns:
+        - { name: id, type: uuid, primaryKey: true }
+        - { name: username, type: string, notNull: true }
+        - { name: is_enabled, type: bool, notNull: true }
+        - { name: created, type: datetime, notNull: true }
+        - { name: user_type_id, type: int, notNull: true }
+
+  user-roles-read:
+    - name: user_type
+      columns:
+        - { name: id, type: int, primaryKey: true }
+        - { name: name, type: string, notNull: true }
+    - name: user
+      columns:
+        - { name: id, type: uuid, primaryKey: true }
+        - { name: username, type: string, notNull: true }
+        - { name: is_enabled, type: bool, notNull: true }
+        - { name: created, type: datetime, notNull: true }
+        - { name: user_type_id, type: int, notNull: true }
+    - name: roles
+      columns:
+        - { name: id, type: int, primaryKey: true }
+        - { name: name, type: string, notNull: true }
+    - name: user_roles
+      columns:
+        - { name: user_id, type: uuid, notNull: true }
+        - { name: role_id, type: int, notNull: true }
+        - { name: name, type: string, notNull: true }
+
+  user-view-version:
+    - name: user_type
+      columns:
+        - { name: id, type: int, primaryKey: true }
+        - { name: name, type: string, notNull: true }
+    - name: user
+      columns:
+        - { name: id, type: int, primaryKey: true }
+        - { name: username, type: string, notNull: true }
+        - { name: is_enabled, type: bool, notNull: true }
+        - { name: created, type: datetime, notNull: true }
+        - { name: user_type_id, type: int, notNull: true }
+        - { name: version, type: int, notNull: true }
+    - name: user_role
+      columns:
+        - { name: user_id, type: int, notNull: true }
+        - { name: name, type: string, notNull: true }
+
+  user-pascal:
+    - name: User
+      columns:
+        - { name: id, type: int, primaryKey: true }
+        - { name: is_enabled, type: bool, notNull: true }
+        - { name: username, type: string, notNull: true }
+
+  user-view-links:
+    - name: users
+      columns:
+        - { name: id, type: int, primaryKey: true }
+        - { name: username, type: string, notNull: true }
+        - { name: is_enabled, type: bool, notNull: true }
+        - { name: user_type_id, type: int, notNull: true }
+    - name: user_types
+      columns:
+        - { name: id, type: int, primaryKey: true }
+        - { name: name, type: string, notNull: true }
+    - name: roles
+      columns:
+        - { name: id, type: int, primaryKey: true }
+        - { name: name, type: string, notNull: true }
+    - name: groups
+      columns:
+        - { name: id, type: int, primaryKey: true }
+        - { name: name, type: string, notNull: true }
+    - name: user_roles
+      columns:
+        - { name: user_id, type: int, notNull: true }
+        - { name: role_id, type: int, notNull: true }
+      constraints:
+        - { kind: primaryKey, name: pk_user_roles, columns: [user_id, role_id] }
+    - name: user_groups
+      columns:
+        - { name: user_id, type: int, notNull: true }
+        - { name: group_id, type: int, notNull: true }
+      constraints:
+        - { kind: primaryKey, name: pk_user_groups, columns: [user_id, group_id] }
+
+  multi-tenant:
+    - name: account
+      columns:
+        - { name: tenant_id, type: int, notNull: true }
+        - { name: id, type: int, notNull: true }
+        - { name: name, type: string, notNull: true }
+      constraints:
+        - { kind: primaryKey, name: pk_account, columns: [tenant_id, id] }
+
+  null-write-item:
+    - name: item
+      columns:
+        - { name: id, type: int, primaryKey: true }
+        - { name: name, type: string, notNull: true }
+        - { name: created, type: datetime, notNull: true, default: "'2020-01-01T00:00:00.000Z'" }
+        - { name: version, type: binary, notNull: true, default: "X'0102'" }
+
+  command-user:
+    - name: user
+      columns:
+        - { name: id, type: int, primaryKey: true }
+        - { name: username, type: string, notNull: true }
+        - { name: is_enabled, type: int, notNull: true }
+        - { name: created, type: string, notNull: true }
+
+  command-user-versioned:
+    - name: user
+      columns:
+        - { name: id, type: int, primaryKey: true }
+        - { name: username, type: string, notNull: true }
+        - { name: is_enabled, type: int, notNull: true }
+        - { name: created, type: string, notNull: true }
+        - { name: version, type: int, notNull: true }
+
+  repository-user:
+    - name: user
+      columns:
+        - { name: id, type: int, primaryKey: true }
+        - { name: uuid, type: uuid }
+        - { name: username, type: string }
+        - { name: is_enabled, type: bool }
+        - { name: balance, type: decimal }
+        - { name: location, type: float }
+        - { name: created, type: datetime }
+        - { name: version, type: binary }
+
+  repository-users-mapped:
+    - name: users
+      columns:
+        - { name: id, type: int, primaryKey: true }
+        - { name: uuid, type: uuid }
+        - { name: username, type: string }
+        - { name: usertypename, type: string }
+        - { name: decimal_text, type: string }
+        - { name: create_string, type: datetime }
+        - { name: version, type: binary }
+
+  user-roles-cli:
+    - name: users
+      columns:
+        - { name: id, type: int, primaryKey: true }
+        - { name: username, type: string, notNull: true }
+        - { name: password, type: string, notNull: true }
+        - { name: is_enabled, type: bool, notNull: true, default: "1" }
+        - { name: created, type: datetime, notNull: true }
+        - { name: updated, type: binary, notNull: true }
+    - name: roles
+      columns:
+        - { name: id, type: int, primaryKey: true }
+        - { name: name, type: string, notNull: true }
+        - { name: is_enabled, type: bool, notNull: true, default: "1" }
+        - { name: created, type: datetime, notNull: true }
+        - { name: updated, type: binary, notNull: true }
+    - name: groups
+      columns:
+        - { name: id, type: int, primaryKey: true }
+        - { name: ugly_name, type: string, notNull: true }
+        - { name: is_enabled, type: bool, notNull: true, default: "1" }
+        - { name: created, type: datetime, notNull: true }
+        - { name: updated, type: binary, notNull: true }
+    - name: user_groups
+      columns:
+        - { name: id, type: int, primaryKey: true }
+        - { name: user_id, type: int, notNull: true }
+        - { name: group_id, type: int, notNull: true }
+        - { name: created, type: datetime, notNull: true }
+        - { name: updated, type: binary, notNull: true }
+      constraints:
+        - { kind: foreignKey, name: fk_user_groups_user, columns: [user_id], references: users, referencesColumns: [id] }
+        - { kind: foreignKey, name: fk_user_groups_group, columns: [group_id], references: groups, referencesColumns: [id] }
+    - name: user_roles
+      columns:
+        - { name: id, type: int, primaryKey: true }
+        - { name: user_id, type: int, notNull: true }
+        - { name: bad_role_id, type: int, notNull: true }
+        - { name: created, type: datetime, notNull: true }
+        - { name: updated, type: binary, notNull: true }
+      constraints:
+        - { kind: foreignKey, name: fk_user_roles_user, columns: [user_id], references: users, referencesColumns: [id] }
+        - { kind: foreignKey, name: fk_user_roles_role, columns: [bad_role_id], references: roles, referencesColumns: [id] }
+
+  postgres-items:
+    - name: items
+      columns:
+        - { name: id, type: int }
+        - { name: name, type: string }
+
+  items:
+    - name: items
+      columns:
+        - { name: id, type: int, primaryKey: true }
+        - { name: name, type: string }
+
+  settings:
+    - name: settings
+      columns:
+        - { name: name, type: string }
+        - { name: value, type: string }
+
+  case-contacts:
+    - name: contacts
+      columns:
+        - { name: user_id, type: int, primaryKey: true }
+        - { name: first_name, type: string }
+
+  flat-users:
+    - name: users
+      columns:
+        - { name: id, type: int }
+        - { name: username, type: string }
+        - { name: contact_name, type: string }
+
+  flat-contact-users:
+    - name: users
+      columns:
+        - { name: id, type: int, primaryKey: true }
+        - { name: username, type: string }
+        - { name: email, type: string }
+        - { name: contact_name1, type: string }
+        - { name: contact_name2, type: string }
+
+  flags:
+    - name: flags
+      columns:
+        - { name: enabled, type: bool }
+        - { name: count, type: int }
