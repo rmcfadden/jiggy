@@ -9,7 +9,7 @@ pub struct PhoneType {
     pub updated: datasources::chrono::DateTime<datasources::chrono::Utc>,
     pub version: Vec<u8>,
     pub name: String,
-    pub description: Option<String>,
+    pub description: String,
 }
 impl Default for PhoneType {
     fn default() -> Self {
@@ -20,7 +20,7 @@ impl Default for PhoneType {
             updated: datasources::chrono::Utc::now(),
             version: vec![0],
             name: String::new(),
-            description: None,
+            description: String::new(),
         }
     }
 }

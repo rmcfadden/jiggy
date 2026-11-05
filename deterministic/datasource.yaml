@@ -87,7 +87,7 @@ types:
   - contact_attribute:
       indexes:
         - contact_attribute_contact_id_name_index:
-            fields: [contact_id, key]
+            fields: [contact_id, name]
             is_unique: false
   - label:
       fields:

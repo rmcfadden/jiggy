@@ -2,18 +2,31 @@ using Datasources;
 
 public sealed class AddressesRepository : CRUDRepository<Backend.Types.View.Address>
 {
+    public AddressAttributesRepository AddressAttribute { get; }
+    public LabelsRepository Label { get; }
+    public AddressLabelsRepository AddressLabel { get; }
     public AddressTypesRepository AddressType { get; }
 
     public AddressesRepository(IConnection connection) : base(connection, Options(connection))
     {
+        AddressAttribute = new AddressAttributesRepository(connection);
+        Label = new LabelsRepository(connection);
+        AddressLabel = new AddressLabelsRepository(connection);
         AddressType = new AddressTypesRepository(connection);
+        AddEnriched(new("Attributes", "Id", "AddressId", "Value", Type: EnrichmentPropertyType.Dictionary), AddressAttribute);
+        AddLinked(new("Labels", "Id", "Id", "Name", Association: new("AddressId", "LabelId")), Label, AddressLabel);
         AddEnriched(new("AddressTypeName", "AddressTypeId", "Id", "Name"), AddressType);
     }
 
     public static IReadonlyRepository<Backend.Types.View.Address> CreateReadonly(IConnection connection)
     {
         var repo = new ReadonlyRepository<Backend.Types.View.Address>(connection, Options(connection));
+        var AddressAttribute = new AddressAttributesRepository(connection);
+        var Label = new LabelsRepository(connection);
+        var AddressLabel = new AddressLabelsRepository(connection);
         var AddressType = new AddressTypesRepository(connection);
+        repo.AddEnriched(new("Attributes", "Id", "AddressId", "Value", Type: EnrichmentPropertyType.Dictionary), AddressAttribute);
+        repo.AddEnriched(new("Labels", "Id", "Id", "Name", Type: EnrichmentPropertyType.List), Label);
         repo.AddEnriched(new("AddressTypeName", "AddressTypeId", "Id", "Name"), AddressType);
         return repo;
     }
@@ -23,7 +36,7 @@ public sealed class AddressesRepository : CRUDRepository<Backend.Types.View.Addr
             .Add(new()
             {
                 Entity = "Address",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["Address"] = "address_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["Address"] = "addresses" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",
@@ -31,27 +44,27 @@ public sealed class AddressesRepository : CRUDRepository<Backend.Types.View.Addr
                     ["Created"] = "created",
                     ["Updated"] = "updated",
                     ["Version"] = "version",
-                    ["Latitude"] = "latitude",
-                    ["LabelNote"] = "label_note",
-                    ["Floor"] = "floor",
-                    ["Score"] = "score",
-                    ["ExternalId"] = "external_id",
-                    ["IsVerified"] = "is_verified",
-                    ["VerifiedAt"] = "verified_at",
-                    ["Stamp"] = "stamp",
                     ["ContactId"] = "contact_id",
                     ["AddressTypeId"] = "address_type_id",
-                    ["Line1"] = "line1",
-                    ["Line2"] = "line2",
+                    ["DisplayName"] = "display_name",
+                    ["Line1"] = "line_1",
+                    ["Line2"] = "line_2",
+                    ["Line3"] = "line_3",
+                    ["Neighborhood"] = "neighborhood",
+                    ["District"] = "district",
                     ["City"] = "city",
-                    ["Region"] = "region",
+                    ["StateProvince"] = "state_province",
                     ["PostalCode"] = "postal_code",
-                    ["Country"] = "country",
+                    ["CountryCode"] = "country_code",
+                    ["FormattedAddress"] = "formatted_address",
+                    ["Latitude"] = "latitude",
+                    ["Longitude"] = "longitude",
+                    ["IsPrimary"] = "is_primary",
                 }),
                 Ids = ["Id"],
-                ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "Latitude", "LabelNote", "Floor", "Score", "ExternalId", "IsVerified", "VerifiedAt", "Stamp", "ContactId", "AddressTypeId", "Line1", "Line2", "City", "Region", "PostalCode", "Country"],
-                CreateProperties = ["Latitude", "LabelNote", "Floor", "Score", "ExternalId", "IsVerified", "VerifiedAt", "Stamp", "ContactId", "AddressTypeId", "Line1", "Line2", "City", "Region", "PostalCode", "Country"],
-                UpdateProperties = ["Uuid", "Latitude", "LabelNote", "Floor", "Score", "ExternalId", "IsVerified", "VerifiedAt", "Stamp", "ContactId", "AddressTypeId", "Line1", "Line2", "City", "Region", "PostalCode", "Country"],
+                ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "ContactId", "AddressTypeId", "DisplayName", "Line1", "Line2", "Line3", "Neighborhood", "District", "City", "StateProvince", "PostalCode", "CountryCode", "FormattedAddress", "Latitude", "Longitude", "IsPrimary"],
+                CreateProperties = ["ContactId", "AddressTypeId", "DisplayName", "Line1", "Line2", "Line3", "Neighborhood", "District", "City", "StateProvince", "PostalCode", "CountryCode", "FormattedAddress", "Latitude", "Longitude", "IsPrimary"],
+                UpdateProperties = ["Uuid", "ContactId", "AddressTypeId", "DisplayName", "Line1", "Line2", "Line3", "Neighborhood", "District", "City", "StateProvince", "PostalCode", "CountryCode", "FormattedAddress", "Latitude", "Longitude", "IsPrimary"],
                 Schema = new(new Dictionary<string, SchemaColumn>
                 {
                     ["Id"] = new("biginteger", false, false, true),
@@ -59,22 +72,22 @@ public sealed class AddressesRepository : CRUDRepository<Backend.Types.View.Addr
                     ["Created"] = new("datetime", false, true),
                     ["Updated"] = new("datetime", false, true),
                     ["Version"] = new("binary", false, true),
-                    ["Latitude"] = new("integer", true, false),
-                    ["LabelNote"] = new("string", true, false),
-                    ["Floor"] = new("unsignedinteger", true, false),
-                    ["Score"] = new("decimal", true, false),
-                    ["ExternalId"] = new("uuid", true, false),
-                    ["IsVerified"] = new("boolean", true, false),
-                    ["VerifiedAt"] = new("datetime", true, false),
-                    ["Stamp"] = new("binary", true, false),
                     ["ContactId"] = new("biginteger", false, false),
                     ["AddressTypeId"] = new("biginteger", false, false),
+                    ["DisplayName"] = new("string", false, true),
                     ["Line1"] = new("string", false, false),
-                    ["Line2"] = new("string", true, false),
+                    ["Line2"] = new("string", false, true),
+                    ["Line3"] = new("string", false, true),
+                    ["Neighborhood"] = new("string", false, true),
+                    ["District"] = new("string", false, true),
                     ["City"] = new("string", false, false),
-                    ["Region"] = new("string", true, false),
-                    ["PostalCode"] = new("string", true, false),
-                    ["Country"] = new("string", true, false),
+                    ["StateProvince"] = new("string", false, true),
+                    ["PostalCode"] = new("string", false, true),
+                    ["CountryCode"] = new("string", false, false),
+                    ["FormattedAddress"] = new("string", false, true),
+                    ["Latitude"] = new("decimal", true, false),
+                    ["Longitude"] = new("decimal", true, false),
+                    ["IsPrimary"] = new("boolean", false, true),
                 }),
             })
             .Add("sqlite", new()
@@ -88,27 +101,27 @@ public sealed class AddressesRepository : CRUDRepository<Backend.Types.View.Addr
                     ["Created"] = "created",
                     ["Updated"] = "updated",
                     ["Version"] = "version",
-                    ["Latitude"] = "latitude",
-                    ["LabelNote"] = "label_note",
-                    ["Floor"] = "floor",
-                    ["Score"] = "score",
-                    ["ExternalId"] = "external_id",
-                    ["IsVerified"] = "is_verified",
-                    ["VerifiedAt"] = "verified_at",
-                    ["Stamp"] = "stamp",
                     ["ContactId"] = "contact_id",
                     ["AddressTypeId"] = "address_type_id",
-                    ["Line1"] = "line1",
-                    ["Line2"] = "line2",
+                    ["DisplayName"] = "display_name",
+                    ["Line1"] = "line_1",
+                    ["Line2"] = "line_2",
+                    ["Line3"] = "line_3",
+                    ["Neighborhood"] = "neighborhood",
+                    ["District"] = "district",
                     ["City"] = "city",
-                    ["Region"] = "region",
+                    ["StateProvince"] = "state_province",
                     ["PostalCode"] = "postal_code",
-                    ["Country"] = "country",
+                    ["CountryCode"] = "country_code",
+                    ["FormattedAddress"] = "formatted_address",
+                    ["Latitude"] = "latitude",
+                    ["Longitude"] = "longitude",
+                    ["IsPrimary"] = "is_primary",
                 }),
                 Ids = ["Id"],
-                ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "Latitude", "LabelNote", "Floor", "Score", "ExternalId", "IsVerified", "VerifiedAt", "Stamp", "ContactId", "AddressTypeId", "Line1", "Line2", "City", "Region", "PostalCode", "Country"],
-                CreateProperties = ["Uuid", "Created", "Version", "Latitude", "LabelNote", "Floor", "Score", "ExternalId", "IsVerified", "VerifiedAt", "Stamp", "ContactId", "AddressTypeId", "Line1", "Line2", "City", "Region", "PostalCode", "Country"],
-                UpdateProperties = ["Uuid", "Created", "Version", "Latitude", "LabelNote", "Floor", "Score", "ExternalId", "IsVerified", "VerifiedAt", "Stamp", "ContactId", "AddressTypeId", "Line1", "Line2", "City", "Region", "PostalCode", "Country"],
+                ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "ContactId", "AddressTypeId", "DisplayName", "Line1", "Line2", "Line3", "Neighborhood", "District", "City", "StateProvince", "PostalCode", "CountryCode", "FormattedAddress", "Latitude", "Longitude", "IsPrimary"],
+                CreateProperties = ["Uuid", "Created", "Version", "ContactId", "AddressTypeId", "DisplayName", "Line1", "Line2", "Line3", "Neighborhood", "District", "City", "StateProvince", "PostalCode", "CountryCode", "FormattedAddress", "Latitude", "Longitude", "IsPrimary"],
+                UpdateProperties = ["Uuid", "Created", "Version", "ContactId", "AddressTypeId", "DisplayName", "Line1", "Line2", "Line3", "Neighborhood", "District", "City", "StateProvince", "PostalCode", "CountryCode", "FormattedAddress", "Latitude", "Longitude", "IsPrimary"],
                 Schema = new(new Dictionary<string, SchemaColumn>
                 {
                     ["Id"] = new("biginteger", false, false, true),
@@ -116,22 +129,22 @@ public sealed class AddressesRepository : CRUDRepository<Backend.Types.View.Addr
                     ["Created"] = new("datetime", false, true),
                     ["Updated"] = new("datetime", false, true),
                     ["Version"] = new("binary", false, true),
-                    ["Latitude"] = new("integer", true, false),
-                    ["LabelNote"] = new("string", true, false),
-                    ["Floor"] = new("unsignedinteger", true, false),
-                    ["Score"] = new("decimal", true, false),
-                    ["ExternalId"] = new("uuid", true, false),
-                    ["IsVerified"] = new("boolean", true, false),
-                    ["VerifiedAt"] = new("datetime", true, false),
-                    ["Stamp"] = new("binary", true, false),
                     ["ContactId"] = new("biginteger", false, false),
                     ["AddressTypeId"] = new("biginteger", false, false),
+                    ["DisplayName"] = new("string", false, true),
                     ["Line1"] = new("string", false, false),
-                    ["Line2"] = new("string", true, false),
+                    ["Line2"] = new("string", false, true),
+                    ["Line3"] = new("string", false, true),
+                    ["Neighborhood"] = new("string", false, true),
+                    ["District"] = new("string", false, true),
                     ["City"] = new("string", false, false),
-                    ["Region"] = new("string", true, false),
-                    ["PostalCode"] = new("string", true, false),
-                    ["Country"] = new("string", true, false),
+                    ["StateProvince"] = new("string", false, true),
+                    ["PostalCode"] = new("string", false, true),
+                    ["CountryCode"] = new("string", false, false),
+                    ["FormattedAddress"] = new("string", false, true),
+                    ["Latitude"] = new("decimal", true, false),
+                    ["Longitude"] = new("decimal", true, false),
+                    ["IsPrimary"] = new("boolean", false, true),
                 }),
             })
             .For(connection);

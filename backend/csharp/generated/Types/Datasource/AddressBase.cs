@@ -4,20 +4,20 @@ namespace Backend.Types.Datasource;
 /** Type AddressBase. */
 public class AddressBase : Base
 {
-    public long? Latitude { get; set; }
-    public string? LabelNote { get; set; }
-    public uint? Floor { get; set; }
-    public string? Score { get; set; }
-    public string? ExternalId { get; set; }
-    public bool? IsVerified { get; set; }
-    public System.DateTime? VerifiedAt { get; set; }
-    public byte[]? Stamp { get; set; }
     public long ContactId { get; set; }
     public long AddressTypeId { get; set; }
+    public string DisplayName { get; set; } = "";
     public string Line1 { get; set; } = "";
-    public string? Line2 { get; set; }
+    public string Line2 { get; set; } = "";
+    public string Line3 { get; set; } = "";
+    public string Neighborhood { get; set; } = "";
+    public string District { get; set; } = "";
     public string City { get; set; } = "";
-    public string? Region { get; set; }
-    public string? PostalCode { get; set; }
-    public string? Country { get; set; }
+    public string StateProvince { get; set; } = "";
+    public string PostalCode { get; set; } = "";
+    public string CountryCode { get; set; } = "";
+    public string FormattedAddress { get; set; } = "";
+    public string? Latitude { get; set; }
+    public string? Longitude { get; set; }
+    public bool IsPrimary { get; set; }
 }

@@ -7,7 +7,7 @@ export class Review {
   created: Date = new Date();
   updated: Date = new Date();
   version: string = Buffer.from([0]).toString("base64");
-  gameId!: number;
+  gameInstanceId!: number;
   userId!: number;
   description!: string;
   rating!: string;

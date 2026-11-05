@@ -1,0 +1,20 @@
+import type { EmailLabel } from "../types/datasource/emailLabel";
+import { CRUDRepository, CRUDRepositoryBuilder, DictionaryMapper, ReadonlyRepository, Schema, type IConnection } from "@deterministic-code/datasources";
+const options = (connection: IConnection) =>
+  new CRUDRepositoryBuilder<EmailLabel>()
+    .add({ entity: "EmailLabel", entityMapper: new DictionaryMapper([["EmailLabel", "email_labels"]]), propertyMappings: new DictionaryMapper([["emailId", "email_id"], ["labelId", "label_id"]]), ids: ["id"], createProperties: ["emailId", "labelId"], updateProperties: ["uuid", "emailId", "labelId"], readProperties: ["id", "uuid", "created", "updated", "version", "emailId", "labelId"], schema: new Schema({ id: { type: "biginteger", nullable: false, hasDefault: false, isId: true }, uuid: { type: "uuid", nullable: false, hasDefault: true }, created: { type: "datetime", nullable: false, hasDefault: true }, updated: { type: "datetime", nullable: false, hasDefault: true }, version: { type: "binary", nullable: false, hasDefault: true }, emailId: { type: "biginteger", nullable: false, hasDefault: false }, labelId: { type: "biginteger", nullable: false, hasDefault: false } }) })
+    .add("sqlite", { entity: "EmailLabel", entityMapper: new DictionaryMapper([["EmailLabel", "email_labels"]]), propertyMappings: new DictionaryMapper([["emailId", "email_id"], ["labelId", "label_id"]]), ids: ["id"], createProperties: ["uuid", "created", "version", "emailId", "labelId"], updateProperties: ["uuid", "created", "version", "emailId", "labelId"], readProperties: ["id", "uuid", "created", "updated", "version", "emailId", "labelId"], schema: new Schema({ id: { type: "biginteger", nullable: false, hasDefault: false, isId: true }, uuid: { type: "uuid", nullable: false, hasDefault: true }, created: { type: "datetime", nullable: false, hasDefault: true }, updated: { type: "datetime", nullable: false, hasDefault: true }, version: { type: "binary", nullable: false, hasDefault: true }, emailId: { type: "biginteger", nullable: false, hasDefault: false }, labelId: { type: "biginteger", nullable: false, hasDefault: false } }) })
+    .for(connection);
+
+const readonlyOptions = (connection: IConnection) =>
+  new CRUDRepositoryBuilder<EmailLabel>()
+    .add({ entity: "EmailLabel", entityMapper: new DictionaryMapper([["EmailLabel", "email_labels"]]), propertyMappings: new DictionaryMapper([["emailId", "email_id"], ["labelId", "label_id"]]), readProperties: ["id", "uuid", "created", "updated", "version", "emailId", "labelId"], schema: new Schema({ id: { type: "biginteger", nullable: false, hasDefault: false, isId: true }, uuid: { type: "uuid", nullable: false, hasDefault: true }, created: { type: "datetime", nullable: false, hasDefault: true }, updated: { type: "datetime", nullable: false, hasDefault: true }, version: { type: "binary", nullable: false, hasDefault: true }, emailId: { type: "biginteger", nullable: false, hasDefault: false }, labelId: { type: "biginteger", nullable: false, hasDefault: false } }) })
+    .add("sqlite", { entity: "EmailLabel", entityMapper: new DictionaryMapper([["EmailLabel", "email_labels"]]), propertyMappings: new DictionaryMapper([["emailId", "email_id"], ["labelId", "label_id"]]), readProperties: ["id", "uuid", "created", "updated", "version", "emailId", "labelId"], schema: new Schema({ id: { type: "biginteger", nullable: false, hasDefault: false, isId: true }, uuid: { type: "uuid", nullable: false, hasDefault: true }, created: { type: "datetime", nullable: false, hasDefault: true }, updated: { type: "datetime", nullable: false, hasDefault: true }, version: { type: "binary", nullable: false, hasDefault: true }, emailId: { type: "biginteger", nullable: false, hasDefault: false }, labelId: { type: "biginteger", nullable: false, hasDefault: false } }) })
+    .for(connection);
+
+export class EmailLabelsRepository extends CRUDRepository<EmailLabel> {
+  constructor(connection: IConnection) {
+    super(connection, options(connection));
+  }
+  static createReadonly = (connection: IConnection) => new ReadonlyRepository<EmailLabel>(connection, readonlyOptions(connection));
+}

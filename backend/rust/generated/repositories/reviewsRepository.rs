@@ -16,16 +16,16 @@ pub fn reviews_repository(connection: Arc<dyn Connection>) -> Result<CRUDReposit
             ("created".into(), SchemaColumn { type_name: "datetime".into(), nullable: false, has_default: true, is_id: false }),
             ("updated".into(), SchemaColumn { type_name: "datetime".into(), nullable: false, has_default: true, is_id: false }),
             ("version".into(), SchemaColumn { type_name: "binary".into(), nullable: false, has_default: true, is_id: false }),
-            ("game_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
+            ("game_instance_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
             ("user_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
             ("description".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("rating".into(), SchemaColumn { type_name: "decimal".into(), nullable: false, has_default: false, is_id: false }),
             ("is_approved".into(), SchemaColumn { type_name: "boolean".into(), nullable: false, has_default: true, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "game_id".into(), "user_id".into(), "description".into(), "rating".into(), "is_approved".into()];
-        options.create_properties = Some(vec!["game_id".into(), "user_id".into(), "description".into(), "rating".into(), "is_approved".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "game_id".into(), "user_id".into(), "description".into(), "rating".into(), "is_approved".into()]);
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "game_instance_id".into(), "user_id".into(), "description".into(), "rating".into(), "is_approved".into()];
+        options.create_properties = Some(vec!["game_instance_id".into(), "user_id".into(), "description".into(), "rating".into(), "is_approved".into()]);
+        options.update_properties = Some(vec!["uuid".into(), "game_instance_id".into(), "user_id".into(), "description".into(), "rating".into(), "is_approved".into()]);
         options
     })
     .add_for("sqlite", {
@@ -40,16 +40,16 @@ pub fn reviews_repository(connection: Arc<dyn Connection>) -> Result<CRUDReposit
             ("created".into(), SchemaColumn { type_name: "datetime".into(), nullable: false, has_default: true, is_id: false }),
             ("updated".into(), SchemaColumn { type_name: "datetime".into(), nullable: false, has_default: true, is_id: false }),
             ("version".into(), SchemaColumn { type_name: "binary".into(), nullable: false, has_default: true, is_id: false }),
-            ("game_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
+            ("game_instance_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
             ("user_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
             ("description".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("rating".into(), SchemaColumn { type_name: "decimal".into(), nullable: false, has_default: false, is_id: false }),
             ("is_approved".into(), SchemaColumn { type_name: "boolean".into(), nullable: false, has_default: true, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "game_id".into(), "user_id".into(), "description".into(), "rating".into(), "is_approved".into()];
-        options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "game_id".into(), "user_id".into(), "description".into(), "rating".into(), "is_approved".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "game_id".into(), "user_id".into(), "description".into(), "rating".into(), "is_approved".into()]);
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "game_instance_id".into(), "user_id".into(), "description".into(), "rating".into(), "is_approved".into()];
+        options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "game_instance_id".into(), "user_id".into(), "description".into(), "rating".into(), "is_approved".into()]);
+        options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "game_instance_id".into(), "user_id".into(), "description".into(), "rating".into(), "is_approved".into()]);
         options
     })
     .for_connection(connection.as_ref())?;
@@ -71,16 +71,16 @@ pub fn reviews_row_repository(connection: Arc<dyn Connection>) -> Result<CRUDRep
             ("created".into(), SchemaColumn { type_name: "datetime".into(), nullable: false, has_default: true, is_id: false }),
             ("updated".into(), SchemaColumn { type_name: "datetime".into(), nullable: false, has_default: true, is_id: false }),
             ("version".into(), SchemaColumn { type_name: "binary".into(), nullable: false, has_default: true, is_id: false }),
-            ("game_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
+            ("game_instance_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
             ("user_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
             ("description".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("rating".into(), SchemaColumn { type_name: "decimal".into(), nullable: false, has_default: false, is_id: false }),
             ("is_approved".into(), SchemaColumn { type_name: "boolean".into(), nullable: false, has_default: true, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "game_id".into(), "user_id".into(), "description".into(), "rating".into(), "is_approved".into()];
-        options.create_properties = Some(vec!["game_id".into(), "user_id".into(), "description".into(), "rating".into(), "is_approved".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "game_id".into(), "user_id".into(), "description".into(), "rating".into(), "is_approved".into()]);
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "game_instance_id".into(), "user_id".into(), "description".into(), "rating".into(), "is_approved".into()];
+        options.create_properties = Some(vec!["game_instance_id".into(), "user_id".into(), "description".into(), "rating".into(), "is_approved".into()]);
+        options.update_properties = Some(vec!["uuid".into(), "game_instance_id".into(), "user_id".into(), "description".into(), "rating".into(), "is_approved".into()]);
         options
     })
     .add_for("sqlite", {
@@ -95,16 +95,16 @@ pub fn reviews_row_repository(connection: Arc<dyn Connection>) -> Result<CRUDRep
             ("created".into(), SchemaColumn { type_name: "datetime".into(), nullable: false, has_default: true, is_id: false }),
             ("updated".into(), SchemaColumn { type_name: "datetime".into(), nullable: false, has_default: true, is_id: false }),
             ("version".into(), SchemaColumn { type_name: "binary".into(), nullable: false, has_default: true, is_id: false }),
-            ("game_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
+            ("game_instance_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
             ("user_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
             ("description".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("rating".into(), SchemaColumn { type_name: "decimal".into(), nullable: false, has_default: false, is_id: false }),
             ("is_approved".into(), SchemaColumn { type_name: "boolean".into(), nullable: false, has_default: true, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "game_id".into(), "user_id".into(), "description".into(), "rating".into(), "is_approved".into()];
-        options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "game_id".into(), "user_id".into(), "description".into(), "rating".into(), "is_approved".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "game_id".into(), "user_id".into(), "description".into(), "rating".into(), "is_approved".into()]);
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "game_instance_id".into(), "user_id".into(), "description".into(), "rating".into(), "is_approved".into()];
+        options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "game_instance_id".into(), "user_id".into(), "description".into(), "rating".into(), "is_approved".into()]);
+        options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "game_instance_id".into(), "user_id".into(), "description".into(), "rating".into(), "is_approved".into()]);
         options
     })
     .for_connection(connection.as_ref())?;
@@ -124,13 +124,13 @@ pub fn reviews_readonly_repository(connection: Arc<dyn Connection>) -> Result<Re
         ("created".into(), SchemaColumn { type_name: "datetime".into(), nullable: false, has_default: true, is_id: false }),
         ("updated".into(), SchemaColumn { type_name: "datetime".into(), nullable: false, has_default: true, is_id: false }),
         ("version".into(), SchemaColumn { type_name: "binary".into(), nullable: false, has_default: true, is_id: false }),
-        ("game_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
+        ("game_instance_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
         ("user_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
         ("description".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
         ("rating".into(), SchemaColumn { type_name: "decimal".into(), nullable: false, has_default: false, is_id: false }),
         ("is_approved".into(), SchemaColumn { type_name: "boolean".into(), nullable: false, has_default: true, is_id: false }),
     ]));
-    options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "game_id".into(), "user_id".into(), "description".into(), "rating".into(), "is_approved".into()];
+    options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "game_instance_id".into(), "user_id".into(), "description".into(), "rating".into(), "is_approved".into()];
         let repo = ReadonlyRepository::<Review>::new(connection, options)?;
         Ok(repo)
 }

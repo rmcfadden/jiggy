@@ -4,10 +4,17 @@ namespace Backend.Types.Datasource;
 /** Type ContactBase. */
 public class ContactBase : Base
 {
-    public long ContactSourceId { get; set; }
-    public string FirstName { get; set; } = "";
-    public string LastName { get; set; } = "";
-    public string? Email { get; set; }
-    public string? Notes { get; set; }
+    public string Name { get; set; } = "";
+    public string GivenName { get; set; } = "";
+    public string AdditionalName { get; set; } = "";
+    public string Pronunciation { get; set; } = "";
+    public string FamilyName { get; set; } = "";
+    public string NickName { get; set; } = "";
+    public string JobTitle { get; set; } = "";
+    public long GenderTypeId { get; set; }
+    public string Organization { get; set; } = "";
+    public bool IsStarred { get; set; }
+    public bool IsFavorite { get; set; }
+    public bool IsDeleted { get; set; }
     public long UserId { get; set; }
 }

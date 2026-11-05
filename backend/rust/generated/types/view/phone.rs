@@ -1,6 +1,7 @@
 // schema-version: 1.0
 #[allow(unused_imports)]
 use super::*;
+use std::collections::HashMap;
 /// View Phone.
 #[derive(Clone, Debug, PartialEq, datasources::Facet)]
 #[facet(crate = ::datasources::facet)]
@@ -10,11 +11,17 @@ pub struct Phone {
     pub created: datasources::chrono::DateTime<datasources::chrono::Utc>,
     pub updated: datasources::chrono::DateTime<datasources::chrono::Utc>,
     pub version: Vec<u8>,
+    pub phone_type_id: String,
     pub contact_id: String,
     pub number: String,
-    pub label: Option<String>,
+    pub display_name: String,
+    pub extention: String,
+    pub is_primary: bool,
+    pub is_verified: bool,
     pub phone_type_name: String,
-    pub description: Option<String>,
+    pub description: String,
+    pub attributes: HashMap<String, String>,
+    pub labels: Vec<Label>,
 }
 impl Default for Phone {
     fn default() -> Self {
@@ -24,11 +31,17 @@ impl Default for Phone {
             created: datasources::chrono::Utc::now(),
             updated: datasources::chrono::Utc::now(),
             version: vec![0],
+            phone_type_id: String::new(),
             contact_id: String::new(),
             number: String::new(),
-            label: None,
+            display_name: String::new(),
+            extention: String::new(),
+            is_primary: false,
+            is_verified: false,
             phone_type_name: String::new(),
-            description: None,
+            description: String::new(),
+            attributes: HashMap::new(),
+            labels: vec![],
         }
     }
 }
