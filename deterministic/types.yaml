@@ -14,10 +14,6 @@ includes:
             add_field:
               user_id:
                 references: user_base.id
-        modify_fields:
-          - field: contact_change_log.contact_id
-            def:
-              type: biginteger
 types:
   - category:
       tags: [datasource_type, view_type]
