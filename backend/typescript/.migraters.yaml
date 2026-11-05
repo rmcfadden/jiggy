@@ -1,9 +1,8 @@
 language: typescript
 providers:
   - name: sqlite
-    location: providers/sqlite/src/index.ts
   - name: postgres
-    location: providers/postgres/src/index.ts
   - name: mysql
-    location: providers/mysql/src/index.ts
+  - name: sqlserver
+  - name: oracle
 binDir: typescript/dist/src/bin
