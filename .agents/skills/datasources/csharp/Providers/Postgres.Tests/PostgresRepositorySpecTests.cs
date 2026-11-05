@@ -1,0 +1,50 @@
+using Datasources;
+using Datasources.Postgres;
+using Datasources.SqlSpecs;
+using Npgsql;
+
+namespace Datasources.Postgres.Tests;
+
+public class PostgresRepositorySpecTests
+{
+    [Fact]
+    public async Task RepositorySpecs()
+    {
+        var url = Environment.GetEnvironmentVariable("POSTGRES_URL");
+        if (string.IsNullOrEmpty(url)) return;
+        _ = PostgresRowTypeConverters.All;
+        foreach (var path in RepositoryTestsSpec.Files())
+        {
+            var schema = $"ds_{Guid.NewGuid():N}"[..18];
+            await using (var admin = new NpgsqlConnection(PostgresConnectionString.ToConnectionString(url)))
+            {
+                await admin.OpenAsync();
+                await using var create = admin.CreateCommand();
+                create.CommandText = $"CREATE SCHEMA {schema}";
+                await create.ExecuteNonQueryAsync();
+            }
+            try
+            {
+                await RepositoryTestsSpec.Run(path, () =>
+                {
+                    var conn = new PostgresConnection(new PostgresConnectionOptions
+                    {
+                        Url = url,
+                        Schema = schema,
+                    });
+                    return new RepositoryTestsSpec.Session(conn, new PostgresCommand(conn), PostgresRowTypeConverters.All);
+                }, Quote);
+            }
+            finally
+            {
+                await using var drop = new NpgsqlConnection(PostgresConnectionString.ToConnectionString(url));
+                await drop.OpenAsync();
+                await using var cmd = drop.CreateCommand();
+                cmd.CommandText = $"DROP SCHEMA {schema} CASCADE";
+                await cmd.ExecuteNonQueryAsync();
+            }
+        }
+    }
+
+    static string Quote(string id) => $"\"{id.Replace("\"", "\"\"")}\"";
+}

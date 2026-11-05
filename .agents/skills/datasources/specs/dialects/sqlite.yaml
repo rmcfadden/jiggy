@@ -1,0 +1,7 @@
+connection:
+  kind: file
+  filename: ":memory:"
+  shared: true
+createUserTable: command-user
+createUserTableVersioned: command-user-versioned
+dirtyReadRows: []

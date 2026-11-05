@@ -1,0 +1,66 @@
+let built = datasource();
+let ds: &dyn Datasource = &*built;
+execute_sql(&connection, &seed()).await;
+let mut options = ReadonlyRepositoryMappingOptions::default();
+options.entity = "User".into();
+options.entity_mapper = Some(std::sync::Arc::new(DictionaryMapper::new([
+    ("User".into(), "user".into()),
+    ("UserType".into(), "user_type".into()),
+    ("UserRole".into(), "user_roles".into()),
+    ("Role".into(), "roles".into()),
+])));
+options.property_mappings = Some(std::sync::Arc::new(DictionaryMapper::new([
+    ("Key".into(), "id".into()),
+    ("Login".into(), "username".into()),
+    ("Active".into(), "is_enabled".into()),
+    ("Opened".into(), "created".into()),
+    ("UserType".into(), "user_type.name".into()),
+    ("UserTypeId".into(), "user_type_id".into()),
+    ("UserId".into(), "user_id".into()),
+    ("RoleId".into(), "role_id".into()),
+    ("Name".into(), "roles.name".into()),
+    ("Id".into(), "id".into()),
+])));
+let mut users_repo = ReadonlyRepository::<Row>::new(connection.clone(), options).unwrap();
+users_repo.add_enriched(
+    datasources::Enrichment::new("Roles", "Key", "UserId", None, datasources::EnrichmentPropertyType::List),
+    Arc::new(ReadonlyRepository::<Row>::new(
+        connection.clone(),
+        ReadonlyRepositoryMappingOptions::default(),
+    ).unwrap()),
+    Some(Arc::new(NestedToObjectEnrichmentStrategy::new(
+        TypeMap::new(
+            "Key",
+            vec![
+                ("Key".into(), TypeMapField::column("Key")),
+                ("Login".into(), TypeMapField::column("Login")),
+                ("Active".into(), TypeMapField::column("Active")),
+                ("Opened".into(), TypeMapField::column("Opened")),
+                ("UserType".into(), TypeMapField::column("UserType")),
+                (
+                    "Roles".into(),
+                    TypeMapField::Group(TypeMapGroup::new(
+                        "RoleId",
+                        vec![
+                            ("RoleId".into(), TypeMapField::column("RoleId")),
+                            ("UserId".into(), TypeMapField::column("UserId")),
+                            ("Name".into(), TypeMapField::column("Name")),
+                        ],
+                    )),
+                ),
+            ],
+        ),
+    ))),
+);
+let joined = joined_users();
+let items = users_repo.read(&joined).try_collect::<Vec<_>>().await.unwrap();
+let view = |login: &str| {
+    items
+        .iter()
+        .find(|item| item.get("Login") == Some(&Value::from(login)))
+        .unwrap()
+        .clone()
+};
+let ada = view("ada");
+let grace = view("grace");
+let lin = view("lin");

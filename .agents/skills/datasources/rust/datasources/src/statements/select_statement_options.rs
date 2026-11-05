@@ -1,0 +1,35 @@
+use crate::builders::Join;
+use super::i_where::IWhere;
+use crate::statements::OrderBy;
+
+pub struct SelectStatementOptions<'a> {
+    pub table: &'a str,
+    pub fields: &'a [&'a str],
+    pub aliases: &'a [Option<&'a str>],
+    pub where_clause: Option<&'a dyn IWhere>,
+    pub joins: &'a [Join],
+    pub group_by: &'a [&'a str],
+    pub order_by: &'a [OrderBy],
+    pub limit: Option<i64>,
+    pub distinct: bool,
+    pub having: Option<&'a dyn IWhere>,
+    pub offset: Option<i64>,
+}
+
+impl<'a> SelectStatementOptions<'a> {
+    pub fn new(table: &'a str, fields: &'a [&'a str]) -> Self {
+        Self {
+            table,
+            fields,
+            aliases: &[],
+            where_clause: None,
+            joins: &[],
+            group_by: &[],
+            order_by: &[],
+            limit: None,
+            distinct: false,
+            having: None,
+            offset: None,
+        }
+    }
+}

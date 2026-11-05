@@ -1,0 +1,12 @@
+---
+description: Stop when a locked signature cannot change
+alwaysApply: true
+---
+
+# Halt on a locked signature
+
+`.cursor/hooks/locked-classes.txt` freezes public, internal, and protected signatures (Rust `pub` / `pub(crate)` / `pub(super)`). Method bodies and private members on those types can change.
+
+When the change needs a locked signature, stop and name that member. A wrapper, second field, or extra path that carries the same data through an existing signature is not a substitute.
+
+Say "locked" only for a signature on that list. Tests, files, and generate output are pinned or asserted, not locked.

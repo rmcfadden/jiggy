@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'UserRolesSimpleCli.Tests'">
+    <BaseIntermediateOutputPath>obj/UserRolesSimpleCli.Tests/</BaseIntermediateOutputPath>
+    <BaseOutputPath>bin/UserRolesSimpleCli.Tests/</BaseOutputPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <DefaultItemExcludes>$(DefaultItemExcludes);node_modules/**</DefaultItemExcludes>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,3 @@
+let connection = MemoryConnection::from_options(None);
+connection.open().await.unwrap();
+let txn = connection.start_transaction(None).await.unwrap();

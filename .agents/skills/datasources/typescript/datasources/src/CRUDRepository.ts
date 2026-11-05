@@ -1,0 +1,363 @@
+import type { IConnection } from "./IConnection.ts";
+import type { ICRUDRepository } from "./ICRUDRepository.ts";
+import type { Response } from "./Response.ts";
+import type { IWhere } from "./statements/IWhere.ts";
+import type { Field } from "./builders/Field.ts";
+import type { Scalar } from "./builders/Scalar.ts";
+import type { IExpression } from "./statements/IExpression.ts";
+import { Literal } from "./statements/Literal.ts";
+import { DefaultStatementTextRenderer, Operator, Where } from "./statements/index.ts";
+import type { Cell, Cells } from "./converters/Cell.ts";
+import type { Constructable } from "./converters/Constructable.ts";
+import type { CRUDRepositoryOptions } from "./CRUDRepositoryOptions.ts";
+import { repositoryParts } from "./CRUDRepositoryBuilder.ts";
+import type { CRUDRepositoryStatements } from "./CRUDRepositoryStatements.ts";
+import { MetaDataRowTypeConverter } from "./converters/MetaDataRowTypeConverter.ts";
+import { enrichmentsOf, ReadonlyRepository } from "./ReadonlyRepository.ts";
+import type { Enrichment } from "./Enrichment.ts";
+import type { IReadonlyEnrichmentStrategy } from "./IReadonlyEnrichmentStrategy.ts";
+import type { IReadonlyRepository } from "./IReadonlyRepository.ts";
+import { DefaultReadonlyEnrichmentStrategy } from "./DefaultReadonlyEnrichmentStrategy.ts";
+import { StoredEnrichment } from "./StoredEnrichment.ts";
+import { execute, executeReader } from "./ICommand.ts";
+import { DatasourceError } from "./DatasourceError.ts";
+import { lookupKeys, mergeLookups } from "./CreateEnrichmentStrategy.ts";
+import { DefaultWriteEnrichmentStrategy } from "./DefaultWriteEnrichmentStrategy.ts";
+import type { IWriteEnrichmentStrategy } from "./IWriteEnrichmentStrategy.ts";
+import { UnitOfWorkTransaction } from "./UnitOfWorkTransaction.ts";
+import type { IRepositoryTree } from "./IRepositoryTree.ts";
+import { RepositoryTree } from "./RepositoryTree.ts";
+import { RepositoryTreeNode } from "./RepositoryTreeNode.ts";
+import { Schema } from "./Schema.ts";
+import { SchemaDefault } from "./SchemaDefault.ts";
+
+type Props = Record<string, Scalar | object>;
+
+const assigned = (value: Cell): boolean =>
+  value !== null && value !== "" && value !== 0 && value !== 0n;
+
+const listed = (list: readonly string[] | undefined, col: string, fallback: boolean): boolean =>
+  list === undefined ? fallback : list.includes(col);
+
+const languageZero = (value: Cell): boolean => value === "" || value === false;
+
+const applyEmptyDefaults = (
+  record: Cells,
+  schema: Schema,
+  ids: readonly string[],
+  properties: readonly string[] | undefined,
+  fillMissing: boolean,
+  skip: (name: string) => boolean,
+): Cells => {
+  const filled = { ...record };
+  for (const [name, column] of Object.entries(schema.columns)) {
+    if (ids.includes(name) || !listed(properties, name, true) || column.hasDefault || skip(name))
+      continue;
+    const zero = SchemaDefault.of(column);
+    if (filled[name] === "" && !column.nullable) filled[name] = zero;
+    else if (fillMissing && filled[name] === undefined && languageZero(zero)) filled[name] = zero;
+  }
+  return filled;
+};
+
+const zerosFromSchema = (
+  schema: Schema,
+  ids: readonly string[],
+  createProperties: readonly string[] | undefined,
+  skip: (name: string) => boolean,
+): Cells => applyEmptyDefaults({}, schema, ids, createProperties, true, skip);
+
+const writable = (
+  key: string,
+  columns: readonly string[],
+  column: (property: string) => string,
+): boolean =>
+  columns.length === 0 || columns.includes(key) || columns.some((name) => column(name) === key);
+
+const fieldsOf = (
+  record: Cells,
+  include: (col: string) => boolean,
+  extras: Set<string>,
+  cell: (property: string, value: Cell, fieldsApplied: boolean) => Cell,
+  enrichmentInto: (name: string) => boolean,
+  columns: readonly string[],
+  column: (property: string) => string,
+  omitNull = true,
+): Field[] =>
+  Object.entries(record)
+    .filter(
+      ([key, value]) =>
+        include(key) &&
+        (extras.has(key) || (writable(key, columns, column) && !enrichmentInto(key))) &&
+        value !== undefined &&
+        (!omitNull || value !== null),
+    )
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([name, value]) => ({ name, value: cell(name, value, true) as Scalar }));
+
+const isCells = (id: Scalar | Cells): id is Cells => typeof id === "object" && id !== null;
+
+const named = (row: Cells, property: string, sqlColumn: string): Cells => {
+  if (property === sqlColumn || !(sqlColumn in row)) return row;
+  const { [sqlColumn]: cell, ...rest } = row;
+  return { ...rest, [property]: cell };
+};
+
+const identified = (row: Cells, column: string): Cells => {
+  const values = Object.values(row);
+  return column in row || values.length !== 1 ? row : { [column]: values[0] };
+};
+
+const scalarOf = (value: Scalar | object | undefined): Scalar | undefined =>
+  value === undefined || value === null || typeof value === "object" ? undefined : value;
+
+
+export class CRUDRepository<T = Cells>
+  extends ReadonlyRepository<T>
+  implements ICRUDRepository<T>
+{
+  readonly ids: readonly string[];
+  private readonly createProperties?: readonly string[];
+  private readonly updateProperties?: readonly string[];
+  protected createZeros?: Cells;
+  private readonly schema: Schema;
+  private readonly crudStatements: CRUDRepositoryStatements;
+  private readonly tree: IRepositoryTree;
+  private readonly write: IWriteEnrichmentStrategy<T>;
+  private get useTransaction(): boolean {
+    return this.write.useTransaction;
+  }
+
+  constructor(type: Constructable<T>, connection: IConnection);
+  constructor(connection: IConnection, options: CRUDRepositoryOptions<T>);
+  constructor(
+    typeOrConnection: Constructable<T> | IConnection,
+    connectionOrOptions?: IConnection | CRUDRepositoryOptions<T>,
+  ) {
+    const options = connectionOrOptions as IConnection | CRUDRepositoryOptions<T>;
+    const opened = repositoryParts(typeOrConnection, options);
+    super(opened.built);
+    this.ids = opened.built.ids;
+    this.createProperties = (options as CRUDRepositoryOptions<T>).createProperties;
+    this.updateProperties = (options as CRUDRepositoryOptions<T>).updateProperties;
+    this.schema = (options as CRUDRepositoryOptions<T>).schema ?? new Schema({});
+    this.crudStatements = opened.statements;
+    this.tree = new RepositoryTree(new RepositoryTreeNode(this, ""));
+    this.write = (options as CRUDRepositoryOptions<T>).write ?? new DefaultWriteEnrichmentStrategy<T>();
+  }
+
+  override addEnriched<TRelated extends object>(
+    enrichment: Enrichment,
+    via: IReadonlyRepository<TRelated>,
+    strategy?: IReadonlyEnrichmentStrategy<T & object>,
+  ): this {
+    super.addEnriched(enrichment, via, strategy);
+    const stored = lastEnrichment<T, TRelated>(this);
+    stored.via = via;
+    const writer = writerOf(via);
+    if (writer) stored.persist = writer;
+    return this;
+  }
+
+  addLinked<TRelated extends object, TLink extends object>(
+    enrichment: Enrichment,
+    via: IReadonlyRepository<TRelated>,
+    link: ICRUDRepository<TLink>,
+    strategy?: IReadonlyEnrichmentStrategy<T & object>,
+  ): this {
+    const chosen = strategy ?? new DefaultReadonlyEnrichmentStrategy<T & object>();
+    super.addEnriched(enrichment, via, strategy);
+    const stored = lastEnrichment<T, TRelated, TLink>(this);
+    stored.apply = (parents, sources) =>
+      chosen.applyLinked(via, link, enrichment, parents as (T & object)[], sources);
+    stored.link = link;
+    return this;
+  }
+
+  create = (item: T): Promise<T> => this.inTransaction(() => this.createCore(item));
+
+  update = (item: T, byWhere?: IWhere): Promise<Response> =>
+    this.inTransaction(() => this.updateCore(item, byWhere));
+
+  delete = (item: T, byWhere?: IWhere): Promise<Response> =>
+    this.inTransaction(() => this.deleteCore(item, byWhere));
+
+  private inTransaction = async <TResult>(write: () => Promise<TResult>): Promise<TResult> => {
+    const connection = this.command().connection;
+    if (!connection.isOpen) await connection.open();
+    if (!this.useTransaction) return write();
+    const work = new UnitOfWorkTransaction(connection);
+    await work.begin();
+    try {
+      const result = await write();
+      await work.commit();
+      return result;
+    } catch (error) {
+      await work.abort();
+      throw error;
+    }
+  };
+
+  private createCore = async (item: T): Promise<T> => {
+    await this.write.resolveLookups?.(this.tree, [item]);
+    await this.insert(item);
+    if (!this.enriched) return item;
+    await this.write.persist(this.tree, [item], "create");
+    if (this.ids.length !== 1) return item;
+    const id = this.idValue(item);
+    return id === undefined ? item : (await this.readSingleById(id)) ?? item;
+  };
+
+  private updateCore = async (item: T, byWhere?: IWhere): Promise<Response> => {
+    await this.write.resolveLookups?.(this.tree, [item]);
+    const response = await this.save(item, byWhere);
+    if (this.enriched) await this.write.persist(this.tree, [item], "update");
+    return response;
+  };
+
+  private deleteCore = async (item: T, byWhere?: IWhere): Promise<Response> => {
+    if (this.enriched) await this.write.persist(this.tree, [item], "delete");
+    return this.remove(item, byWhere);
+  };
+
+  readSingleById = async (id: Scalar | Cells): Promise<T | undefined> =>
+    this.readSingle(this.byId(id));
+
+  private insert = async (item: T): Promise<Response> => {
+    const extras = lookupKeys(item as object);
+    const record = this.fillCreateZeros(this.reverseConvert(item));
+    const fields = fieldsOf(
+      record,
+      (col) => extras.has(col) || listed(this.createProperties, col, !this.ids.includes(col) || assigned(record[col] ?? null)),
+      extras,
+      this.cell,
+      this.enrichmentInto,
+      this.crudStatements.readColumns,
+      this.column,
+    );
+    const statement = this.crudStatements.insert(fields);
+    const response = await execute(this.command(), statement, statement.fields);
+    if (this.ids.length === 1 && !fields.some((field) => field.name === this.ids[0]))
+      await this.copyInsertedId(item, fields);
+    return response;
+  };
+
+  private copyInsertedId = async (target: T, fields: Field[]): Promise<void> => {
+    void fields;
+    const column = this.ids[0]!;
+    const statement = this.crudStatements.selectInsertedId(column);
+    const sqlColumn = statement.column;
+    const reader = await executeReader(this.command(), statement);
+    try {
+      if (!(await reader.next())) return;
+      const current = reader.current;
+      if (!current) throw new DatasourceError("Reader current must be a row");
+      const row = identified(named(current, column, sqlColumn), column);
+      const cells = this.rowConverter ? this.rowConverter.convert(row) : row;
+      const converted =
+        this.objectConverter instanceof MetaDataRowTypeConverter
+          ? this.objectConverter.convert(cells, this.type)
+          : this.objectConverter!.convert(cells);
+      const value = scalarOf((converted as Props)[column]);
+      if (value !== undefined) (target as Props)[column] = value;
+    } finally {
+      await reader.dispose();
+    }
+  };
+
+  private idValue = (item: T): Scalar | undefined => scalarOf((item as Props)[this.ids[0]!]);
+
+  private save = async (item: T, byWhere?: IWhere): Promise<Response> => {
+    const extras = lookupKeys(item as object);
+    const record = applyEmptyDefaults(
+      this.reverseConvert(item),
+      this.schema,
+      this.ids,
+      this.updateProperties,
+      false,
+      (name) => this.enrichmentSource(name),
+    );
+    const fields = fieldsOf(
+      record,
+      (col) => extras.has(col) || listed(this.updateProperties, col, !this.ids.includes(col)),
+      extras,
+      this.cell,
+      this.enrichmentInto,
+      this.crudStatements.readColumns,
+      this.column,
+      false,
+    );
+    if (fields.length === 0) throw new DatasourceError("Update requires at least one non-Id field");
+    const statement = this.crudStatements.update(
+      fields,
+      byWhere ?? this.idWhere(record),
+      (name, value) => this.cell(name, value, byWhere === undefined),
+    );
+    return execute(this.command(), statement, statement.parameters);
+  };
+
+  private remove = async (item: T, byWhere?: IWhere): Promise<Response> => {
+    const record = this.reverseConvert(item);
+    const statement = this.crudStatements.delete(
+      byWhere ?? this.idWhere(record),
+      (name, value) => this.cell(name, value, byWhere === undefined),
+    );
+    const listed = statement.where?.parameters ?? [];
+    const parameters = listed.length
+      ? listed
+      : DefaultStatementTextRenderer.instance.render(statement).includes("$")
+        ? fieldsOf(record, () => true, new Set(), this.cell, this.enrichmentInto, this.crudStatements.readColumns, this.column)
+        : [];
+    return execute(this.command(), statement, parameters);
+  };
+
+  private byId = (id: Scalar | Cells): IWhere => {
+    if (this.ids.length === 0) throw new DatasourceError("ReadSingleById requires an Id column");
+    if (isCells(id)) return this.idWhere(id);
+    if (this.ids.length !== 1)
+      throw new DatasourceError("Composite id requires a row keyed by each Id column");
+    return this.idWhere({ [this.ids[0]!]: id });
+  };
+
+  fillCreateZeros = (record: Cells): Cells => {
+    const skip = (name: string): boolean => this.enrichmentSource(name);
+    const zeros =
+      this.createZeros !== undefined && Object.keys(this.createZeros).length > 0
+        ? this.createZeros
+        : zerosFromSchema(this.schema, this.ids, this.createProperties, skip);
+    const filled = Object.keys(zeros).length === 0 ? { ...record } : { ...zeros, ...record };
+    return applyEmptyDefaults(filled, this.schema, this.ids, this.createProperties, false, skip);
+  };
+
+  private reverseConvert = (item: T): Cells => {
+    const row = this.objectConverter!.reverseConvert(item);
+    const converted = this.rowConverter ? this.rowConverter.reverseConvert(row) : row;
+    mergeLookups(item as object, converted);
+    return converted;
+  };
+
+  private idWhere = (record: Cells): IWhere => {
+    const parts: IExpression[] = this.ids.map((col) => {
+      if (!Object.prototype.hasOwnProperty.call(record, col))
+        throw new DatasourceError(`Missing Id value "${col}"`);
+      return new Operator.Equals(col, record[col] as Scalar);
+    });
+    return new Where(
+      parts.length === 0
+        ? new Operator.Equals(new Literal(1), new Literal(1))
+        : parts.reduce((left, right) => new Operator.And(left, right)),
+    );
+  };
+
+  protected enrichmentInto = (name: string): boolean =>
+    enrichmentsOf<T>(this)!.some((entry) => entry.enrichment.destinationProperty === name);
+
+  private enrichmentSource = (name: string): boolean =>
+    enrichmentsOf<T>(this)!.some((entry) => entry.enrichment.sourceProperty === name);
+}
+
+const writerOf = <TRelated>(via: IReadonlyRepository<TRelated>): ICRUDRepository<TRelated> | undefined =>
+  "create" in via && typeof via.create === "function" ? (via as ICRUDRepository<TRelated>) : undefined;
+
+const lastEnrichment = <T, TRelated = T, TLink = TRelated>(host: object): StoredEnrichment<T, TRelated, TLink> =>
+  enrichmentsOf<T>(host)!.at(-1)! as unknown as StoredEnrichment<T, TRelated, TLink>;

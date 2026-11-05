@@ -1,0 +1,62 @@
+let built = datasource();
+let ds: &dyn Datasource = &*built;
+execute_sql(
+    &connection,
+    &format!(
+        "
+    INSERT INTO user_type (id, name) VALUES
+        (1, 'admin'),
+        (2, 'user'),
+        (3, 'service');
+    INSERT INTO user (id, username, is_enabled, created, user_type_id) VALUES
+        ('{ADA}', 'ada', 1, '2020-01-01T00:00:00.000Z', 1),
+        ('{GRACE}', 'grace', 1, '2024-06-01T00:00:00.000Z', 2),
+        ('{LIN}', 'lin', 0, '2024-06-01T00:00:00.000Z', 3);
+    "
+    ),
+)
+.await;
+let mut users_options = create_readonly_repository_mapping_options::<UserAccount>();
+users_options.entity = "user".into();
+users_options.property_mappings = Some(std::sync::Arc::new(DictionaryMapper::new([
+    ("Key".to_string(), "id".to_string()),
+    ("Login".to_string(), "username".to_string()),
+    ("Active".to_string(), "is_enabled".to_string()),
+    ("Opened".to_string(), "created".to_string()),
+    ("UserTypeId".to_string(), "user_type_id".to_string()),
+])));
+users_options.schema = Schema::new(HashMap::from([
+    ("Key".into(), "uuid".into()),
+    ("Login".into(), "string".into()),
+    ("Active".into(), "boolean".into()),
+    ("Opened".into(), "datetime".into()),
+    ("UserTypeId".into(), "integer".into()),
+]));
+let mut type_options = create_readonly_repository_mapping_options::<UserType>();
+type_options.entity = "UserType".into();
+type_options.entity_mapper =
+    Some(std::sync::Arc::new(ChangeCasingMapper::new(Casing::Pascal, Casing::Snake)));
+type_options.property_mappings =
+    Some(std::sync::Arc::new(ChangeCasingMapper::new(Casing::Pascal, Casing::Snake)));
+let mut users_repo =
+    ReadonlyRepository::<Row>::new(connection.clone(), users_options).unwrap();
+let types =
+    ds.create_readonly_repository::<UserType>(Some(connection), Some(type_options));
+users_repo.add_enriched(
+    datasources::Enrichment::new(
+        "UserType",
+        "UserTypeId",
+        "Id",
+        Some("Name".into()),
+        datasources::EnrichmentPropertyType::Object,
+    ),
+    types,
+    None,
+);
+let account = users_repo
+    .read_single(&Where::binary("Key", eq, Uuid::parse_str(ADA).unwrap()))
+    .await
+    .unwrap()
+    .unwrap();
+let mut users_view = account.clone();
+users_view.remove("UserTypeId");

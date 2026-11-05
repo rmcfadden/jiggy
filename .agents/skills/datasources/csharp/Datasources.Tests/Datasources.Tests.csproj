@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="coverlet.msbuild" Version="6.0.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.0.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Datasources\Datasources.csproj" />
+    <ProjectReference Include="..\CodeGenerators\Datasources.CodeGenerators.csproj" />
+    <ProjectReference Include="..\Providers\Json\Datasources.Json.csproj" />
+    <ProjectReference Include="..\Providers\Memory\Datasources.Memory.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Datasources.Sqlite.Tests" />
+    <InternalsVisibleTo Include="Datasources.Mysql.Tests" />
+    <InternalsVisibleTo Include="Datasources.Postgres.Tests" />
+  </ItemGroup>
+</Project>

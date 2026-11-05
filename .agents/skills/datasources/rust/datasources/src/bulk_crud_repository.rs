@@ -1,0 +1,286 @@
+use crate::bulk_write_strategy::BulkWriteStrategy;
+use crate::command_middleware::CommandMiddleware;
+use crate::connection::Connection;
+use crate::crud_repository::CRUDRepository;
+use crate::entity::Entity;
+use crate::crud_repository_options::CRUDRepositoryOptions;
+use crate::default_readonly_enrichment_strategy::DefaultReadonlyEnrichmentStrategy;
+use crate::enrichment_via::EnrichmentVia;
+use crate::i_repository::IRepository;
+use crate::i_unit_of_work::IUnitOfWork;
+use crate::IWhere;
+use crate::id_key::IdKey;
+use crate::read_input::ReadInput;
+use crate::readonly_enrichment_strategy::ReadonlyEnrichmentStrategy;
+use crate::repository::{ICRUDRepository, IReadonlyRepository};
+use crate::response::Response;
+use crate::result::Result;
+use crate::row::Row;
+use crate::single_command_i_bulk_write_strategy::SingleCommandIBulkWriteStrategy;
+use crate::stored_enrichment::StoredEnrichment;
+use crate::unit_of_work_transaction::UnitOfWorkTransaction;
+use crate::write_enrichment_strategy::WriteEnrichmentStrategy;
+use crate::write_mode::WriteMode;
+use async_trait::async_trait;
+use futures_core::Stream;
+use std::any::TypeId;
+use std::ops::{Deref, DerefMut};
+use std::pin::Pin;
+use std::sync::Arc;
+
+pub struct BulkCRUDRepository {
+    crud: Arc<CRUDRepository>,
+    strategy: Arc<dyn BulkWriteStrategy>,
+    use_transaction: bool,
+    write: Arc<dyn WriteEnrichmentStrategy>,
+}
+
+impl BulkCRUDRepository {
+    pub fn new(connection: Arc<dyn Connection>, options: CRUDRepositoryOptions) -> Result<Self> {
+        Self::with_strategy(
+            connection,
+            options,
+            Arc::new(SingleCommandIBulkWriteStrategy::new()),
+        )
+    }
+
+    pub fn with_strategy(
+        connection: Arc<dyn Connection>,
+        options: CRUDRepositoryOptions,
+        strategy: Arc<dyn BulkWriteStrategy>,
+    ) -> Result<Self> {
+        let write = options
+            .write
+            .clone()
+            .unwrap_or_else(|| Arc::new(crate::DefaultWriteEnrichmentStrategy::default()));
+        let use_transaction = write.use_transaction();
+        let crud = Arc::new(CRUDRepository::<Row>::new(Arc::clone(&connection), options.clone())?);
+        let _ = crud.column(
+            crud.id_names()
+                .first()
+                .map(String::as_str)
+                .unwrap_or("id"),
+        );
+        let _ = crud.enrichment_into("");
+        strategy.set_repo(Arc::clone(&crud) as Arc<dyn ICRUDRepository>);
+        strategy.attach(crud.command(), options, connection);
+        Ok(Self {
+            crud,
+            strategy,
+            use_transaction,
+            write,
+        })
+    }
+
+    #[allow(dead_code)]
+    pub(crate) fn memory(items: Vec<Row>) -> Self {
+        Self::memory_with(items, None)
+    }
+
+    #[allow(dead_code)]
+    pub(crate) fn memory_with(items: Vec<Row>, write: Option<Arc<dyn WriteEnrichmentStrategy>>) -> Self {
+        let resolved = write
+            .clone()
+            .unwrap_or_else(|| Arc::new(crate::DefaultWriteEnrichmentStrategy::default()));
+        let use_transaction = resolved.use_transaction();
+        let crud = Arc::new(CRUDRepository::<Row>::memory_with(items, write));
+        let strategy = Arc::new(SingleCommandIBulkWriteStrategy::new());
+        strategy.set_repo(Arc::clone(&crud) as Arc<dyn ICRUDRepository>);
+        Self {
+            crud,
+            strategy,
+            use_transaction,
+            write: resolved,
+        }
+    }
+
+    pub fn add_enriched<TRelated: Entity>(
+        &mut self,
+        enrichment: crate::enrichment::Enrichment,
+        via: impl EnrichmentVia<TRelated>,
+        strategy: Option<Arc<dyn ReadonlyEnrichmentStrategy<Row, TRelated>>>,
+    ) -> &mut Self {
+        let strategy = strategy.unwrap_or_else(|| Arc::new(DefaultReadonlyEnrichmentStrategy));
+        let persist_bulk = via.bulk_repo();
+        let (via, persist) = via.into_repos();
+        self.crud
+            .enrichments
+            .lock()
+            .expect("enrichments")
+            .push(StoredEnrichment::direct_bulk(
+                enrichment,
+                via,
+                persist,
+                persist_bulk,
+                strategy,
+            ));
+        self
+    }
+
+    async fn in_transaction<T, F, Fut>(
+        transactional: bool,
+        connection: Arc<dyn Connection>,
+        write: F,
+    ) -> Result<T>
+    where
+        F: FnOnce() -> Fut,
+        Fut: std::future::Future<Output = Result<T>>,
+    {
+        if !connection.is_open() {
+            connection.open().await?;
+        }
+        if !transactional {
+            return write().await;
+        }
+        let mut work = UnitOfWorkTransaction::new(connection);
+        work.begin().await?;
+        let result = write().await;
+        match &result {
+            Ok(_) => {
+                if let Err(error) = work.commit().await {
+                    work.abort().await?;
+                    return Err(error);
+                }
+            }
+            Err(_) => {
+                work.abort().await?;
+            }
+        }
+        result
+    }
+
+    pub async fn create_bulk(&self, items: &mut [Row]) -> Result<Vec<Row>> {
+        Self::in_transaction(
+            self.use_transaction || !items.is_empty(),
+            Arc::clone(&self.crud.connection),
+            || async {
+                for item in items.iter_mut() {
+                    *item = self.crud.fill_create_zeros(item);
+                }
+                self.strategy.create(items).await?;
+                if self.strategy.persist_children() {
+                    crate::bulk_write_enrichment::after_bulk_write(
+                        Some(&self.write),
+                        Some(&self.crud.enrichments),
+                        items,
+                        WriteMode::Create,
+                    )
+                    .await?;
+                }
+                Ok(())
+            },
+        )
+        .await?;
+        Ok(items.to_vec())
+    }
+
+    pub async fn update_bulk(
+        &self,
+        items: &[Row],
+        by_where: Option<&dyn IWhere>,
+    ) -> Result<Response> {
+        let response = Self::in_transaction(
+            self.use_transaction,
+            Arc::clone(&self.crud.connection),
+            || self.strategy.update(items, by_where),
+        )
+        .await?;
+        if self.strategy.persist_children() {
+            let mut owned = items.to_vec();
+            crate::bulk_write_enrichment::after_bulk_write(
+                Some(&self.write),
+                Some(&self.crud.enrichments),
+                &mut owned,
+                WriteMode::Update,
+            )
+            .await?;
+        }
+        Ok(response)
+    }
+
+    pub async fn delete_bulk(
+        &self,
+        items: &[Row],
+        by_where: Option<&dyn IWhere>,
+    ) -> Result<Response> {
+        let response = Self::in_transaction(
+            self.use_transaction,
+            Arc::clone(&self.crud.connection),
+            || self.strategy.delete(items, by_where),
+        )
+        .await?;
+        if self.strategy.persist_children() {
+            let mut owned = items.to_vec();
+            crate::bulk_write_enrichment::after_bulk_write(
+                Some(&self.write),
+                Some(&self.crud.enrichments),
+                &mut owned,
+                WriteMode::Delete,
+            )
+            .await?;
+        }
+        Ok(response)
+    }
+}
+
+impl Deref for BulkCRUDRepository {
+    type Target = CRUDRepository;
+
+    fn deref(&self) -> &Self::Target {
+        &self.crud
+    }
+}
+
+impl DerefMut for BulkCRUDRepository {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        Arc::get_mut(&mut self.crud).expect("bulk repo")
+    }
+}
+
+impl IRepository for BulkCRUDRepository {
+    fn entity_type(&self) -> TypeId {
+        self.crud.entity_type()
+    }
+}
+
+#[async_trait]
+impl IReadonlyRepository for BulkCRUDRepository {
+    fn to_crud(self: Arc<Self>) -> Option<Arc<dyn ICRUDRepository>> {
+        Some(self)
+    }
+
+    async fn read_single(&self, query: &dyn ReadInput) -> Result<Option<Row>> {
+        self.crud.read_single(query).await
+    }
+
+    fn read<'a>(&'a self, query: &'a dyn ReadInput) -> Pin<Box<dyn Stream<Item = Result<Row>> + Send + 'a>> {
+        self.crud.read(query)
+    }
+}
+
+#[async_trait]
+impl ICRUDRepository for BulkCRUDRepository {
+    fn id_names(&self) -> Vec<String> {
+        self.crud.id_names()
+    }
+
+    fn add_middleware(&self, middleware: Arc<dyn CommandMiddleware>) {
+        self.crud.add_middleware(middleware);
+    }
+
+    async fn create(&self, item: Row) -> Result<Row> {
+        self.crud.create(item).await
+    }
+
+    async fn update(&self, item: Row, by_where: Option<&dyn IWhere>) -> Result<Response> {
+        ICRUDRepository::update(&*self.crud, item, by_where).await
+    }
+
+    async fn delete(&self, item: Row, by_where: Option<&dyn IWhere>) -> Result<Response> {
+        ICRUDRepository::delete(&*self.crud, item, by_where).await
+    }
+
+    async fn read_single_by_id(&self, id: &dyn IdKey) -> Result<Option<Row>> {
+        self.crud.read_single_by_id(id).await
+    }
+}

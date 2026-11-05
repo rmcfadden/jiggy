@@ -1,0 +1,19 @@
+let nested = Nested {
+    user: User {
+        id: 1,
+        name: "Ada".into(),
+    },
+    contacts: Contacts {
+        email: "ada@x.dev".into(),
+        phone: "555".into(),
+    },
+};
+let mapper = TransformMapper::new(
+    |n: Nested| Flat {
+        user_id: n.user.id,
+        user_name: n.user.name,
+        contact_email: n.contacts.email,
+        contact_phone: n.contacts.phone,
+    },
+    |f: Flat| Nested {
+        user: User {

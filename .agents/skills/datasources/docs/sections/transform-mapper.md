@@ -1,0 +1,224 @@
+# TransformMapper
+
+Mapper built from a pair of functions.
+
+## Classes
+
+::: reference
+### typescript
+#### TransformMapper
+
+```typescript
+class TransformMapper<TFrom, TTo> implements IMapper<TFrom, TTo>
+```
+
+**Constructor**
+
+##### TransformMapper(map, reverseMap)
+
+Builds a mapper from a pair of functions.
+
+```typescript
+constructor(map: (value: TFrom) => TTo, reverseMap: (value: TTo) => TFrom)
+```
+
+- `map` — `TFrom` to `TTo`
+- `reverseMap` — `TTo` to `TFrom`
+
+**Methods**
+
+##### map(value)
+
+Runs the map function.
+
+```typescript
+map(value: TFrom): TTo
+```
+
+- `value` — source value
+
+**Returns** `TTo`
+
+##### reverseMap(value)
+
+Runs the reverse-map function.
+
+```typescript
+reverseMap(value: TTo): TFrom
+```
+
+- `value` — mapped value
+
+**Returns** `TFrom`
+
+### csharp
+#### TransformMapper
+
+```csharp
+public class TransformMapper<TFrom, TTo> : IMapper<TFrom, TTo>
+```
+
+**Constructor**
+
+##### TransformMapper(map, reverseMap)
+
+Builds a mapper from a pair of functions.
+
+```csharp
+public TransformMapper(Func<TFrom, TTo> map, Func<TTo, TFrom> reverseMap)
+```
+
+- `map` — `TFrom` to `TTo`
+- `reverseMap` — `TTo` to `TFrom`
+
+**Methods**
+
+##### Map(value)
+
+Runs the map function.
+
+```csharp
+TTo Map(TFrom value)
+```
+
+- `value` — source value
+
+**Returns** `TTo`
+
+##### ReverseMap(value)
+
+Runs the reverse-map function.
+
+```csharp
+TFrom ReverseMap(TTo value)
+```
+
+- `value` — mapped value
+
+**Returns** `TFrom`
+
+### rust
+#### TransformMapper
+
+```rust
+pub struct TransformMapper<TFrom, TTo>
+```
+
+**Constructor**
+
+##### new(map, reverse_map)
+
+Builds a mapper from a pair of functions.
+
+```rust
+pub fn new(map: impl Fn(TFrom) -> TTo + Send + Sync + 'static, reverse_map: impl Fn(TTo) -> TFrom + Send + Sync + 'static) -> Self
+```
+
+- `map` — `TFrom` to `TTo`
+- `reverse_map` — `TTo` to `TFrom`
+
+**Returns** [TransformMapper](#transformmapper)
+
+**Methods**
+
+##### map(value)
+
+Runs the map function.
+
+```rust
+fn map(&self, value: TFrom) -> TTo
+```
+
+- `value` — source value
+
+**Returns** `TTo`
+
+##### reverse_map(value)
+
+Runs the reverse-map function.
+
+```rust
+fn reverse_map(&self, value: TTo) -> TFrom
+```
+
+- `value` — mapped value
+
+**Returns** `TFrom`
+:::
+
+## Remarks
+
+Use [TransformMapper](#transformmapper) when the mapping is a pair of closures. [ReadonlyRepositoryMappingOptions](./readonly-repository.md#readonlyrepositoryoptions) accepts it for entity, column, and row mapping. The default is [IdentityMapper](./identity-mapper.md).
+
+## Examples
+
+### Flatten with TransformMapper
+
+::: example
+```csharp csharp/Datasources.Tests/TransformMapperTests.cs#FlattensAndUnflattensUserAndContacts
+```
+```rust rust/datasources/src/mappers/mod.rs#flattens_and_unflattens_user_and_contacts
+```
+```typescript typescript/datasources/src/mappers/transformMapper.test.ts#flattens-and-unflattens-user-and-contacts
+```
+
+```output [Before: nested value]
+{
+  user: { id: 1, name: 'Ada' },
+  contacts: { email: 'ada@x.dev', phone: '555' }
+}
+```
+
+```output [After: flat value]
+{
+  userId: 1,
+  userName: 'Ada',
+  contactEmail: 'ada@x.dev',
+  contactPhone: '555'
+}
+```
+:::
+
+### Prefix a contact field
+
+::: example
+```csharp csharp/Datasources.Tests/TransformMapperTests.cs#PrefixesAContactField
+```
+```rust rust/datasources/src/mappers/mod.rs#prefixes_a_contact_field
+```
+```typescript typescript/datasources/src/mappers/transformMapper.test.ts#prefixes-a-contact-field
+```
+
+```output [Map]
+contact_email
+```
+
+```output [Reverse map]
+email
+```
+:::
+
+### Map a contact name and email
+
+::: example
+```csharp csharp/Datasources.Tests/TransformMapperTests.cs#MapsAContactNameAndEmail
+```
+```rust rust/datasources/src/mappers/mod.rs#maps_a_contact_name_and_email
+```
+```typescript typescript/datasources/src/mappers/transformMapper.test.ts#maps-a-contact-name-and-email
+```
+
+```output [Before: contact]
+{
+  name: 'Ada',
+  email: 'ada@x.dev'
+}
+```
+
+```output [After: mapped contact]
+{
+  contactName: 'Ada',
+  contactEmail: 'ada@x.dev'
+}
+```
+:::

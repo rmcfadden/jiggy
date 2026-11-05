@@ -1,10 +1,12 @@
 import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import {
   CATALOG,
   averageRating,
   findPuzzle,
   puzzlesInCategory,
+  type Catalog,
   type Category,
   type Puzzle,
 } from '@jiggy/shared'
@@ -122,9 +124,9 @@ function Segmented<T extends string>({ label, options, value, onChange }: {
   )
 }
 
-function ClassicView({ prefs, ...profile }: { prefs: BrowsePrefs } & ProfileProps) {
+function ClassicView({ prefs, catalog, ...profile }: { prefs: BrowsePrefs; catalog: Catalog } & ProfileProps) {
   const [category, setCategory] = useState<string | undefined>()
-  const puzzles = puzzlesInCategory(CATALOG, category)
+  const puzzles = puzzlesInCategory(catalog, category)
   return (
     <div className={`flex min-h-0 flex-1 flex-col ${prefs.side === 'right' ? 'md:flex-row-reverse' : 'md:flex-row'}`}>
       <nav
@@ -142,7 +144,7 @@ function ClassicView({ prefs, ...profile }: { prefs: BrowsePrefs } & ProfileProp
         >
           All puzzles
         </button>
-        <CategoryTree categories={CATALOG.categories} selected={category} onSelect={setCategory} />
+        <CategoryTree categories={catalog.categories} selected={category} onSelect={setCategory} />
       </nav>
       <div className="min-w-0 flex-1 overflow-y-auto p-4 md:p-6">
         {puzzles.length === 0 ? (
@@ -185,8 +187,13 @@ function Row({ title, puzzles, size, profile }: { title: string; puzzles: Puzzle
   )
 }
 
-function NetflixView({ prefs, update, ...profile }: { prefs: BrowsePrefs; update: (p: Partial<BrowsePrefs>) => void } & ProfileProps) {
-  const topLevel = CATALOG.categories
+function NetflixView({
+  prefs,
+  update,
+  catalog,
+  ...profile
+}: { prefs: BrowsePrefs; update: (p: Partial<BrowsePrefs>) => void; catalog: Catalog } & ProfileProps) {
+  const topLevel = catalog.categories
   const shown = prefs.rows.length > 0 ? prefs.rows : topLevel.map((c) => c.id)
   const toggleRow = (id: string) => {
     const next = shown.includes(id) ? shown.filter((x) => x !== id) : [...shown, id]
@@ -238,15 +245,30 @@ function NetflixView({ prefs, update, ...profile }: { prefs: BrowsePrefs; update
       {topLevel
         .filter((c) => shown.includes(c.id))
         .map((c) => (
-          <Row key={c.id} title={c.name} puzzles={puzzlesInCategory(CATALOG, c.id)} size={prefs.iconSize} profile={profile} />
+          <Row key={c.id} title={c.name} puzzles={puzzlesInCategory(catalog, c.id)} size={prefs.iconSize} profile={profile} />
         ))}
     </div>
   )
 }
 
+/** The static puzzles with their categories loaded from the REST backend. */
+function useCatalog() {
+  const { data, isError } = useQuery({
+    queryKey: ['categories'],
+    queryFn: async (): Promise<Category[]> => {
+      const res = await fetch('/api/categories')
+      if (!res.ok) throw new Error(`GET /api/categories failed: ${res.status}`)
+      return res.json()
+    },
+  })
+  const catalog: Catalog = { ...CATALOG, categories: data ?? [] }
+  return { catalog, isError }
+}
+
 export default function Explorer() {
   const [prefs, update] = useBrowsePrefs()
   const profile = useProfile()
+  const { catalog, isError } = useCatalog()
   return (
     <div className="flex h-full flex-col">
       <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b border-slate-200 px-4 py-3 md:px-6">
@@ -259,10 +281,11 @@ export default function Explorer() {
           <Segmented label="Icons" options={ICON_SIZES} value={prefs.iconSize} onChange={(iconSize) => update({ iconSize })} />
         </div>
       </header>
+      {isError && <p className="px-4 py-2 text-sm text-red-600 md:px-6">Couldn't load categories from the server.</p>}
       {prefs.layout === 'classic' ? (
-        <ClassicView prefs={prefs} {...profile} />
+        <ClassicView prefs={prefs} catalog={catalog} {...profile} />
       ) : (
-        <NetflixView prefs={prefs} update={update} {...profile} />
+        <NetflixView prefs={prefs} update={update} catalog={catalog} {...profile} />
       )}
     </div>
   )

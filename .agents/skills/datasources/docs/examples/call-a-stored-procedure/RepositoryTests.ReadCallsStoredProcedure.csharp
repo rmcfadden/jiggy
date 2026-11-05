@@ -1,0 +1,5 @@
+Parameter[] parameters = [new("id", 9)];
+var call = new ExecuteStoredProcedureStatement("get_user", parameters);
+var rows = new List<UserRow>();
+await foreach (var row in repo.Read(call, parameters))
+    rows.Add(row);

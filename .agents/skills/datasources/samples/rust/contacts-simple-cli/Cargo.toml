@@ -1,0 +1,15 @@
+[package]
+name = "contacts-simple-cli"
+version = "0.1.0"
+edition = "2021"
+autobins = false
+
+[[bin]]
+name = "contacts-simple-cli"
+path = "src/main.rs"
+
+[dependencies]
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+
+[lints.rust]
+warnings = "deny"

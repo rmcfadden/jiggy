@@ -1,0 +1,79 @@
+import { generate as datasource } from "@deterministic-code/typescript-generators/generate-datasource-types";
+import { generate as views } from "@deterministic-code/typescript-generators/generate-view-types";
+import { createCasingStrategy, type ICasingStrategy } from "@deterministic-code/generators-common/casing-strategy";
+import type { IDeterministic } from "@deterministic-code/deterministic-generators-common/parser";
+import { fill } from "@deterministic-code/generators-common/fill";
+import { content, type GenerateEntry } from "@deterministic-code/generators-common/generate-entry";
+import { childClass, type RepositoryModel } from "./RepositoryModel.ts";
+import { RepositoryGenerator } from "./RepositoryGenerator.ts";
+import { schemaPairs } from "./schemaPairs.ts";
+import { registryTmpl, repositoryTmpl } from "./templates/typescript.ts";
+
+class TypeScriptRepositories extends RepositoryGenerator {
+  readonly types = { datasource, views };
+
+  typesPrefix = (casing: ICasingStrategy, kind: "datasource" | "views"): string =>
+    ["typescript", ...["types", "generated", kind].map((segment) => casing.convertDirectories(segment))].join("/");
+
+  repositoriesPrefix = (casing: ICasingStrategy): string =>
+    `typescript/${casing.convertDirectories("repositories")}`;
+
+  generate(models: RepositoryModel[], settings: Record<string, string>, spec: IDeterministic): GenerateEntry[] {
+    const casing = createCasingStrategy("typescript", settings);
+    return [
+      ...models.map((model) => content(`${casing.convertFileName(`${model.specName}_repository`)}.ts`, fill(repositoryTmpl, this.repository(model, spec, casing)))),
+      content(`${casing.convertFileName("repository_registry")}.ts`, fill(registryTmpl, this.registry(models, casing))),
+    ];
+  }
+
+  private repository(model: RepositoryModel, spec: IDeterministic, casing: ICasingStrategy): Record<string, unknown> {
+    const children = this.childrenOf(model, casing).map((child) => ({
+      ...child,
+      repoImport: `./${casing.convertFileName(`${child.specName}_repository`)}`,
+    }));
+    const enrichments = model.enrichments.map((item) => this.enrichmentOf(item, casing));
+    const dialects = this.dialectsBag(model, spec, casing);
+    const token = model.optimisticConcurrency;
+    return {
+      typeName: model.typeName,
+      className: childClass(model.typeName),
+      typeImport: this.typeImport(model, casing),
+      children,
+      enrichments,
+      setup: children.length === 0 && enrichments.length === 0 ? undefined : {},
+      builder: dialects.length === 0 ? undefined : { dialects },
+      schema: this.schemaBag(schemaPairs(model, spec, casing)),
+      ...this.optionsOf(model),
+      optimisticConcurrency: token === undefined
+        ? undefined
+        : { property: token.property, increment: token.increment ? {} : undefined, whereKeys: this.whereKeys(model, token) },
+    };
+  }
+
+  private registry(models: RepositoryModel[], casing: ICasingStrategy): Record<string, unknown> {
+    return {
+      imports: models.map((model) => ({
+        className: childClass(model.typeName),
+        path: `./${casing.convertFileName(`${model.specName}_repository`)}`,
+      })),
+      factories: models.map((model) => ({
+        name: casing.convertFields(model.specName),
+        path: this.typeImport(model, casing),
+      })),
+      models: models.map((model) => ({
+        entity: this.quote(model.entity),
+        plural: this.quote(this.plural(model.typeName, "camelCase")),
+        pluralName: this.plural(model.typeName, "camelCase"),
+        className: childClass(model.typeName),
+      })),
+    };
+  }
+
+  private typeImport(model: RepositoryModel, casing: ICasingStrategy): string {
+    const folder = model.typeHome === "view" ? "views" : "datasource";
+    const dirs = ["types", "generated", folder].map((segment) => casing.convertDirectories(segment)).join("/");
+    return `../${dirs}/${casing.convertFileName(model.specName)}`;
+  }
+}
+
+export const typescriptRepositories = new TypeScriptRepositories();

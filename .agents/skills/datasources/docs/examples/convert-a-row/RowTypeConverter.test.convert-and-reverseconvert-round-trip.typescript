@@ -1,0 +1,3 @@
+const converter = new MetaDataRowTypeConverter();
+const item = converter.convert({ id: 7, username: "ada" });
+const row = converter.reverseConvert(item);

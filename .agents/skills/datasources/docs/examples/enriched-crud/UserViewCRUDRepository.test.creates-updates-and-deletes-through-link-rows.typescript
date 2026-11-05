@@ -1,0 +1,34 @@
+const seeded = await graph();
+const usersRepo = seeded.usersRepo;
+usersRepo.addEnriched({ destinationProperty: "user_type", sourceProperty: "user_type_id", relatedKey: "id" }, seeded.userTypesRepo);
+usersRepo.addLinked(
+  { destinationProperty: "roles", sourceProperty: "id", relatedKey: "id", association: { parent: "user_id", related: "role_id" } },
+  seeded.rolesRepo,
+  seeded.userRolesRepo,
+);
+usersRepo.addLinked(
+  { destinationProperty: "groups", sourceProperty: "id", relatedKey: "id", association: { parent: "user_id", related: "group_id" } },
+  seeded.groupsRepo,
+  seeded.userGroupsRepo,
+);
+const created = await usersRepo.create(Object.assign(new UserView(), {
+  username: "ada",
+  is_enabled: true,
+  user_type_id: seeded.adminType.id,
+  roles: [seeded.adminRole, seeded.editorRole],
+  groups: [seeded.engineering],
+}));
+const createdRoleLinks = await collectAsync(seeded.userRolesRepo.read());
+const createdGroupLinks = await collectAsync(seeded.userGroupsRepo.read());
+const saved = await usersRepo.update(Object.assign(new UserView(), {
+  id: created.id,
+  username: "ada",
+  is_enabled: true,
+  user_type_id: seeded.adminType.id,
+  roles: [seeded.editorRole],
+  groups: [seeded.engineering, seeded.ops],
+}));
+const updated = await usersRepo.readSingleById(created.id);
+const updatedRoleLinks = await collectAsync(seeded.userRolesRepo.read());
+const updatedGroupLinks = await collectAsync(seeded.userGroupsRepo.read());
+const removed = await usersRepo.delete(Object.assign(new UserView(), { id: created.id }));

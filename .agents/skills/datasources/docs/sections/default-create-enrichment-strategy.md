@@ -1,0 +1,146 @@
+# DefaultCreateEnrichmentStrategy
+
+Default create fill. Stamps each child's `RelatedKey` from the parent `SourceProperty`, then inserts the payload children and junction rows.
+
+## Classes
+
+::: reference
+### typescript
+#### DefaultCreateEnrichmentStrategy
+
+```typescript
+class DefaultCreateEnrichmentStrategy<T> extends CreateEnrichmentStrategy<T>
+```
+
+**Constructor**
+
+##### new DefaultCreateEnrichmentStrategy()
+
+Builds the default create strategy.
+
+```typescript
+constructor()
+```
+
+**Returns** [DefaultCreateEnrichmentStrategy](#defaultcreateenrichmentstrategy)
+
+**Methods**
+
+##### createChildren(writer, enrichment, parent)
+
+Stamps each child and creates the payload.
+
+```typescript
+createChildren<TChild extends object>(writer: ICRUDRepository<TChild>, enrichment: Enrichment, parent: T): Promise<void>
+```
+
+- `writer` — child [ICRUDRepository](./crud-repository.md)
+- `enrichment` — [Enrichment](./enrichment.md)
+- `parent` — parent entity
+
+**Returns** `Promise<void>`
+
+##### createLinked(writer, enrichment, parent)
+
+Inserts one junction row per related id.
+
+```typescript
+createLinked<TChild extends object>(writer: ICRUDRepository<TChild>, enrichment: Enrichment, parent: T): Promise<void>
+```
+
+- `writer` — link [ICRUDRepository](./crud-repository.md)
+- `enrichment` — [Enrichment](./enrichment.md) with [association](./enrichment.md#association)
+- `parent` — parent entity
+
+**Returns** `Promise<void>`
+
+### csharp
+#### DefaultCreateEnrichmentStrategy
+
+```csharp
+public sealed class DefaultCreateEnrichmentStrategy<T> : CreateEnrichmentStrategy<T>
+```
+
+**Constructor**
+
+##### DefaultCreateEnrichmentStrategy()
+
+Builds the default create strategy.
+
+```csharp
+public DefaultCreateEnrichmentStrategy()
+```
+
+**Returns** [DefaultCreateEnrichmentStrategy](#defaultcreateenrichmentstrategy)`<T>`
+
+**Methods**
+
+##### CreateChildren(writer, enrichment, parent)
+
+Stamps each child and creates the payload.
+
+```csharp
+public override Task CreateChildren<TChild>(ICRUDRepository<TChild> writer, Enrichment enrichment, T parent)
+```
+
+- `writer` — child [ICRUDRepository](./crud-repository.md)
+- `enrichment` — [Enrichment](./enrichment.md)
+- `parent` — parent entity
+
+**Returns** `Task`
+
+##### CreateLinked(writer, enrichment, parent)
+
+Inserts one junction row per related id.
+
+```csharp
+public override Task CreateLinked<TChild>(ICRUDRepository<TChild> writer, Enrichment enrichment, T parent)
+```
+
+- `writer` — link [ICRUDRepository](./crud-repository.md)
+- `enrichment` — [Enrichment](./enrichment.md) with [Association](./enrichment.md#association)
+- `parent` — parent entity
+
+**Returns** `Task`
+
+### rust
+#### DefaultCreateEnrichmentStrategy
+
+```rust
+pub struct DefaultCreateEnrichmentStrategy
+```
+
+**Methods**
+
+##### create_children(writer, enrichment, parent)
+
+Stamps each child and creates the payload.
+
+```rust
+async fn create_children(&self, writer: Arc<dyn ICRUDRepository>, enrichment: &Enrichment, parent: &mut Row) -> Result<()>
+```
+
+- `writer` — child [ICRUDRepository](./crud-repository.md)
+- `enrichment` — [Enrichment](./enrichment.md)
+- `parent` — parent row
+
+**Returns** `Result<()>`
+
+##### create_linked(writer, enrichment, parent)
+
+Inserts one junction row per related id.
+
+```rust
+async fn create_linked(&self, writer: Arc<dyn ICRUDRepository>, enrichment: &Enrichment, parent: &mut Row) -> Result<()>
+```
+
+- `writer` — link [ICRUDRepository](./crud-repository.md)
+- `enrichment` — [Enrichment](./enrichment.md) with [association](./enrichment.md#association)
+- `parent` — parent row
+
+**Returns** `Result<()>`
+:::
+
+## Remarks
+
+This is the create strategy [DefaultWriteEnrichmentStrategy](./default-write-enrichment-strategy.md) uses when `create` is omitted. [CascadeDeleteUpdateEnrichmentStrategy](./cascade-delete-update-enrichment-strategy.md) reuses the same insert path after it clears existing children.

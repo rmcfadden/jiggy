@@ -1,0 +1,10 @@
+const ds = Datasource.default;
+await executeSql(connection, "INSERT INTO users (id, username, is_enabled) VALUES (1, 'ada', 1)");
+await executeSql(connection, "INSERT INTO users (id, username, is_enabled) VALUES (2, 'grace', 0)");
+await executeSql(connection, "INSERT INTO users (id, username, is_enabled) VALUES (3, 'bea', 1)");
+const repo = ds.createReadonlyRepository(User, connection, {
+  entityMapper: snakeThenPlural(),
+  propertyMappings: snake(),
+});
+const byId = await repo.readSingle(new Where("Id", eq, 1));
+const [row] = await Array.fromAsync(repo.read(new Where("Username", eq, "grace").and("IsEnabled", eq, 0)));

@@ -1,0 +1,3 @@
+register("sqlite", MockDriver::arc());
+std::env::set_var("PROVIDER", "sqlite");
+let ds = default().expect("default");

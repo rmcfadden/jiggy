@@ -1,0 +1,48 @@
+use crate::connection::{JsonConnection, JsonState};
+use async_trait::async_trait;
+use datasources::{Connection, IsolationLevel, Result, Transaction};
+use std::sync::Arc;
+
+pub struct JsonTransaction {
+    pub(crate) state: Arc<JsonState>,
+    pub(crate) isolation: IsolationLevel,
+}
+
+impl JsonTransaction {
+    pub(crate) fn new(state: Arc<JsonState>, isolation: IsolationLevel) -> Self {
+        Self { state, isolation }
+    }
+}
+
+#[async_trait]
+impl Transaction for JsonTransaction {
+    fn connection(&self) -> Arc<dyn Connection> {
+        Arc::new(JsonConnection {
+            state: Arc::clone(&self.state),
+        })
+    }
+
+    fn isolation(&self) -> IsolationLevel {
+        self.isolation
+    }
+
+    async fn commit(&self) -> Result<()> {
+        *self.state.in_transaction.lock().unwrap() = false;
+        *self.state.snapshot.lock().unwrap() = None;
+        if !self.state.path.is_empty() {
+            self.state.store.write(
+                &self.state.path,
+                &self.state.data.lock().unwrap().to_string(),
+            )?;
+        }
+        Ok(())
+    }
+
+    async fn abort(&self) -> Result<()> {
+        if let Some(snapshot) = self.state.snapshot.lock().unwrap().take() {
+            *self.state.data.lock().unwrap() = snapshot;
+        }
+        *self.state.in_transaction.lock().unwrap() = false;
+        Ok(())
+    }
+}

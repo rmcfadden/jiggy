@@ -1,0 +1,45 @@
+import type { IStatement } from "./statements/IStatement.ts";
+import { DefaultStatementTextRenderer } from "./statements/DefaultStatementTextRenderer.ts";
+import { Native } from "./statements/Native.ts";
+import type { ICommandMiddleware } from "./ICommandMiddleware.ts";
+import type { IConnection } from "./IConnection.ts";
+import type { Cells } from "./converters/Cell.ts";
+import type { IReader } from "./IReader.ts";
+import type { Response } from "./Response.ts";
+import type { Parameter } from "./Parameter.ts";
+
+export interface ICommand {
+  readonly connection: IConnection;
+  addMiddleware(middleware: ICommandMiddleware): this;
+  executeReader(text: string, parameters?: Parameter[]): Promise<IReader<Cells>>;
+  execute(text: string, parameters?: Parameter[]): Promise<Response>;
+  executeNative(text: Native, parameters?: Parameter[]): Promise<Response>;
+  executeReaderNative(text: Native, parameters?: Parameter[]): Promise<IReader<Cells>>;
+  executeStatement?(statement: IStatement, parameters?: Parameter[]): Promise<Response>;
+  executeReaderStatement?(
+    statement: IStatement,
+    parameters?: Parameter[],
+  ): Promise<IReader<Cells>>;
+}
+
+export const execute = (
+  command: ICommand,
+  statement: IStatement,
+  parameters?: Parameter[],
+): Promise<Response> =>
+  command.executeStatement?.(statement, parameters) ??
+  command.executeNative(
+    new Native(DefaultStatementTextRenderer.instance.render(statement)),
+    parameters,
+  );
+
+export const executeReader = (
+  command: ICommand,
+  statement: IStatement,
+  parameters?: Parameter[],
+): Promise<IReader<Cells>> =>
+  command.executeReaderStatement?.(statement, parameters) ??
+  command.executeReaderNative(
+    new Native(DefaultStatementTextRenderer.instance.render(statement)),
+    parameters,
+  );

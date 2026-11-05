@@ -1,0 +1,20 @@
+[package]
+name = "datasources-dynamodb"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "dynamodb datasource stub"
+
+[dependencies]
+async-trait = { workspace = true }
+ctor = { workspace = true }
+datasources = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
+
+[lints]
+workspace = true
+

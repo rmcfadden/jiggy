@@ -1,0 +1,59 @@
+const usersRepo = new ReadonlyRepository(connection, {
+  type: UsersView,
+  entity: "User",
+  entityMapper: new DictionaryMapper([
+    ["User", "user"],
+    ["UserType", "user_type"],
+    ["UserRole", "user_roles"],
+    ["Role", "roles"],
+  ]),
+  propertyMappings: new DictionaryMapper([
+    ["Key", "id"],
+    ["Login", "username"],
+    ["Active", "is_enabled"],
+    ["Opened", "created"],
+    ["UserType", "user_type.name"],
+    ["UserTypeId", "user_type_id"],
+    ["UserId", "user_id"],
+    ["RoleId", "role_id"],
+    ["Name", "roles.name"],
+    ["Id", "id"],
+  ]),
+});
+const joined = new SelectStatement({
+  table: "User",
+  fields: [
+    "User.Key",
+    "User.Login",
+    "User.Active",
+    "User.Opened",
+    "User.UserType",
+    "UserRole.UserId",
+    "UserRole.RoleId",
+    "Role.Name",
+  ],
+  joins: [
+    Join.left("UserType", "UserType.Id", "User.UserTypeId"),
+    Join.left("UserRole", "UserRole.UserId", "User.Key"),
+    Join.left("Role", "Role.Id", "UserRole.RoleId"),
+  ],
+});
+usersRepo.addEnriched(
+  { destinationProperty: "Roles", sourceProperty: "Key", relatedKey: "UserId", type: "list" },
+  usersRepo,
+  new NestedToObjectEnrichmentStrategy<UsersView>({
+    key: "Key",
+    fields: {
+      Key: "Key",
+      Login: "Login",
+      Active: "Active",
+      Opened: "Opened",
+      UserType: "UserType",
+      Roles: {
+        key: "RoleId",
+        fields: { RoleId: "RoleId", UserId: "UserId", Name: "Name" },
+      },
+    },
+  }),
+);
+const items: UsersView[] = [];

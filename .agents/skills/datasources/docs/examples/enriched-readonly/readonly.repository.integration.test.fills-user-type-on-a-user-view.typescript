@@ -1,0 +1,28 @@
+const ds = new Datasource("sqlite", new SqliteDriver(), { DATASOURCE_URL: "sqlite:///:memory:" });
+await executeSql(connection, `
+  INSERT INTO user_type (id, name) VALUES
+    (1, 'admin'),
+    (2, 'user'),
+    (3, 'service');
+  INSERT INTO user (id, username, is_enabled, created, user_type_id) VALUES
+    ('${ada}', 'ada', 1, '2020-01-01T00:00:00.000Z', 1),
+    ('${grace}', 'grace', 1, '2024-06-01T00:00:00.000Z', 2),
+    ('${lin}', 'lin', 0, '2024-06-01T00:00:00.000Z', 3);
+`);
+const casing = new ChangeCasingMapper("pascalCase", "snakeCase");
+const usersRepo = ds.createReadonlyRepository(UsersView, connection, {
+  entityMapper: new DictionaryMapper([["UsersView", "user"]]),
+  propertyMappings: new DictionaryMapper([
+    ["Key", "id"],
+    ["Login", "username"],
+    ["Active", "is_enabled"],
+    ["Opened", "created"],
+    ["UserType", "user_type_id"],
+  ]),
+}) as ReadonlyRepository<UsersView>;
+const typesRepo = ds.createReadonlyRepository(UserType, connection, {
+  entityMapper: casing,
+  propertyMappings: casing,
+});
+usersRepo.addEnriched({ destinationProperty: "UserType", sourceProperty: "UserType", relatedKey: "Id", relatedProperty: "Name" }, typesRepo);
+const usersView = await usersRepo.readSingle(new Where("Key", eq, ada));

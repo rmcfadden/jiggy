@@ -1,0 +1,5 @@
+var nested = new Nested(new User(1, "Ada"), new Contacts("ada@x.dev", "555"));
+var mapper = new TransformMapper<Nested, Flat>(
+    map: n => new Flat(n.User.Id, n.User.Name, n.Contacts.Email, n.Contacts.Phone),
+    reverseMap: f => new Nested(new User(f.UserId, f.UserName), new Contacts(f.ContactEmail, f.ContactPhone)));
+var flat = mapper.Map(nested);

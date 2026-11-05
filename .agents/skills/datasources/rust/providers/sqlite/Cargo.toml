@@ -1,0 +1,31 @@
+[package]
+name = "datasources-sqlite"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "SQLite datasource provider"
+autotests = false
+
+[dependencies]
+async-trait = { workspace = true }
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+ctor = { workspace = true }
+datasources = { workspace = true }
+regex = "1"
+rusqlite = { workspace = true }
+rust_decimal = "1"
+uuid = "1"
+
+[dev-dependencies]
+datasources-code-generators = { path = "../../code-generators" }
+datasources-tests = { path = "../../datasources-tests" }
+futures-util = { version = "0.3", default-features = false, features = ["std"] }
+serde = { version = "1", features = ["derive"] }
+serde_yaml = "0.9"
+tokio = { workspace = true }
+
+[lints]
+workspace = true
+

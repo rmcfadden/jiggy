@@ -1,0 +1,17 @@
+let ds = default().unwrap();
+let connection = ds.create_connection().await.unwrap();
+connection.open().await.unwrap();
+let txn = connection.start_transaction(None).await.unwrap();
+let command = connection.create_command();
+let fields = vec![Parameter::new("name", "ada")];
+command
+    .execute_statement(&InsertStatement::new("people", &fields), Some(&fields))
+    .await
+    .unwrap();
+let reader = command
+    .execute_reader_statement(&SelectInsertedIdStatement::new("people", "id"), None)
+    .await
+    .unwrap();
+let moved = reader.next().await.unwrap();
+let id = reader.current();
+txn.commit().await.unwrap();

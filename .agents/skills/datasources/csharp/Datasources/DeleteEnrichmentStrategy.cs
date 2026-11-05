@@ -1,0 +1,62 @@
+using System.Reflection;
+
+namespace Datasources;
+
+public abstract class DeleteEnrichmentStrategy<T>
+{
+    public abstract Task DeleteChildren<TChild>(
+        ICRUDRepository<TChild> writer,
+        Enrichment enrichment,
+        T parent,
+        Func<IReadOnlyList<TChild>, Task> deleteNested)
+        where TChild : new();
+
+    public abstract Task DeleteLinked<TChild>(
+        ICRUDRepository<TChild> writer,
+        Enrichment enrichment,
+        T parent)
+        where TChild : new();
+
+    internal static async Task<List<TChild>> Load<TParent, TChild>(
+        ICRUDRepository<TChild> writer,
+        Enrichment enrichment,
+        TParent parent)
+    {
+        var key = Get(parent, enrichment.SourceProperty);
+        if (key is null) return [];
+        var items = new List<TChild>();
+        await foreach (var item in writer.Read(new Where(new Operator.Equals(enrichment.RelatedKey, Value.From(key)))))
+            items.Add(item);
+        return items;
+    }
+
+    internal static async Task<List<TChild>> LoadLinks<TChild>(
+        ICRUDRepository<TChild> writer,
+        string column,
+        Value key)
+    {
+        var items = new List<TChild>();
+        await foreach (var item in writer.Read(new Where(new Operator.Equals(column, key))))
+            items.Add(item);
+        return items;
+    }
+
+    internal static IWhere? ChildrenWhere<TParent, TChild>(
+        ICRUDRepository<TChild> writer,
+        Enrichment enrichment,
+        TParent parent) =>
+        writer.Ids.Count > 0 || Get(parent, enrichment.SourceProperty) is not { } key
+            ? null
+            : new Where(new Operator.Equals(enrichment.RelatedKey, Value.From(key)));
+
+    internal static IWhere LinkWhere(Association association, Value parentKey, Value relatedKey) =>
+        new Where(new Operator.And(
+            new Operator.Equals(association.Parent, parentKey),
+            new Operator.Equals(association.Related, relatedKey)));
+
+    protected static object? Get<TItem>(TItem obj, string name) => Prop(obj, name).GetValue(obj);
+
+    static PropertyInfo Prop<TItem>(TItem obj, string name) =>
+        obj!.GetType().GetProperty(name)
+        ?? throw new DatasourceException($"Unknown property \"{name}\"");
+}

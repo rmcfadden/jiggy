@@ -1,0 +1,3 @@
+var mapper = new PluralizerMapper();
+var contact = mapper.ReverseMap("Contacts");
+var address = mapper.ReverseMap("Addresses");

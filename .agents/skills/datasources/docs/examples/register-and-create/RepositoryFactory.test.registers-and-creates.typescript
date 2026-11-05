@@ -1,0 +1,4 @@
+const factory = new RepositoryFactory();
+const repo = new MockRepository<Item>(new MockConnection(), Item);
+factory.register(repo);
+const created = factory.create(Item);

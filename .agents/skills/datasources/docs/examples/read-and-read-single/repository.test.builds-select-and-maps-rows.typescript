@@ -1,0 +1,7 @@
+const { repo, command } = create();
+repo.addMiddleware({ beforeCommand() {}, afterCommand() {} });
+command.reader = new MockReader([
+  { id: 1, name: "a" },
+]);
+const rows: Cells[] = [];
+for await (const row of repo.read()) rows.push(row);

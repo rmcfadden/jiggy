@@ -1,0 +1,17 @@
+const ds = Datasource.default;
+const casing = new ChangeCasingMapper("pascalCase", "snakeCase");
+const usersRepo = ds.createRepository(User, connection, {
+  ...createCRUDRepositoryOptions(User),
+  propertyMappings: casing,
+  ids: ["Id"],
+});
+const created = await usersRepo.create(Object.assign(new User(), { Username: "ada", IsEnabled: true }));
+const byId = await usersRepo.readSingleById(created.Id);
+const matches: User[] = [];
+for await (const row of usersRepo.read(new Where("Username", eq, "ada").and("IsEnabled", eq, true)))
+  matches.push(row);
+created.Username = "ada-v2";
+const updated = await usersRepo.update(created);
+const renamed = await usersRepo.readSingleById(created.Id);
+const removed = await usersRepo.delete(created);
+const gone = await usersRepo.readSingleById(created.Id);

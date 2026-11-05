@@ -1,0 +1,3 @@
+DatasourceFactory.register("sqlite", new MockDriver());
+process.env.PROVIDER = "sqlite";
+const ds = Datasource.default;

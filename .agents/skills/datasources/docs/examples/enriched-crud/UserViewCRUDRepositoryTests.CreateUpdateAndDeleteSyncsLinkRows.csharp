@@ -1,0 +1,29 @@
+var ds = Datasource.Default;
+var graph = await GraphAsync(connection);
+var usersRepo = graph.UsersRepo;
+usersRepo.AddEnriched(new("UserType", "UserTypeId", "Id"), graph.UserTypesRepo);
+usersRepo.AddLinked(new("Roles", "Id", "Id", Association: new("UserId", "RoleId")), graph.RolesRepo, graph.UserRolesRepo);
+usersRepo.AddLinked(new("Groups", "Id", "Id", Association: new("UserId", "GroupId")), graph.GroupsRepo, graph.UserGroupsRepo);
+var created = await usersRepo.Create(new UserView
+{
+    Username = "ada",
+    IsEnabled = true,
+    UserTypeId = graph.AdminType.Id,
+    Roles = [graph.AdminRole, graph.EditorRole],
+    Groups = [graph.Engineering],
+});
+var createdRoleLinks = await graph.UserRolesRepo.Read().ToListAsync();
+var createdGroupLinks = await graph.UserGroupsRepo.Read().ToListAsync();
+var saved = await usersRepo.Update(new UserView
+{
+    Id = created.Id,
+    Username = "ada",
+    IsEnabled = true,
+    UserTypeId = graph.AdminType.Id,
+    Roles = [graph.EditorRole],
+    Groups = [graph.Engineering, graph.Ops],
+});
+var updated = await usersRepo.ReadSingleById(created.Id);
+var updatedRoleLinks = await graph.UserRolesRepo.Read().ToListAsync();
+var updatedGroupLinks = await graph.UserGroupsRepo.Read().ToListAsync();
+var removed = await usersRepo.Delete(new UserView { Id = created.Id });

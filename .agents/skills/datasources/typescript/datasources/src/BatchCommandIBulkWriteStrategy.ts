@@ -1,0 +1,244 @@
+import type { CRUDRepository } from "./CRUDRepository.ts";
+import type { CRUDRepositoryOptions } from "./CRUDRepositoryOptions.ts";
+import type { Response } from "./Response.ts";
+import type { IWhere } from "./statements/IWhere.ts";
+import type { BulkCommand } from "./BulkCommand.ts";
+import { Native } from "./statements/Native.ts";
+import type { IBulkWriteStrategy } from "./IBulkWriteStrategy.ts";
+import { execute, type ICommand } from "./ICommand.ts";
+import type { Cell, Cells } from "./converters/Cell.ts";
+import type { Field } from "./builders/Field.ts";
+import type { Scalar } from "./builders/Scalar.ts";
+import type { IExpression } from "./statements/IExpression.ts";
+import {
+  BulkDeleteStatement,
+  BulkInsertStatement,
+  BulkUpdateStatement,
+  DefaultStatementTextRenderer,
+  Literal,
+  Operator,
+  Where,
+} from "./statements/index.ts";
+import { DatasourceError } from "./DatasourceError.ts";
+import { repositoryParts } from "./CRUDRepositoryBuilder.ts";
+import { MetaDataRowTypeConverter } from "./converters/MetaDataRowTypeConverter.ts";
+import type { Parameter } from "./Parameter.ts";
+import { afterBulkWrite } from "./BulkWriteEnrichment.ts";
+
+const empty = (): Response => ({ result: null, rowsAffected: 0 });
+const budget = 8000;
+const maxRows = 250;
+
+const assigned = (value: Cell): boolean =>
+  value !== null && value !== "" && value !== 0 && value !== 0n;
+
+const listed = (list: readonly string[] | undefined, col: string, fallback: boolean): boolean =>
+  list === undefined ? fallback : list.includes(col);
+
+const columnsOf = (rows: readonly { name: string }[][]): string[] => {
+  const seen = new Set<string>();
+  const columns: string[] = [];
+  for (const row of rows)
+    for (const field of row)
+      if (!seen.has(field.name)) {
+        seen.add(field.name);
+        columns.push(field.name);
+      }
+  return columns;
+};
+
+type Inserted = { table: string; fields: Parameter[] };
+type Updated = { table: string; fields: Parameter[]; ids: Parameter[] };
+type Deleted = { table: string; ids: Parameter[] };
+
+export class BatchCommandIBulkWriteStrategy<T extends object> implements IBulkWriteStrategy<T> {
+  repo!: CRUDRepository<T>;
+  command!: ICommand;
+  options!: CRUDRepositoryOptions<T>;
+  private cached?: ReturnType<typeof repositoryParts>["statements"];
+
+  attach = (command: ICommand, options: CRUDRepositoryOptions<T>): void => {
+    this.command = command;
+    this.options = options;
+  };
+
+  create = (items: T[]): Promise<Response> => this.then(this.writeCreates(items), items, "create");
+
+  update = (items: T[], byWhere: IWhere | undefined): Promise<Response> =>
+    this.then(
+      byWhere ? this.sendEach(items.map((item) => this.updateCommand(item, byWhere))) : this.writeUpdates(items),
+      items,
+      "update",
+    );
+
+  delete = (items: T[], byWhere: IWhere | undefined): Promise<Response> =>
+    this.then(
+      byWhere ? this.sendEach(items.map((item) => this.deleteCommand(item, byWhere))) : this.writeDeletes(items),
+      items,
+      "delete",
+    );
+
+  private then = async (write: Promise<Response>, items: T[], mode: "create" | "update" | "delete"): Promise<Response> => {
+    const response = await write;
+    await afterBulkWrite(this.repo, this.options, items, mode);
+    return response;
+  };
+
+  private writeCreates = async (items: T[]): Promise<Response> => {
+    if (items.length === 0) return empty();
+    const rows = items.map(this.mappedInsert);
+    const columns = columnsOf(rows.map((row) => row.fields));
+    return this.chunked(rows, columns.length, (chunk) => {
+      const statement = new BulkInsertStatement(
+        rows[0]!.table,
+        columns,
+        chunk.map((row) => row.fields),
+      );
+      return execute(this.command, statement, statement.parameters);
+    });
+  };
+
+  private writeUpdates = async (items: T[]): Promise<Response> => {
+    if (items.length === 0) return empty();
+    const rows = items.map(this.mappedUpdate);
+    const set = columnsOf(rows.map((row) => row.fields));
+    const ids = columnsOf(rows.map((row) => row.ids));
+    return this.chunked(rows, set.length + ids.length, (chunk) => {
+      const statement = new BulkUpdateStatement(rows[0]!.table, set, ids, chunk);
+      return execute(this.command, statement, statement.parameters);
+    });
+  };
+
+  private writeDeletes = async (items: T[]): Promise<Response> => {
+    if (items.length === 0) return empty();
+    const rows = items.map(this.mappedDelete);
+    const ids = columnsOf(rows.map((row) => row.ids));
+    return this.chunked(rows, ids.length, (chunk) => {
+      const statement = new BulkDeleteStatement(
+        rows[0]!.table,
+        ids,
+        chunk.map((row) => row.ids),
+      );
+      return execute(this.command, statement, statement.parameters);
+    });
+  };
+
+  private chunked = async <TRow>(
+    rows: TRow[],
+    width: number,
+    write: (chunk: TRow[]) => Promise<Response>,
+  ): Promise<Response> => {
+    const size = Math.min(maxRows, Math.max(1, Math.floor(budget / Math.max(1, width))));
+    let rowsAffected = 0;
+    for (let at = 0; at < rows.length; at += size) rowsAffected += (await write(rows.slice(at, at + size))).rowsAffected;
+    return { result: null, rowsAffected };
+  };
+
+  private sendEach = async (commands: BulkCommand[]): Promise<Response> => {
+    let rowsAffected = 0;
+    for (const command of commands)
+      rowsAffected += (await this.command.executeNative(new Native(command.text), command.parameters)).rowsAffected;
+    return { result: null, rowsAffected };
+  };
+
+  private mappedInsert = (item: T): Inserted => {
+    const record = this.repo.fillCreateZeros(this.reverse(item));
+    const statement = this.statements().insert(
+      this.fields(record, (col) => listed(this.options.createProperties, col, !this.ids.includes(col) || assigned(record[col] ?? null))),
+    );
+    return { table: statement.table, fields: statement.fields };
+  };
+
+  private mappedUpdate = (item: T): Updated => {
+    const record = this.reverse(item);
+    const fields = this.fields(record, (col) => listed(this.options.updateProperties, col, !this.ids.includes(col)), false);
+    if (fields.length === 0) throw new DatasourceError("Update requires at least one non-Id field");
+    const statement = this.statements().update(fields, this.idsWhere(record), (name, value) =>
+      this.cell(name, value, true),
+    );
+    return { table: statement.table, fields: statement.fields, ids: statement.where?.parameters ?? [] };
+  };
+
+  private mappedDelete = (item: T): Deleted => {
+    const record = this.reverse(item);
+    const statement = this.statements().delete(this.idsWhere(record), (name, value) => this.cell(name, value, true));
+    return { table: statement.table, ids: statement.where?.parameters ?? [] };
+  };
+
+  private updateCommand = (item: T, byWhere?: IWhere): BulkCommand => {
+    const record = this.reverse(item);
+    const fields = this.fields(record, (col) => listed(this.options.updateProperties, col, !this.ids.includes(col)), false);
+    if (fields.length === 0) throw new DatasourceError("Update requires at least one non-Id field");
+    const statement = this.statements().update(fields, byWhere ?? this.idsWhere(record), (name, value) =>
+      this.cell(name, value, byWhere === undefined),
+    );
+    return { text: DefaultStatementTextRenderer.instance.render(statement), parameters: statement.parameters };
+  };
+
+  private deleteCommand = (item: T, byWhere?: IWhere): BulkCommand => {
+    const record = this.reverse(item);
+    const statement = this.statements().delete(byWhere ?? this.idsWhere(record), (name, value) =>
+      this.cell(name, value, byWhere === undefined),
+    );
+    const listed = statement.where?.parameters ?? [];
+    const parameters: Parameter[] = listed.length
+      ? listed
+      : DefaultStatementTextRenderer.instance.render(statement).includes("$")
+        ? this.fields(record, () => true)
+        : [];
+    return { text: DefaultStatementTextRenderer.instance.render(statement), parameters };
+  };
+
+  private statements = () =>
+    (this.cached ??= repositoryParts(this.command.connection, this.options).statements);
+
+  private get ids(): readonly string[] {
+    return this.options.ids ?? this.repo.ids;
+  }
+
+  private reverse = (item: T): Cells => {
+    const objects = this.options.objectConverter ?? new MetaDataRowTypeConverter<T>();
+    const row = objects.reverseConvert(item);
+    return this.options.rowConverter ? this.options.rowConverter.reverseConvert(row) : row;
+  };
+
+  private writable = (key: string): boolean => {
+    const columns = this.statements().readColumns;
+    const map = this.options.propertyMappings;
+    return (
+      columns.length === 0 ||
+      columns.includes(key) ||
+      (map !== undefined && columns.some((name) => map.map(name) === key))
+    );
+  };
+
+  private fields = (record: Cells, include: (col: string) => boolean, omitNull = true): Field[] =>
+    Object.entries(record)
+      .filter(
+        ([key, value]) =>
+          include(key) && this.writable(key) && value !== undefined && (!omitNull || value !== null),
+      )
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([name, value]) => ({ name, value: this.cell(name, value, true) as Scalar }));
+
+  private cell = (property: string, value: Cell, fieldsApplied: boolean): Cell =>
+    fieldsApplied
+      ? value
+      : this.options.objectConverter instanceof MetaDataRowTypeConverter &&
+          this.options.objectConverter.fields[property]
+        ? this.options.objectConverter.fields[property]!.reverseConvert(value)
+        : value;
+
+  private idsWhere = (record: Cells): IWhere => {
+    const parts: IExpression[] = this.ids.map((col) => {
+      if (!Object.prototype.hasOwnProperty.call(record, col))
+        throw new DatasourceError(`Missing Id value "${col}"`);
+      return new Operator.Equals(col, record[col] as Scalar);
+    });
+    return new Where(
+      parts.length === 0
+        ? new Operator.Equals(new Literal(1), new Literal(1))
+        : parts.reduce((left, right) => new Operator.And(left, right)),
+    );
+  };
+}
