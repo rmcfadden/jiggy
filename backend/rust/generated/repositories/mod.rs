@@ -19,7 +19,7 @@ pub mod phonesRepository;
 pub mod phoneTypesRepository;
 pub mod reviewsRepository;
 pub mod rolesRepository;
-pub mod userDetailsRepository;
+pub mod usersRepository;
 pub mod userGroupsRepository;
 pub mod userRolesRepository;
 pub mod userSettingsRepository;

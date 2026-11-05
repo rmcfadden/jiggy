@@ -28,7 +28,7 @@ public static class RepositoryRegistry
         factory.Register("PhoneType", "PhoneTypes", connection => new PhoneTypesRepository(connection), connection => PhoneTypesRepository.CreateReadonly(connection));
         factory.Register("Review", "Reviews", connection => new ReviewsRepository(connection), connection => ReviewsRepository.CreateReadonly(connection));
         factory.Register("Role", "Roles", connection => new RolesRepository(connection), connection => RolesRepository.CreateReadonly(connection));
-        factory.Register("UserDetail", "UserDetails", connection => new UserDetailsRepository(connection), connection => UserDetailsRepository.CreateReadonly(connection));
+        factory.Register("User", "Users", connection => new UsersRepository(connection), connection => UsersRepository.CreateReadonly(connection));
         factory.Register("UserGroup", "UserGroups", connection => new UserGroupsRepository(connection), connection => UserGroupsRepository.CreateReadonly(connection));
         factory.Register("UserRole", "UserRoles", connection => new UserRolesRepository(connection), connection => UserRolesRepository.CreateReadonly(connection));
         factory.Register("UserSetting", "UserSettings", connection => new UserSettingsRepository(connection), connection => UserSettingsRepository.CreateReadonly(connection));

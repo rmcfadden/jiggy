@@ -1,5 +1,5 @@
-export { userDetail } from "./userDetail";
-export type { UserDetail } from "./userDetail";
+export { user } from "./user";
+export type { User } from "./user";
 export { contact } from "./contact";
 export type { Contact } from "./contact";
 export { localePreference } from "./localePreference";

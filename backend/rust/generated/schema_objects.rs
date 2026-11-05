@@ -41,7 +41,7 @@ impl SchemaObject for Review {}
 
 impl SchemaObject for Role {}
 
-impl SchemaObject for UserDetail {}
+impl SchemaObject for User {}
 
 impl SchemaObject for UserGroup {}
 

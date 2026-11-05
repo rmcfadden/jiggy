@@ -1,6 +1,6 @@
 #![allow(dead_code, unused_imports, non_snake_case)]
-#[path = "types/datasource/user.rs"]
-pub mod user;
+#[path = "types/datasource/userBase.rs"]
+pub mod userBase;
 #[path = "types/datasource/role.rs"]
 pub mod role;
 #[path = "types/datasource/group.rs"]
@@ -47,8 +47,8 @@ pub mod gameState;
 pub mod gameSetting;
 #[path = "types/datasource/review.rs"]
 pub mod review;
-#[path = "types/view/userDetail.rs"]
-pub mod userDetail;
+#[path = "types/view/user.rs"]
+pub mod user;
 #[path = "types/view/contact.rs"]
 pub mod contact;
 #[path = "types/view/localePreference.rs"]
@@ -63,7 +63,7 @@ pub mod phone;
 pub mod contactGroup;
 #[path = "types/view/game.rs"]
 pub mod game;
-pub use user::*;
+pub use userBase::*;
 pub use role::*;
 pub use group::*;
 pub use userGroup::*;
@@ -87,7 +87,7 @@ pub use gameCategory::*;
 pub use gameState::*;
 pub use gameSetting::*;
 pub use review::*;
-pub use userDetail::*;
+pub use user::*;
 pub use contact::*;
 pub use localePreference::*;
 pub use contactCard::*;

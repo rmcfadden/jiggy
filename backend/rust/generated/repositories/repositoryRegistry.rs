@@ -19,7 +19,7 @@ use super::super::Phone;
 use super::super::PhoneType;
 use super::super::Review;
 use super::super::Role;
-use super::super::UserDetail;
+use super::super::User;
 use super::super::UserGroup;
 use super::super::UserRole;
 use super::super::UserSetting;
@@ -147,10 +147,10 @@ pub fn register(factory: &RepositoryFactory) {
         |connection| Arc::new(super::rolesRepository::roles_readonly_repository(connection).expect("repository")) as Arc<dyn IReadonlyRepository<Role>>,
     );
     factory.register_named(
-        "UserDetail",
-        "user_details",
-        |connection| Arc::new(super::userDetailsRepository::user_details_repository(connection).expect("repository")) as Arc<dyn ICRUDRepository<UserDetail>>,
-        |connection| Arc::new(super::userDetailsRepository::user_details_readonly_repository(connection).expect("repository")) as Arc<dyn IReadonlyRepository<UserDetail>>,
+        "User",
+        "users",
+        |connection| Arc::new(super::usersRepository::users_repository(connection).expect("repository")) as Arc<dyn ICRUDRepository<User>>,
+        |connection| Arc::new(super::usersRepository::users_readonly_repository(connection).expect("repository")) as Arc<dyn IReadonlyRepository<User>>,
     );
     factory.register_named(
         "UserGroup",
@@ -195,7 +195,7 @@ pub trait Repositories {
     fn phone_types(&self) -> Arc<CRUDRepository<PhoneType>>;
     fn reviews(&self) -> Arc<CRUDRepository<Review>>;
     fn roles(&self) -> Arc<CRUDRepository<Role>>;
-    fn user_details(&self) -> Arc<CRUDRepository<UserDetail>>;
+    fn users(&self) -> Arc<CRUDRepository<User>>;
     fn user_groups(&self) -> Arc<CRUDRepository<UserGroup>>;
     fn user_roles(&self) -> Arc<CRUDRepository<UserRole>>;
     fn user_settings(&self) -> Arc<CRUDRepository<UserSetting>>;
@@ -262,8 +262,8 @@ impl Repositories for Arc<dyn Datasource> {
     fn roles(&self) -> Arc<CRUDRepository<Role>> {
         Arc::new(super::rolesRepository::roles_repository(self.bind_connection(None)).expect("roles"))
     }
-    fn user_details(&self) -> Arc<CRUDRepository<UserDetail>> {
-        Arc::new(super::userDetailsRepository::user_details_repository(self.bind_connection(None)).expect("user_details"))
+    fn users(&self) -> Arc<CRUDRepository<User>> {
+        Arc::new(super::usersRepository::users_repository(self.bind_connection(None)).expect("users"))
     }
     fn user_groups(&self) -> Arc<CRUDRepository<UserGroup>> {
         Arc::new(super::userGroupsRepository::user_groups_repository(self.bind_connection(None)).expect("user_groups"))
