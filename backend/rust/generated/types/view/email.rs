@@ -1,0 +1,43 @@
+// schema-version: 1.0
+#[allow(unused_imports)]
+use super::*;
+use std::collections::HashMap;
+/// View Email.
+#[derive(Clone, Debug, PartialEq, datasources::Facet)]
+#[facet(crate = ::datasources::facet)]
+pub struct Email {
+    pub id: i64,
+    pub uuid: String,
+    pub created: datasources::chrono::DateTime<datasources::chrono::Utc>,
+    pub updated: datasources::chrono::DateTime<datasources::chrono::Utc>,
+    pub version: Vec<u8>,
+    pub email_type_id: String,
+    pub contact_id: String,
+    pub address: String,
+    pub display_name: String,
+    pub is_primary: bool,
+    pub email_type_name: String,
+    pub description: String,
+    pub attributes: HashMap<String, String>,
+    pub labels: Vec<Label>,
+}
+impl Default for Email {
+    fn default() -> Self {
+        Self {
+            id: 0,
+            uuid: datasources::uuid::Uuid::new_v4().to_string(),
+            created: datasources::chrono::Utc::now(),
+            updated: datasources::chrono::Utc::now(),
+            version: vec![0],
+            email_type_id: String::new(),
+            contact_id: String::new(),
+            address: String::new(),
+            display_name: String::new(),
+            is_primary: false,
+            email_type_name: String::new(),
+            description: String::new(),
+            attributes: HashMap::new(),
+            labels: vec![],
+        }
+    }
+}

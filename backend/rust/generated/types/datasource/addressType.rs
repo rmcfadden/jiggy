@@ -9,7 +9,7 @@ pub struct AddressType {
     pub updated: datasources::chrono::DateTime<datasources::chrono::Utc>,
     pub version: Vec<u8>,
     pub name: String,
-    pub description: Option<String>,
+    pub description: String,
 }
 impl Default for AddressType {
     fn default() -> Self {
@@ -20,7 +20,7 @@ impl Default for AddressType {
             updated: datasources::chrono::Utc::now(),
             version: vec![0],
             name: String::new(),
-            description: None,
+            description: String::new(),
         }
     }
 }

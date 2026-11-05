@@ -35,7 +35,7 @@ public sealed class PhoneTypesRepository : CRUDRepository<Backend.Types.Datasour
                     ["Updated"] = new("datetime", false, true),
                     ["Version"] = new("binary", false, true),
                     ["Name"] = new("string", false, false),
-                    ["Description"] = new("string", true, false),
+                    ["Description"] = new("string", false, true),
                 }),
             })
             .Add("sqlite", new()
@@ -64,7 +64,7 @@ public sealed class PhoneTypesRepository : CRUDRepository<Backend.Types.Datasour
                     ["Updated"] = new("datetime", false, true),
                     ["Version"] = new("binary", false, true),
                     ["Name"] = new("string", false, false),
-                    ["Description"] = new("string", true, false),
+                    ["Description"] = new("string", false, true),
                 }),
             })
             .For(connection);

@@ -208,58 +208,110 @@ types:
   - contact_attribute:
       tags:
         - datasource_type
-      inherits: dictionary
+      inherits: base
       fields:
         - contact_id:
             references: contact_base.id
-        - key:
+        - name:
             type: string
             size: 255
         - value:
             type: string
             size: unlimited
+  - contact_attribute_map:
+      tags:
+        - view_type
+      inherits: dictionary
+      fields:
+        - key:
+            type: string
+            size: 255
+            references: contact_attribute.name
+        - value:
+            type: string
+            size: unlimited
+            references: contact_attribute.value
 
   - address_attribute:
       tags:
         - datasource_type
-      inherits: dictionary
+      inherits: base
       fields:
         - address_id:
             references: address_base.id
-        - key:
+        - name:
             type: string
             size: 255
         - value:
             type: string
             size: unlimited
+  - address_attribute_map:
+      tags:
+        - view_type
+      inherits: dictionary
+      fields:
+        - key:
+            type: string
+            size: 255
+            references: address_attribute.name
+        - value:
+            type: string
+            size: unlimited
+            references: address_attribute.value
 
   - email_attribute:
       tags:
         - datasource_type
-      inherits: dictionary
+      inherits: base
       fields:
         - email_id:
             references: email_base.id
-        - key:
+        - name:
             type: string
             size: 255
         - value:
             type: string
             size: unlimited
+  - email_attribute_map:
+      tags:
+        - view_type
+      inherits: dictionary
+      fields:
+        - key:
+            type: string
+            size: 255
+            references: email_attribute.name
+        - value:
+            type: string
+            size: unlimited
+            references: email_attribute.value
 
   - phone_attribute:
       tags:
         - datasource_type
-      inherits: dictionary
+      inherits: base
       fields:
         - phone_id:
             references: phone_base.id
-        - key:
+        - name:
             type: string
             size: 255
         - value:
             type: string
             size: unlimited
+  - phone_attribute_map:
+      tags:
+        - view_type
+      inherits: dictionary
+      fields:
+        - key:
+            type: string
+            size: 255
+            references: phone_attribute.name
+        - value:
+            type: string
+            size: unlimited
+            references: phone_attribute.value
 
   - label:
       tags:
@@ -331,8 +383,8 @@ types:
         name: address_type_name
       fields:
         - attributes:
-            type: address_attribute{}
-            references: address_attribute.key
+            type: address_attribute_map{}
+            references: address_attribute.address_id
         - labels:
             type: label[]
             references: address_label.address_id
@@ -350,8 +402,8 @@ types:
         name: email_type_name
       fields:
         - attributes:
-            type: email_attribute{}
-            references: email_attribute.key
+            type: email_attribute_map{}
+            references: email_attribute.email_id
         - labels:
             type: label[]
             references: email_label.email_id
@@ -369,8 +421,8 @@ types:
         name: phone_type_name
       fields:
         - attributes:
-            type: phone_attribute{}
-            references: phone_attribute.key
+            type: phone_attribute_map{}
+            references: phone_attribute.phone_id
         - labels:
             type: label[]
             references: phone_label.phone_id
@@ -390,8 +442,8 @@ types:
             type: phone[]
             references: phone.contact_id
         - attributes:
-            type: contact_attribute{}
-            references: contact_attribute.key
+            type: contact_attribute_map{}
+            references: contact_attribute.contact_id
         - labels:
             type: label[]
             references: contact_label.contact_id

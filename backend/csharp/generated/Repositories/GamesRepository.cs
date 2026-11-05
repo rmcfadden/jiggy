@@ -3,26 +3,18 @@ using Datasources;
 public sealed class GamesRepository : CRUDRepository<Backend.Types.View.Game>
 {
     public GameSettingsRepository GameSetting { get; }
-    public CategoriesRepository Category { get; }
-    public GameCategoriesRepository GameCategory { get; }
 
     public GamesRepository(IConnection connection) : base(connection, Options(connection))
     {
         GameSetting = new GameSettingsRepository(connection);
-        Category = new CategoriesRepository(connection);
-        GameCategory = new GameCategoriesRepository(connection);
         AddEnriched(new("Settings", "Id", "GameId", "Value", Type: EnrichmentPropertyType.Dictionary), GameSetting);
-        AddLinked(new("Categories", "Id", "Id", "Name", Association: new("GameId", "CategoryId")), Category, GameCategory);
     }
 
     public static IReadonlyRepository<Backend.Types.View.Game> CreateReadonly(IConnection connection)
     {
         var repo = new ReadonlyRepository<Backend.Types.View.Game>(connection, Options(connection));
         var GameSetting = new GameSettingsRepository(connection);
-        var Category = new CategoriesRepository(connection);
-        var GameCategory = new GameCategoriesRepository(connection);
         repo.AddEnriched(new("Settings", "Id", "GameId", "Value", Type: EnrichmentPropertyType.Dictionary), GameSetting);
-        repo.AddEnriched(new("Categories", "Id", "Id", "Name", Type: EnrichmentPropertyType.List), Category);
         return repo;
     }
 

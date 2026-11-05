@@ -8,5 +8,5 @@ export class AddressType {
   updated: Date = new Date();
   version: string = Buffer.from([0]).toString("base64");
   name!: string;
-  description!: string | null;
+  description!: string;
 }

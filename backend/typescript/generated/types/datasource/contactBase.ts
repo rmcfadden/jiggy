@@ -7,10 +7,17 @@ export class ContactBase {
   created: Date = new Date();
   updated: Date = new Date();
   version: string = Buffer.from([0]).toString("base64");
-  contactSourceId!: number;
-  firstName!: string;
-  lastName!: string;
-  email!: string | null;
-  notes!: string | null;
+  name!: string;
+  givenName!: string;
+  additionalName!: string;
+  pronunciation!: string;
+  familyName!: string;
+  nickName!: string;
+  jobTitle!: string;
+  genderTypeId!: number;
+  organization!: string;
+  isStarred!: boolean;
+  isFavorite!: boolean;
+  isDeleted!: boolean;
   userId!: number;
 }

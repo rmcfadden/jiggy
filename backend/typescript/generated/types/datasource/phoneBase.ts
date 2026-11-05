@@ -7,8 +7,11 @@ export class PhoneBase {
   created: Date = new Date();
   updated: Date = new Date();
   version: string = Buffer.from([0]).toString("base64");
-  contactId!: number;
   phoneTypeId!: number;
+  contactId!: number;
   number!: string;
-  label!: string | null;
+  displayName!: string;
+  extention!: string;
+  isPrimary!: boolean;
+  isVerified!: boolean;
 }

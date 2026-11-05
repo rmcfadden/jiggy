@@ -1,17 +1,13 @@
 // schema-version: 1.0
+using System.Collections.Generic;
+
 namespace Backend.Types.View;
 
 /** View Phone. */
-public class Phone
+public class Phone : Backend.Types.Datasource.PhoneBase
 {
-    public long Id { get; set; }
-    public string Uuid { get; set; } = Guid.NewGuid().ToString();
-    public System.DateTime Created { get; set; } = DateTime.UtcNow;
-    public System.DateTime Updated { get; set; } = DateTime.UtcNow;
-    public byte[] Version { get; set; } = new byte[] { 0 };
-    public string ContactId { get; set; } = "";
-    public string Number { get; set; } = "";
-    public string? Label { get; set; }
     public string PhoneTypeName { get; set; } = "";
-    public string? Description { get; set; }
+    public string Description { get; set; } = "";
+    public Dictionary<string, string> Attributes { get; set; } = [];
+    public List<Backend.Types.Datasource.Label> Labels { get; set; } = [];
 }

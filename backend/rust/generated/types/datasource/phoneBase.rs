@@ -8,10 +8,13 @@ pub struct PhoneBase {
     pub created: datasources::chrono::DateTime<datasources::chrono::Utc>,
     pub updated: datasources::chrono::DateTime<datasources::chrono::Utc>,
     pub version: Vec<u8>,
-    pub contact_id: i64,
     pub phone_type_id: i64,
+    pub contact_id: i64,
     pub number: String,
-    pub label: Option<String>,
+    pub display_name: String,
+    pub extention: String,
+    pub is_primary: bool,
+    pub is_verified: bool,
 }
 impl Default for PhoneBase {
     fn default() -> Self {
@@ -21,10 +24,13 @@ impl Default for PhoneBase {
             created: datasources::chrono::Utc::now(),
             updated: datasources::chrono::Utc::now(),
             version: vec![0],
-            contact_id: 0,
             phone_type_id: 0,
+            contact_id: 0,
             number: String::new(),
-            label: None,
+            display_name: String::new(),
+            extention: String::new(),
+            is_primary: false,
+            is_verified: false,
         }
     }
 }

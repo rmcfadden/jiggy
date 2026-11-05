@@ -1,8 +1,6 @@
-use datasources::{Connection, CRUDRepository, CRUDRepositoryBuilder, CRUDRepositoryOptions, DictionaryMapper, Enrichment, EnrichmentPropertyType, Association, ICRUDRepository, ReadonlyRepository, ReadonlyRepositoryMappingOptions, Schema, SchemaColumn, Result};
+use datasources::{Connection, CRUDRepository, CRUDRepositoryBuilder, CRUDRepositoryOptions, DictionaryMapper, Enrichment, EnrichmentPropertyType, ReadonlyRepository, ReadonlyRepositoryMappingOptions, Schema, SchemaColumn, Result};
 use super::super::Game;
 use super::super::GameSetting;
-use super::super::Category;
-use super::super::GameCategory;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::ops::Deref;
@@ -10,8 +8,6 @@ use std::ops::Deref;
 pub struct GamesRepository {
     pub repo: Arc<CRUDRepository<Game>>,
     pub game_setting: Arc<CRUDRepository<GameSetting>>,
-    pub category: Arc<CRUDRepository<Category>>,
-    pub game_category: Arc<CRUDRepository<GameCategory>>,
 }
 
 impl GamesRepository {
@@ -68,12 +64,9 @@ impl GamesRepository {
     .for_connection(connection.as_ref())?;
 
         let game_setting = Arc::new(super::gameSettingsRepository::game_settings_repository(Arc::clone(&connection))?);
-        let category = Arc::new(super::categoriesRepository::categories_repository(Arc::clone(&connection))?);
-        let game_category = Arc::new(super::gameCategoriesRepository::game_categories_repository(Arc::clone(&connection))?);
         let mut repo = CRUDRepository::<Game>::new(Arc::clone(&connection), options)?;
         repo.add_enriched(Enrichment::new("settings", "id", "game_id", Some("value".into()), EnrichmentPropertyType::Dictionary), Arc::clone(&game_setting), None);
-        repo.add_linked(Enrichment::new("categories", "id", "id", Some("name".into()), EnrichmentPropertyType::List).linked(Association::new("game_id", "category_id")), Arc::clone(&category), Arc::clone(&game_category) as Arc<dyn ICRUDRepository<_>>, None);
-        Ok(Self { repo: Arc::new(repo), game_setting, category, game_category })
+        Ok(Self { repo: Arc::new(repo), game_setting })
     }
 }
 
@@ -141,11 +134,8 @@ pub fn games_row_repository(connection: Arc<dyn Connection>) -> Result<CRUDRepos
     .for_connection(connection.as_ref())?;
 
         let game_setting = Arc::new(super::gameSettingsRepository::game_settings_row_repository(Arc::clone(&connection))?);
-        let category = Arc::new(super::categoriesRepository::categories_row_repository(Arc::clone(&connection))?);
-        let game_category = Arc::new(super::gameCategoriesRepository::game_categories_row_repository(Arc::clone(&connection))?);
         let mut repo = CRUDRepository::<datasources::Row>::new(Arc::clone(&connection), options)?;
         repo.add_enriched(Enrichment::new("settings", "id", "game_id", Some("value".into()), EnrichmentPropertyType::Dictionary), Arc::clone(&game_setting), None);
-        repo.add_linked(Enrichment::new("categories", "id", "id", Some("name".into()), EnrichmentPropertyType::List).linked(Association::new("game_id", "category_id")), Arc::clone(&category), Arc::clone(&game_category) as Arc<dyn ICRUDRepository<_>>, None);
         Ok(repo)
 }
 
@@ -169,9 +159,7 @@ pub fn games_readonly_repository(connection: Arc<dyn Connection>) -> Result<Read
     ]));
     options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "name".into(), "description".into(), "location".into(), "is_enabled".into(), "is_deleted".into()];
         let game_setting = Arc::new(super::gameSettingsRepository::game_settings_repository(Arc::clone(&connection))?);
-        let category = Arc::new(super::categoriesRepository::categories_repository(Arc::clone(&connection))?);
         let mut repo = ReadonlyRepository::<Game>::new(connection, options)?;
         repo.add_enriched(Enrichment::new("settings", "id", "game_id", Some("value".into()), EnrichmentPropertyType::Dictionary), Arc::clone(&game_setting), None);
-        repo.add_enriched(Enrichment::new("categories", "id", "id", Some("name".into()), EnrichmentPropertyType::List), Arc::clone(&category), None);
         Ok(repo)
 }
