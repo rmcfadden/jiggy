@@ -2,7 +2,7 @@ version: 1.0.0
 includes:
   - file: base.yaml
 types:
-  - user:
+  - user_base:
       tags:
         - datasource_type
       inherits: base
@@ -45,7 +45,7 @@ types:
       inherits: base
       fields:
         - user_id:
-            references: user.id
+            references: user_base.id
         - group_id:
             references: group.id
   - user_role:
@@ -55,7 +55,7 @@ types:
       inherits: base
       fields:
         - user_id:
-            references: user.id
+            references: user_base.id
         - role_id:
             references: role.id
   - user_setting:
@@ -64,7 +64,7 @@ types:
       inherits: base
       fields:
         - user_id:
-            references: user.id
+            references: user_base.id
         - name:
             type: string
             size: 128
@@ -84,10 +84,10 @@ types:
             type: string
             size: unlimited
             references: user_setting.value
-  - user_detail:
+  - user:
       tags:
         - view_type
-      inherits: user
+      inherits: user_base
       fields:
         - settings:
             type: user_setting_map{}
