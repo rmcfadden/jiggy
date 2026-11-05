@@ -19,6 +19,8 @@ types:
         - version:
             include_in_create: false
             include_in_update: false
+  - user_base:
+      mapping: users
   - user_setting:
       indexes:
         - user_setting_user_id_name:
@@ -29,8 +31,15 @@ types:
         - game_setting_game_id_name:
             fields: [game_id, name]
             is_unique: true
-  - game_category:
+  - game_instance_setting:
       indexes:
-        - game_category_game_id_category_id:
-            fields: [game_id, category_id]
+        - game_instance_setting_game_instance_id_name:
+            fields: [game_instance_id, name]
+            is_unique: true
+  - game_instance_base:
+      mapping: game_instances
+  - game_instance_category:
+      indexes:
+        - game_instance_category_game_instance_id_category_id:
+            fields: [game_instance_id, category_id]
             is_unique: true
