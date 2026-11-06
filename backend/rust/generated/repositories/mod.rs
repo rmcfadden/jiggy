@@ -33,6 +33,8 @@ pub mod phoneTypesRepository;
 pub mod resourcesRepository;
 pub mod reviewsRepository;
 pub mod rolesRepository;
+pub mod templatesRepository;
+pub mod templateTypesRepository;
 pub mod usersRepository;
 pub mod userGroupsRepository;
 pub mod userRolesRepository;

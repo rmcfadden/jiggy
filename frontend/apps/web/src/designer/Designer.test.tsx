@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { CATALOG } from '@jiggy/shared'
-import Designer from './Designer'
+import { Designer } from './test-utils'
 
 beforeEach(() => localStorage.clear())
 afterEach(cleanup)
@@ -152,7 +152,7 @@ it('saves, loads, renames and deletes a template', () => {
 
 it('saves a game and restores its setup, and keeps it after a reload', () => {
   const { unmount } = render(<Designer />)
-  click(/Solve last X pieces/, 'Game type')
+  click(/Solve last X pieces/, 'Parent game')
   pick('Number of pieces', '20')
   create('Games', 'game', 'Mine')
   unmount()
@@ -162,7 +162,7 @@ it('saves a game and restores its setup, and keeps it after a reload', () => {
   pick('Saved games', screen.getByRole('option', { name: 'Mine' }).getAttribute('value')!)
   click('Load', 'Games')
   expect(screen.getByLabelText('Number of pieces')).toHaveProperty('value', '20')
-  expect(within(screen.getByLabelText('Game type')).getByRole('button', { name: /Solve last X pieces/ }).getAttribute('aria-pressed')).toBe('true')
+  expect(within(screen.getByLabelText('Parent game')).getByRole('button', { name: /Solve last X pieces/ }).getAttribute('aria-pressed')).toBe('true')
 })
 
 it('manages saved images: rename and delete, with built-ins left alone', () => {
@@ -265,5 +265,48 @@ it('saves edits of a built-in image as a new image that keeps the original locat
   expect(image.name).toMatch(/\(edited\)$/)
   expect(image.location).toMatch(/^\/catalog\//)
   expect(image.edits.adjustments.filter).toBe('mosaic')
+  vi.unstubAllGlobals()
+})
+
+it('saves, loads and deletes jigsaw templates through the templates API', async () => {
+  const rows: { id: number; type: string; name: string; content: unknown }[] = []
+  const calls: string[] = []
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (url: string, init?: RequestInit) => {
+      const method = init?.method ?? 'GET'
+      calls.push(`${method} ${url}`)
+      const body = init?.body ? JSON.parse(String(init.body)) : {}
+      const reply = (data: unknown, status = 200) => new Response(status === 204 ? null : JSON.stringify(data), { status })
+      if (method === 'POST') {
+        rows.push({ id: 7, ...body })
+        return reply(rows[0], 201)
+      }
+      if (method === 'PUT') return reply(Object.assign(rows[0], body))
+      if (method === 'DELETE') return rows.splice(0), reply(null, 204)
+      return reply(rows)
+    }),
+  )
+  render(<Designer />)
+  fireEvent.click(screen.getByRole('tab', { name: 'Jigsaw Template' }))
+  fireEvent.change(screen.getByLabelText('Columns'), { target: { value: '5' } })
+
+  fireEvent.click(screen.getByRole('button', { name: 'New…' }))
+  fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Five wide' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Create' }))
+  await waitFor(() => expect(rows).toHaveLength(1))
+  expect(rows[0]).toMatchObject({ type: 'jigsaw', name: 'Five wide', content: { cols: 5 } })
+
+  const saved = await screen.findByRole('combobox', { name: 'Saved jigsaw templates' })
+  await waitFor(() => expect(within(saved).getByRole('option', { name: 'Five wide' })).toBeTruthy())
+  fireEvent.change(screen.getByLabelText('Columns'), { target: { value: '2' } })
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Load' })).toHaveProperty('disabled', false))
+  fireEvent.blur(screen.getByLabelText('Columns'))
+  fireEvent.click(screen.getByRole('button', { name: 'Load' }))
+  expect(screen.getByLabelText('Columns')).toHaveProperty('value', '5')
+
+  fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Confirm delete' }))
+  await waitFor(() => expect(calls).toContain('DELETE /api/templates/7'))
   vi.unstubAllGlobals()
 })

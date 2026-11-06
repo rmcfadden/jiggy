@@ -42,6 +42,8 @@ public static class RepositoryRegistry
         factory.Register("Resource", "Resources", connection => new ResourcesRepository(connection), connection => ResourcesRepository.CreateReadonly(connection));
         factory.Register("Review", "Reviews", connection => new ReviewsRepository(connection), connection => ReviewsRepository.CreateReadonly(connection));
         factory.Register("Role", "Roles", connection => new RolesRepository(connection), connection => RolesRepository.CreateReadonly(connection));
+        factory.Register("Template", "Templates", connection => new TemplatesRepository(connection), connection => TemplatesRepository.CreateReadonly(connection));
+        factory.Register("TemplateType", "TemplateTypes", connection => new TemplateTypesRepository(connection), connection => TemplateTypesRepository.CreateReadonly(connection));
         factory.Register("User", "Users", connection => new UsersRepository(connection), connection => UsersRepository.CreateReadonly(connection));
         factory.Register("UserGroup", "UserGroups", connection => new UserGroupsRepository(connection), connection => UserGroupsRepository.CreateReadonly(connection));
         factory.Register("UserRole", "UserRoles", connection => new UserRolesRepository(connection), connection => UserRolesRepository.CreateReadonly(connection));

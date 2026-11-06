@@ -39,6 +39,31 @@ types:
         - is_deleted:
             type: boolean
             default_value: false
+  - template_type:
+      tags: [datasource_type, readonly_lookup]
+      inherits: base
+      fields:
+        - name:
+            # e.g. jigsaw
+            type: string
+            size: 128
+        - description:
+            type: string
+            size: unlimited
+            default_value: ""
+  - template:
+      tags: [datasource_type]
+      inherits: base
+      fields:
+        - template_type_id:
+            references: template_type.id
+        - name:
+            type: string
+            size: 128
+        - content:
+            # the template's settings as JSON
+            type: string
+            size: unlimited
   - game_parent_base:
       tags: [datasource_type]
       inherits: base

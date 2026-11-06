@@ -69,6 +69,10 @@ impl SchemaObject for Review {}
 
 impl SchemaObject for Role {}
 
+impl SchemaObject for Template {}
+
+impl SchemaObject for TemplateType {}
+
 impl SchemaObject for User {}
 
 impl SchemaObject for UserGroup {}

@@ -27,6 +27,8 @@ export { localizedStringBase, LocalizedStringBase } from "./localizedStringBase"
 export { mimeType, MimeType } from "./mimeType";
 export { resourceBase, ResourceBase } from "./resourceBase";
 export { category, Category } from "./category";
+export { templateType, TemplateType } from "./templateType";
+export { template, Template } from "./template";
 export { gameParentBase, GameParentBase } from "./gameParentBase";
 export { gameParentConfig, GameParentConfig } from "./gameParentConfig";
 export { gameBase, GameBase } from "./gameBase";

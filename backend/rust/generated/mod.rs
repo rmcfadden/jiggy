@@ -57,6 +57,10 @@ pub mod mimeType;
 pub mod resourceBase;
 #[path = "types/datasource/category.rs"]
 pub mod category;
+#[path = "types/datasource/templateType.rs"]
+pub mod templateType;
+#[path = "types/datasource/template.rs"]
+pub mod template;
 #[path = "types/datasource/gameParentBase.rs"]
 pub mod gameParentBase;
 #[path = "types/datasource/gameParentConfig.rs"]
@@ -122,6 +126,8 @@ pub use localizedStringBase::*;
 pub use mimeType::*;
 pub use resourceBase::*;
 pub use category::*;
+pub use templateType::*;
+pub use template::*;
 pub use gameParentBase::*;
 pub use gameParentConfig::*;
 pub use gameBase::*;
