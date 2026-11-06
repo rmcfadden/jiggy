@@ -13,10 +13,12 @@ pub struct Game {
     pub version: Vec<u8>,
     pub name: String,
     pub description: String,
-    pub location: String,
-    pub is_enabled: bool,
+    pub game_parent_id: String,
+    pub game_parent_config_id: String,
     pub is_deleted: bool,
+    pub is_enabled: bool,
     pub settings: HashMap<String, String>,
+    pub categories: Vec<Category>,
 }
 impl Default for Game {
     fn default() -> Self {
@@ -28,10 +30,12 @@ impl Default for Game {
             version: vec![0],
             name: String::new(),
             description: String::new(),
-            location: String::new(),
-            is_enabled: true,
+            game_parent_id: String::new(),
+            game_parent_config_id: String::new(),
             is_deleted: false,
+            is_enabled: true,
             settings: HashMap::new(),
+            categories: vec![],
         }
     }
 }

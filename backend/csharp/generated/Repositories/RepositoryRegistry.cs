@@ -21,12 +21,12 @@ public static class RepositoryRegistry
         factory.Register("EmailLabel", "EmailLabels", connection => new EmailLabelsRepository(connection), connection => EmailLabelsRepository.CreateReadonly(connection));
         factory.Register("EmailType", "EmailTypes", connection => new EmailTypesRepository(connection), connection => EmailTypesRepository.CreateReadonly(connection));
         factory.Register("Game", "Games", connection => new GamesRepository(connection), connection => GamesRepository.CreateReadonly(connection));
-        factory.Register("GameConfig", "GameConfigs", connection => new GameConfigsRepository(connection), connection => GameConfigsRepository.CreateReadonly(connection));
-        factory.Register("GameInstance", "GameInstances", connection => new GameInstancesRepository(connection), connection => GameInstancesRepository.CreateReadonly(connection));
-        factory.Register("GameInstanceCategory", "GameInstanceCategories", connection => new GameInstanceCategoriesRepository(connection), connection => GameInstanceCategoriesRepository.CreateReadonly(connection));
-        factory.Register("GameInstanceSetting", "GameInstanceSettings", connection => new GameInstanceSettingsRepository(connection), connection => GameInstanceSettingsRepository.CreateReadonly(connection));
-        factory.Register("GameInstanceState", "GameInstanceStates", connection => new GameInstanceStatesRepository(connection), connection => GameInstanceStatesRepository.CreateReadonly(connection));
+        factory.Register("GameCategory", "GameCategories", connection => new GameCategoriesRepository(connection), connection => GameCategoriesRepository.CreateReadonly(connection));
+        factory.Register("GameParent", "GameParents", connection => new GameParentsRepository(connection), connection => GameParentsRepository.CreateReadonly(connection));
+        factory.Register("GameParentConfig", "GameParentConfigs", connection => new GameParentConfigsRepository(connection), connection => GameParentConfigsRepository.CreateReadonly(connection));
+        factory.Register("GameParentSetting", "GameParentSettings", connection => new GameParentSettingsRepository(connection), connection => GameParentSettingsRepository.CreateReadonly(connection));
         factory.Register("GameSetting", "GameSettings", connection => new GameSettingsRepository(connection), connection => GameSettingsRepository.CreateReadonly(connection));
+        factory.Register("GameState", "GameStates", connection => new GameStatesRepository(connection), connection => GameStatesRepository.CreateReadonly(connection));
         factory.Register("Gender", "Genders", connection => new GendersRepository(connection), connection => GendersRepository.CreateReadonly(connection));
         factory.Register("Group", "Groups", connection => new GroupsRepository(connection), connection => GroupsRepository.CreateReadonly(connection));
         factory.Register("Label", "Labels", connection => new LabelsRepository(connection), connection => LabelsRepository.CreateReadonly(connection));
