@@ -1,7 +1,16 @@
 -- Generated initial migration for sqlite
 
 -- Create added tables
-CREATE TABLE "users" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "users_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "users_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "users_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "users_version_default_constraint" DEFAULT X'00' NOT NULL, "username" TEXT NOT NULL, "is_enabled" BOOLEAN CONSTRAINT "users_is_enabled_default_constraint" DEFAULT 1 NOT NULL, CONSTRAINT "users_uuid_unique_constraint" UNIQUE ("uuid"));
+CREATE TABLE "users" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "users_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "users_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "users_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "users_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "username" TEXT NOT NULL,
+    "is_enabled" BOOLEAN CONSTRAINT "users_is_enabled_default_constraint" DEFAULT 1 NOT NULL,
+    CONSTRAINT "users_uuid_unique_constraint" UNIQUE ("uuid")
+);
 GO
 CREATE TRIGGER "trg_users_updated_at"
 AFTER UPDATE ON "users"
@@ -11,7 +20,17 @@ BEGIN
   UPDATE "users" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "roles" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "roles_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "roles_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "roles_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "roles_version_default_constraint" DEFAULT X'00' NOT NULL, "name" TEXT NOT NULL, "description" TEXT CONSTRAINT "roles_description_default_constraint" DEFAULT '' NOT NULL, "is_enabled" BOOLEAN CONSTRAINT "roles_is_enabled_default_constraint" DEFAULT 1 NOT NULL, CONSTRAINT "roles_uuid_unique_constraint" UNIQUE ("uuid"));
+CREATE TABLE "roles" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "roles_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "roles_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "roles_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "roles_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT CONSTRAINT "roles_description_default_constraint" DEFAULT '' NOT NULL,
+    "is_enabled" BOOLEAN CONSTRAINT "roles_is_enabled_default_constraint" DEFAULT 1 NOT NULL,
+    CONSTRAINT "roles_uuid_unique_constraint" UNIQUE ("uuid")
+);
 GO
 CREATE TRIGGER "trg_roles_updated_at"
 AFTER UPDATE ON "roles"
@@ -21,7 +40,17 @@ BEGIN
   UPDATE "roles" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "groups" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "groups_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "groups_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "groups_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "groups_version_default_constraint" DEFAULT X'00' NOT NULL, "name" TEXT NOT NULL, "description" TEXT CONSTRAINT "groups_description_default_constraint" DEFAULT '' NOT NULL, "is_enabled" BOOLEAN CONSTRAINT "groups_is_enabled_default_constraint" DEFAULT 1 NOT NULL, CONSTRAINT "groups_uuid_unique_constraint" UNIQUE ("uuid"));
+CREATE TABLE "groups" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "groups_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "groups_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "groups_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "groups_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT CONSTRAINT "groups_description_default_constraint" DEFAULT '' NOT NULL,
+    "is_enabled" BOOLEAN CONSTRAINT "groups_is_enabled_default_constraint" DEFAULT 1 NOT NULL,
+    CONSTRAINT "groups_uuid_unique_constraint" UNIQUE ("uuid")
+);
 GO
 CREATE TRIGGER "trg_groups_updated_at"
 AFTER UPDATE ON "groups"
@@ -31,7 +60,18 @@ BEGIN
   UPDATE "groups" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "user_groups" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "user_groups_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "user_groups_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "user_groups_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "user_groups_version_default_constraint" DEFAULT X'00' NOT NULL, "user_id" INTEGER NOT NULL, "group_id" INTEGER NOT NULL, CONSTRAINT "user_groups_uuid_unique_constraint" UNIQUE ("uuid"), CONSTRAINT "user_groups_user_id_foreign_key" FOREIGN KEY ("user_id") REFERENCES "users" ("id"), CONSTRAINT "user_groups_group_id_foreign_key" FOREIGN KEY ("group_id") REFERENCES "groups" ("id"));
+CREATE TABLE "user_groups" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "user_groups_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "user_groups_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "user_groups_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "user_groups_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "group_id" INTEGER NOT NULL,
+    CONSTRAINT "user_groups_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "user_groups_user_id_foreign_key" FOREIGN KEY ("user_id") REFERENCES "users" ("id"),
+    CONSTRAINT "user_groups_group_id_foreign_key" FOREIGN KEY ("group_id") REFERENCES "groups" ("id")
+);
 GO
 CREATE TRIGGER "trg_user_groups_updated_at"
 AFTER UPDATE ON "user_groups"
@@ -41,7 +81,18 @@ BEGIN
   UPDATE "user_groups" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "user_roles" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "user_roles_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "user_roles_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "user_roles_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "user_roles_version_default_constraint" DEFAULT X'00' NOT NULL, "user_id" INTEGER NOT NULL, "role_id" INTEGER NOT NULL, CONSTRAINT "user_roles_uuid_unique_constraint" UNIQUE ("uuid"), CONSTRAINT "user_roles_user_id_foreign_key" FOREIGN KEY ("user_id") REFERENCES "users" ("id"), CONSTRAINT "user_roles_role_id_foreign_key" FOREIGN KEY ("role_id") REFERENCES "roles" ("id"));
+CREATE TABLE "user_roles" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "user_roles_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "user_roles_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "user_roles_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "user_roles_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "role_id" INTEGER NOT NULL,
+    CONSTRAINT "user_roles_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "user_roles_user_id_foreign_key" FOREIGN KEY ("user_id") REFERENCES "users" ("id"),
+    CONSTRAINT "user_roles_role_id_foreign_key" FOREIGN KEY ("role_id") REFERENCES "roles" ("id")
+);
 GO
 CREATE TRIGGER "trg_user_roles_updated_at"
 AFTER UPDATE ON "user_roles"
@@ -51,7 +102,18 @@ BEGIN
   UPDATE "user_roles" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "user_settings" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "user_settings_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "user_settings_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "user_settings_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "user_settings_version_default_constraint" DEFAULT X'00' NOT NULL, "user_id" INTEGER NOT NULL, "name" VARCHAR(128) NOT NULL, "value" TEXT NOT NULL, CONSTRAINT "user_settings_uuid_unique_constraint" UNIQUE ("uuid"), CONSTRAINT "user_settings_user_id_foreign_key" FOREIGN KEY ("user_id") REFERENCES "users" ("id"));
+CREATE TABLE "user_settings" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "user_settings_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "user_settings_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "user_settings_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "user_settings_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "name" VARCHAR(128) NOT NULL,
+    "value" TEXT NOT NULL,
+    CONSTRAINT "user_settings_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "user_settings_user_id_foreign_key" FOREIGN KEY ("user_id") REFERENCES "users" ("id")
+);
 GO
 CREATE UNIQUE INDEX "user_settings_user_setting_user_id_name_index" ON "user_settings" ("user_id", "name");
 GO
@@ -63,7 +125,16 @@ BEGIN
   UPDATE "user_settings" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "genders" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "genders_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "genders_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "genders_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "genders_version_default_constraint" DEFAULT X'00' NOT NULL, "name" VARCHAR(128) NOT NULL, "description" TEXT CONSTRAINT "genders_description_default_constraint" DEFAULT '' NOT NULL, CONSTRAINT "genders_uuid_unique_constraint" UNIQUE ("uuid"));
+CREATE TABLE "genders" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "genders_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "genders_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "genders_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "genders_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "name" VARCHAR(128) NOT NULL,
+    "description" TEXT CONSTRAINT "genders_description_default_constraint" DEFAULT '' NOT NULL,
+    CONSTRAINT "genders_uuid_unique_constraint" UNIQUE ("uuid")
+);
 GO
 CREATE TRIGGER "trg_genders_updated_at"
 AFTER UPDATE ON "genders"
@@ -73,7 +144,29 @@ BEGIN
   UPDATE "genders" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "contact_bases" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "contact_bases_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "contact_bases_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "contact_bases_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "contact_bases_version_default_constraint" DEFAULT X'00' NOT NULL, "name" VARCHAR(512) NOT NULL, "given_name" VARCHAR(512) NOT NULL, "additional_name" VARCHAR(512) CONSTRAINT "contact_bases_additional_name_default_constraint" DEFAULT '' NOT NULL, "pronunciation" VARCHAR(512) CONSTRAINT "contact_bases_pronunciation_default_constraint" DEFAULT '' NOT NULL, "family_name" VARCHAR(512) CONSTRAINT "contact_bases_family_name_default_constraint" DEFAULT '' NOT NULL, "nick_name" VARCHAR(512) CONSTRAINT "contact_bases_nick_name_default_constraint" DEFAULT '' NOT NULL, "job_title" VARCHAR(512) CONSTRAINT "contact_bases_job_title_default_constraint" DEFAULT '' NOT NULL, "gender_type_id" INTEGER NOT NULL, "organization" VARCHAR(512) CONSTRAINT "contact_bases_organization_default_constraint" DEFAULT '' NOT NULL, "is_starred" BOOLEAN CONSTRAINT "contact_bases_is_starred_default_constraint" DEFAULT 0 NOT NULL, "is_favorite" BOOLEAN CONSTRAINT "contact_bases_is_favorite_default_constraint" DEFAULT 0 NOT NULL, "is_deleted" BOOLEAN CONSTRAINT "contact_bases_is_deleted_default_constraint" DEFAULT 0 NOT NULL, "user_id" INTEGER NOT NULL, CONSTRAINT "contact_bases_uuid_unique_constraint" UNIQUE ("uuid"), CONSTRAINT "contact_bases_gender_type_id_foreign_key" FOREIGN KEY ("gender_type_id") REFERENCES "genders" ("id"), CONSTRAINT "contact_bases_user_id_foreign_key" FOREIGN KEY ("user_id") REFERENCES "users" ("id"));
+CREATE TABLE "contact_bases" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "contact_bases_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "contact_bases_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "contact_bases_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "contact_bases_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "name" VARCHAR(512) NOT NULL,
+    "given_name" VARCHAR(512) NOT NULL,
+    "additional_name" VARCHAR(512) CONSTRAINT "contact_bases_additional_name_default_constraint" DEFAULT '' NOT NULL,
+    "pronunciation" VARCHAR(512) CONSTRAINT "contact_bases_pronunciation_default_constraint" DEFAULT '' NOT NULL,
+    "family_name" VARCHAR(512) CONSTRAINT "contact_bases_family_name_default_constraint" DEFAULT '' NOT NULL,
+    "nick_name" VARCHAR(512) CONSTRAINT "contact_bases_nick_name_default_constraint" DEFAULT '' NOT NULL,
+    "job_title" VARCHAR(512) CONSTRAINT "contact_bases_job_title_default_constraint" DEFAULT '' NOT NULL,
+    "gender_type_id" INTEGER NOT NULL,
+    "organization" VARCHAR(512) CONSTRAINT "contact_bases_organization_default_constraint" DEFAULT '' NOT NULL,
+    "is_starred" BOOLEAN CONSTRAINT "contact_bases_is_starred_default_constraint" DEFAULT 0 NOT NULL,
+    "is_favorite" BOOLEAN CONSTRAINT "contact_bases_is_favorite_default_constraint" DEFAULT 0 NOT NULL,
+    "is_deleted" BOOLEAN CONSTRAINT "contact_bases_is_deleted_default_constraint" DEFAULT 0 NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    CONSTRAINT "contact_bases_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "contact_bases_gender_type_id_foreign_key" FOREIGN KEY ("gender_type_id") REFERENCES "genders" ("id"),
+    CONSTRAINT "contact_bases_user_id_foreign_key" FOREIGN KEY ("user_id") REFERENCES "users" ("id")
+);
 GO
 CREATE TRIGGER "trg_contact_bases_updated_at"
 AFTER UPDATE ON "contact_bases"
@@ -83,7 +176,16 @@ BEGIN
   UPDATE "contact_bases" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "email_types" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "email_types_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "email_types_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "email_types_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "email_types_version_default_constraint" DEFAULT X'00' NOT NULL, "name" VARCHAR(128) NOT NULL, "description" TEXT CONSTRAINT "email_types_description_default_constraint" DEFAULT '' NOT NULL, CONSTRAINT "email_types_uuid_unique_constraint" UNIQUE ("uuid"));
+CREATE TABLE "email_types" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "email_types_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "email_types_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "email_types_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "email_types_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "name" VARCHAR(128) NOT NULL,
+    "description" TEXT CONSTRAINT "email_types_description_default_constraint" DEFAULT '' NOT NULL,
+    CONSTRAINT "email_types_uuid_unique_constraint" UNIQUE ("uuid")
+);
 GO
 CREATE TRIGGER "trg_email_types_updated_at"
 AFTER UPDATE ON "email_types"
@@ -93,7 +195,21 @@ BEGIN
   UPDATE "email_types" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "email_bases" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "email_bases_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "email_bases_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "email_bases_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "email_bases_version_default_constraint" DEFAULT X'00' NOT NULL, "email_type_id" INTEGER NOT NULL, "contact_id" INTEGER NOT NULL, "address" VARCHAR(320) NOT NULL, "display_name" VARCHAR(256) CONSTRAINT "email_bases_display_name_default_constraint" DEFAULT '' NOT NULL, "is_primary" BOOLEAN NOT NULL, CONSTRAINT "email_bases_uuid_unique_constraint" UNIQUE ("uuid"), CONSTRAINT "email_bases_email_type_id_foreign_key" FOREIGN KEY ("email_type_id") REFERENCES "email_types" ("id"), CONSTRAINT "email_bases_contact_id_foreign_key" FOREIGN KEY ("contact_id") REFERENCES "contact_bases" ("id"));
+CREATE TABLE "email_bases" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "email_bases_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "email_bases_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "email_bases_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "email_bases_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "email_type_id" INTEGER NOT NULL,
+    "contact_id" INTEGER NOT NULL,
+    "address" VARCHAR(320) NOT NULL,
+    "display_name" VARCHAR(256) CONSTRAINT "email_bases_display_name_default_constraint" DEFAULT '' NOT NULL,
+    "is_primary" BOOLEAN NOT NULL,
+    CONSTRAINT "email_bases_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "email_bases_email_type_id_foreign_key" FOREIGN KEY ("email_type_id") REFERENCES "email_types" ("id"),
+    CONSTRAINT "email_bases_contact_id_foreign_key" FOREIGN KEY ("contact_id") REFERENCES "contact_bases" ("id")
+);
 GO
 CREATE INDEX "email_bases_email_base_contact_id_index_index" ON "email_bases" ("contact_id");
 GO
@@ -105,7 +221,16 @@ BEGIN
   UPDATE "email_bases" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "phone_types" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "phone_types_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "phone_types_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "phone_types_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "phone_types_version_default_constraint" DEFAULT X'00' NOT NULL, "name" VARCHAR(128) NOT NULL, "description" TEXT CONSTRAINT "phone_types_description_default_constraint" DEFAULT '' NOT NULL, CONSTRAINT "phone_types_uuid_unique_constraint" UNIQUE ("uuid"));
+CREATE TABLE "phone_types" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "phone_types_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "phone_types_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "phone_types_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "phone_types_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "name" VARCHAR(128) NOT NULL,
+    "description" TEXT CONSTRAINT "phone_types_description_default_constraint" DEFAULT '' NOT NULL,
+    CONSTRAINT "phone_types_uuid_unique_constraint" UNIQUE ("uuid")
+);
 GO
 CREATE TRIGGER "trg_phone_types_updated_at"
 AFTER UPDATE ON "phone_types"
@@ -115,7 +240,23 @@ BEGIN
   UPDATE "phone_types" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "phone_bases" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "phone_bases_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "phone_bases_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "phone_bases_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "phone_bases_version_default_constraint" DEFAULT X'00' NOT NULL, "phone_type_id" INTEGER NOT NULL, "contact_id" INTEGER NOT NULL, "number" VARCHAR(20) NOT NULL, "display_name" VARCHAR(256) NOT NULL, "extention" VARCHAR(10) NOT NULL, "is_primary" BOOLEAN NOT NULL, "is_verified" BOOLEAN CONSTRAINT "phone_bases_is_verified_default_constraint" DEFAULT 0 NOT NULL, CONSTRAINT "phone_bases_uuid_unique_constraint" UNIQUE ("uuid"), CONSTRAINT "phone_bases_phone_type_id_foreign_key" FOREIGN KEY ("phone_type_id") REFERENCES "phone_types" ("id"), CONSTRAINT "phone_bases_contact_id_foreign_key" FOREIGN KEY ("contact_id") REFERENCES "contact_bases" ("id"));
+CREATE TABLE "phone_bases" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "phone_bases_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "phone_bases_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "phone_bases_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "phone_bases_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "phone_type_id" INTEGER NOT NULL,
+    "contact_id" INTEGER NOT NULL,
+    "number" VARCHAR(20) NOT NULL,
+    "display_name" VARCHAR(256) NOT NULL,
+    "extention" VARCHAR(10) NOT NULL,
+    "is_primary" BOOLEAN NOT NULL,
+    "is_verified" BOOLEAN CONSTRAINT "phone_bases_is_verified_default_constraint" DEFAULT 0 NOT NULL,
+    CONSTRAINT "phone_bases_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "phone_bases_phone_type_id_foreign_key" FOREIGN KEY ("phone_type_id") REFERENCES "phone_types" ("id"),
+    CONSTRAINT "phone_bases_contact_id_foreign_key" FOREIGN KEY ("contact_id") REFERENCES "contact_bases" ("id")
+);
 GO
 CREATE INDEX "phone_bases_phone_base_contact_id_index_index" ON "phone_bases" ("contact_id");
 GO
@@ -127,7 +268,16 @@ BEGIN
   UPDATE "phone_bases" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "address_types" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "address_types_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "address_types_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "address_types_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "address_types_version_default_constraint" DEFAULT X'00' NOT NULL, "name" VARCHAR(128) NOT NULL, "description" TEXT CONSTRAINT "address_types_description_default_constraint" DEFAULT '' NOT NULL, CONSTRAINT "address_types_uuid_unique_constraint" UNIQUE ("uuid"));
+CREATE TABLE "address_types" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "address_types_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "address_types_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "address_types_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "address_types_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "name" VARCHAR(128) NOT NULL,
+    "description" TEXT CONSTRAINT "address_types_description_default_constraint" DEFAULT '' NOT NULL,
+    CONSTRAINT "address_types_uuid_unique_constraint" UNIQUE ("uuid")
+);
 GO
 CREATE TRIGGER "trg_address_types_updated_at"
 AFTER UPDATE ON "address_types"
@@ -137,7 +287,32 @@ BEGIN
   UPDATE "address_types" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "address_bases" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "address_bases_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "address_bases_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "address_bases_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "address_bases_version_default_constraint" DEFAULT X'00' NOT NULL, "contact_id" INTEGER NOT NULL, "address_type_id" INTEGER NOT NULL, "display_name" VARCHAR(255) CONSTRAINT "address_bases_display_name_default_constraint" DEFAULT '' NOT NULL, "line_1" VARCHAR(255) NOT NULL, "line_2" VARCHAR(255) CONSTRAINT "address_bases_line_2_default_constraint" DEFAULT '' NOT NULL, "line_3" VARCHAR(255) CONSTRAINT "address_bases_line_3_default_constraint" DEFAULT '' NOT NULL, "neighborhood" VARCHAR(100) CONSTRAINT "address_bases_neighborhood_default_constraint" DEFAULT '' NOT NULL, "district" VARCHAR(100) CONSTRAINT "address_bases_district_default_constraint" DEFAULT '' NOT NULL, "city" VARCHAR(100) NOT NULL, "state_province" VARCHAR(100) CONSTRAINT "address_bases_state_province_default_constraint" DEFAULT '' NOT NULL, "postal_code" VARCHAR(20) CONSTRAINT "address_bases_postal_code_default_constraint" DEFAULT '' NOT NULL, "country_code" VARCHAR(2) NOT NULL, "formatted_address" TEXT CONSTRAINT "address_bases_formatted_address_default_constraint" DEFAULT '' NOT NULL, "latitude" NUMERIC, "longitude" NUMERIC, "is_primary" BOOLEAN CONSTRAINT "address_bases_is_primary_default_constraint" DEFAULT 0 NOT NULL, CONSTRAINT "address_bases_uuid_unique_constraint" UNIQUE ("uuid"), CONSTRAINT "address_bases_contact_id_foreign_key" FOREIGN KEY ("contact_id") REFERENCES "contact_bases" ("id"), CONSTRAINT "address_bases_address_type_id_foreign_key" FOREIGN KEY ("address_type_id") REFERENCES "address_types" ("id"));
+CREATE TABLE "address_bases" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "address_bases_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "address_bases_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "address_bases_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "address_bases_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "contact_id" INTEGER NOT NULL,
+    "address_type_id" INTEGER NOT NULL,
+    "display_name" VARCHAR(255) CONSTRAINT "address_bases_display_name_default_constraint" DEFAULT '' NOT NULL,
+    "line_1" VARCHAR(255) NOT NULL,
+    "line_2" VARCHAR(255) CONSTRAINT "address_bases_line_2_default_constraint" DEFAULT '' NOT NULL,
+    "line_3" VARCHAR(255) CONSTRAINT "address_bases_line_3_default_constraint" DEFAULT '' NOT NULL,
+    "neighborhood" VARCHAR(100) CONSTRAINT "address_bases_neighborhood_default_constraint" DEFAULT '' NOT NULL,
+    "district" VARCHAR(100) CONSTRAINT "address_bases_district_default_constraint" DEFAULT '' NOT NULL,
+    "city" VARCHAR(100) NOT NULL,
+    "state_province" VARCHAR(100) CONSTRAINT "address_bases_state_province_default_constraint" DEFAULT '' NOT NULL,
+    "postal_code" VARCHAR(20) CONSTRAINT "address_bases_postal_code_default_constraint" DEFAULT '' NOT NULL,
+    "country_code" VARCHAR(2) NOT NULL,
+    "formatted_address" TEXT CONSTRAINT "address_bases_formatted_address_default_constraint" DEFAULT '' NOT NULL,
+    "latitude" NUMERIC,
+    "longitude" NUMERIC,
+    "is_primary" BOOLEAN CONSTRAINT "address_bases_is_primary_default_constraint" DEFAULT 0 NOT NULL,
+    CONSTRAINT "address_bases_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "address_bases_contact_id_foreign_key" FOREIGN KEY ("contact_id") REFERENCES "contact_bases" ("id"),
+    CONSTRAINT "address_bases_address_type_id_foreign_key" FOREIGN KEY ("address_type_id") REFERENCES "address_types" ("id")
+);
 GO
 CREATE INDEX "address_bases_address_base_contact_id_index_index" ON "address_bases" ("contact_id");
 GO
@@ -149,7 +324,18 @@ BEGIN
   UPDATE "address_bases" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "contact_attributes" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "contact_attributes_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "contact_attributes_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "contact_attributes_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "contact_attributes_version_default_constraint" DEFAULT X'00' NOT NULL, "contact_id" INTEGER NOT NULL, "name" VARCHAR(255) NOT NULL, "value" TEXT NOT NULL, CONSTRAINT "contact_attributes_uuid_unique_constraint" UNIQUE ("uuid"), CONSTRAINT "contact_attributes_contact_id_foreign_key" FOREIGN KEY ("contact_id") REFERENCES "contact_bases" ("id"));
+CREATE TABLE "contact_attributes" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "contact_attributes_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "contact_attributes_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "contact_attributes_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "contact_attributes_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "contact_id" INTEGER NOT NULL,
+    "name" VARCHAR(255) NOT NULL,
+    "value" TEXT NOT NULL,
+    CONSTRAINT "contact_attributes_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "contact_attributes_contact_id_foreign_key" FOREIGN KEY ("contact_id") REFERENCES "contact_bases" ("id")
+);
 GO
 CREATE INDEX "contact_attributes_contact_attribute_contact_id_index_index" ON "contact_attributes" ("contact_id");
 GO
@@ -163,7 +349,18 @@ BEGIN
   UPDATE "contact_attributes" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "address_attributes" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "address_attributes_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "address_attributes_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "address_attributes_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "address_attributes_version_default_constraint" DEFAULT X'00' NOT NULL, "address_id" INTEGER NOT NULL, "name" VARCHAR(255) NOT NULL, "value" TEXT NOT NULL, CONSTRAINT "address_attributes_uuid_unique_constraint" UNIQUE ("uuid"), CONSTRAINT "address_attributes_address_id_foreign_key" FOREIGN KEY ("address_id") REFERENCES "address_bases" ("id"));
+CREATE TABLE "address_attributes" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "address_attributes_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "address_attributes_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "address_attributes_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "address_attributes_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "address_id" INTEGER NOT NULL,
+    "name" VARCHAR(255) NOT NULL,
+    "value" TEXT NOT NULL,
+    CONSTRAINT "address_attributes_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "address_attributes_address_id_foreign_key" FOREIGN KEY ("address_id") REFERENCES "address_bases" ("id")
+);
 GO
 CREATE INDEX "address_attributes_address_attribute_address_id_index_index" ON "address_attributes" ("address_id");
 GO
@@ -177,7 +374,18 @@ BEGIN
   UPDATE "address_attributes" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "email_attributes" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "email_attributes_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "email_attributes_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "email_attributes_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "email_attributes_version_default_constraint" DEFAULT X'00' NOT NULL, "email_id" INTEGER NOT NULL, "name" VARCHAR(255) NOT NULL, "value" TEXT NOT NULL, CONSTRAINT "email_attributes_uuid_unique_constraint" UNIQUE ("uuid"), CONSTRAINT "email_attributes_email_id_foreign_key" FOREIGN KEY ("email_id") REFERENCES "email_bases" ("id"));
+CREATE TABLE "email_attributes" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "email_attributes_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "email_attributes_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "email_attributes_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "email_attributes_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "email_id" INTEGER NOT NULL,
+    "name" VARCHAR(255) NOT NULL,
+    "value" TEXT NOT NULL,
+    CONSTRAINT "email_attributes_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "email_attributes_email_id_foreign_key" FOREIGN KEY ("email_id") REFERENCES "email_bases" ("id")
+);
 GO
 CREATE UNIQUE INDEX "email_attributes_owner_key_index" ON "email_attributes" ("email_id", "name");
 GO
@@ -189,7 +397,18 @@ BEGIN
   UPDATE "email_attributes" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "phone_attributes" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "phone_attributes_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "phone_attributes_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "phone_attributes_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "phone_attributes_version_default_constraint" DEFAULT X'00' NOT NULL, "phone_id" INTEGER NOT NULL, "name" VARCHAR(255) NOT NULL, "value" TEXT NOT NULL, CONSTRAINT "phone_attributes_uuid_unique_constraint" UNIQUE ("uuid"), CONSTRAINT "phone_attributes_phone_id_foreign_key" FOREIGN KEY ("phone_id") REFERENCES "phone_bases" ("id"));
+CREATE TABLE "phone_attributes" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "phone_attributes_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "phone_attributes_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "phone_attributes_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "phone_attributes_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "phone_id" INTEGER NOT NULL,
+    "name" VARCHAR(255) NOT NULL,
+    "value" TEXT NOT NULL,
+    CONSTRAINT "phone_attributes_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "phone_attributes_phone_id_foreign_key" FOREIGN KEY ("phone_id") REFERENCES "phone_bases" ("id")
+);
 GO
 CREATE UNIQUE INDEX "phone_attributes_owner_key_index" ON "phone_attributes" ("phone_id", "name");
 GO
@@ -201,7 +420,16 @@ BEGIN
   UPDATE "phone_attributes" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "labels" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "labels_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "labels_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "labels_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "labels_version_default_constraint" DEFAULT X'00' NOT NULL, "name" VARCHAR(255) NOT NULL, "description" TEXT CONSTRAINT "labels_description_default_constraint" DEFAULT '' NOT NULL, CONSTRAINT "labels_uuid_unique_constraint" UNIQUE ("uuid"));
+CREATE TABLE "labels" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "labels_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "labels_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "labels_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "labels_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "name" VARCHAR(255) NOT NULL,
+    "description" TEXT CONSTRAINT "labels_description_default_constraint" DEFAULT '' NOT NULL,
+    CONSTRAINT "labels_uuid_unique_constraint" UNIQUE ("uuid")
+);
 GO
 CREATE TRIGGER "trg_labels_updated_at"
 AFTER UPDATE ON "labels"
@@ -211,7 +439,18 @@ BEGIN
   UPDATE "labels" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "contact_labels" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "contact_labels_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "contact_labels_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "contact_labels_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "contact_labels_version_default_constraint" DEFAULT X'00' NOT NULL, "contact_id" INTEGER NOT NULL, "label_id" INTEGER NOT NULL, CONSTRAINT "contact_labels_uuid_unique_constraint" UNIQUE ("uuid"), CONSTRAINT "contact_labels_contact_id_foreign_key" FOREIGN KEY ("contact_id") REFERENCES "contact_bases" ("id"), CONSTRAINT "contact_labels_label_id_foreign_key" FOREIGN KEY ("label_id") REFERENCES "labels" ("id"));
+CREATE TABLE "contact_labels" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "contact_labels_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "contact_labels_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "contact_labels_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "contact_labels_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "contact_id" INTEGER NOT NULL,
+    "label_id" INTEGER NOT NULL,
+    CONSTRAINT "contact_labels_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "contact_labels_contact_id_foreign_key" FOREIGN KEY ("contact_id") REFERENCES "contact_bases" ("id"),
+    CONSTRAINT "contact_labels_label_id_foreign_key" FOREIGN KEY ("label_id") REFERENCES "labels" ("id")
+);
 GO
 CREATE UNIQUE INDEX "contact_labels_contact_label_contact_id_label_id_index" ON "contact_labels" ("contact_id", "label_id");
 GO
@@ -225,7 +464,18 @@ BEGIN
   UPDATE "contact_labels" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "address_labels" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "address_labels_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "address_labels_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "address_labels_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "address_labels_version_default_constraint" DEFAULT X'00' NOT NULL, "address_id" INTEGER NOT NULL, "label_id" INTEGER NOT NULL, CONSTRAINT "address_labels_uuid_unique_constraint" UNIQUE ("uuid"), CONSTRAINT "address_labels_address_id_foreign_key" FOREIGN KEY ("address_id") REFERENCES "address_bases" ("id"), CONSTRAINT "address_labels_label_id_foreign_key" FOREIGN KEY ("label_id") REFERENCES "labels" ("id"));
+CREATE TABLE "address_labels" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "address_labels_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "address_labels_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "address_labels_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "address_labels_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "address_id" INTEGER NOT NULL,
+    "label_id" INTEGER NOT NULL,
+    CONSTRAINT "address_labels_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "address_labels_address_id_foreign_key" FOREIGN KEY ("address_id") REFERENCES "address_bases" ("id"),
+    CONSTRAINT "address_labels_label_id_foreign_key" FOREIGN KEY ("label_id") REFERENCES "labels" ("id")
+);
 GO
 CREATE UNIQUE INDEX "address_labels_address_label_address_id_label_id_index" ON "address_labels" ("address_id", "label_id");
 GO
@@ -237,7 +487,18 @@ BEGIN
   UPDATE "address_labels" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "email_labels" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "email_labels_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "email_labels_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "email_labels_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "email_labels_version_default_constraint" DEFAULT X'00' NOT NULL, "email_id" INTEGER NOT NULL, "label_id" INTEGER NOT NULL, CONSTRAINT "email_labels_uuid_unique_constraint" UNIQUE ("uuid"), CONSTRAINT "email_labels_email_id_foreign_key" FOREIGN KEY ("email_id") REFERENCES "email_bases" ("id"), CONSTRAINT "email_labels_label_id_foreign_key" FOREIGN KEY ("label_id") REFERENCES "labels" ("id"));
+CREATE TABLE "email_labels" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "email_labels_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "email_labels_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "email_labels_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "email_labels_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "email_id" INTEGER NOT NULL,
+    "label_id" INTEGER NOT NULL,
+    CONSTRAINT "email_labels_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "email_labels_email_id_foreign_key" FOREIGN KEY ("email_id") REFERENCES "email_bases" ("id"),
+    CONSTRAINT "email_labels_label_id_foreign_key" FOREIGN KEY ("label_id") REFERENCES "labels" ("id")
+);
 GO
 CREATE UNIQUE INDEX "email_labels_email_label_email_id_label_id_index" ON "email_labels" ("email_id", "label_id");
 GO
@@ -249,7 +510,18 @@ BEGIN
   UPDATE "email_labels" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "phone_labels" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "phone_labels_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "phone_labels_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "phone_labels_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "phone_labels_version_default_constraint" DEFAULT X'00' NOT NULL, "phone_id" INTEGER NOT NULL, "label_id" INTEGER NOT NULL, CONSTRAINT "phone_labels_uuid_unique_constraint" UNIQUE ("uuid"), CONSTRAINT "phone_labels_phone_id_foreign_key" FOREIGN KEY ("phone_id") REFERENCES "phone_bases" ("id"), CONSTRAINT "phone_labels_label_id_foreign_key" FOREIGN KEY ("label_id") REFERENCES "labels" ("id"));
+CREATE TABLE "phone_labels" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "phone_labels_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "phone_labels_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "phone_labels_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "phone_labels_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "phone_id" INTEGER NOT NULL,
+    "label_id" INTEGER NOT NULL,
+    CONSTRAINT "phone_labels_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "phone_labels_phone_id_foreign_key" FOREIGN KEY ("phone_id") REFERENCES "phone_bases" ("id"),
+    CONSTRAINT "phone_labels_label_id_foreign_key" FOREIGN KEY ("label_id") REFERENCES "labels" ("id")
+);
 GO
 CREATE UNIQUE INDEX "phone_labels_phone_label_phone_id_label_id_index" ON "phone_labels" ("phone_id", "label_id");
 GO
@@ -261,7 +533,127 @@ BEGIN
   UPDATE "phone_labels" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "categories" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "categories_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "categories_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "categories_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "categories_version_default_constraint" DEFAULT X'00' NOT NULL, "category_id" INTEGER, "name" VARCHAR(128) NOT NULL, "description" TEXT NOT NULL, "is_enabled" BOOLEAN CONSTRAINT "categories_is_enabled_default_constraint" DEFAULT 1 NOT NULL, "is_deleted" BOOLEAN CONSTRAINT "categories_is_deleted_default_constraint" DEFAULT 0 NOT NULL, CONSTRAINT "categories_uuid_unique_constraint" UNIQUE ("uuid"), CONSTRAINT "categories_category_id_foreign_key" FOREIGN KEY ("category_id") REFERENCES "categories" ("id"));
+CREATE TABLE "languages" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "languages_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "languages_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "languages_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "languages_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "code" VARCHAR(2) NOT NULL,
+    "name" VARCHAR(128) NOT NULL,
+    "is_enabled" BOOLEAN CONSTRAINT "languages_is_enabled_default_constraint" DEFAULT 1 NOT NULL,
+    "is_deleted" BOOLEAN CONSTRAINT "languages_is_deleted_default_constraint" DEFAULT 0 NOT NULL,
+    CONSTRAINT "languages_uuid_unique_constraint" UNIQUE ("uuid")
+);
+GO
+CREATE TRIGGER "trg_languages_updated_at"
+AFTER UPDATE ON "languages"
+FOR EACH ROW
+WHEN NEW."updated" IS OLD."updated"
+BEGIN
+  UPDATE "languages" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+END;
+GO
+CREATE TABLE "string_names" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "string_names_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "string_names_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "string_names_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "string_names_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "name" VARCHAR(128) NOT NULL,
+    "description" TEXT NOT NULL,
+    CONSTRAINT "string_names_uuid_unique_constraint" UNIQUE ("uuid")
+);
+GO
+CREATE TRIGGER "trg_string_names_updated_at"
+AFTER UPDATE ON "string_names"
+FOR EACH ROW
+WHEN NEW."updated" IS OLD."updated"
+BEGIN
+  UPDATE "string_names" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+END;
+GO
+CREATE TABLE "string_bases" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "string_bases_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "string_bases_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "string_bases_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "string_bases_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "string_name_id" INTEGER NOT NULL,
+    "language_id" INTEGER NOT NULL,
+    "value" TEXT NOT NULL,
+    "is_enabled" BOOLEAN CONSTRAINT "string_bases_is_enabled_default_constraint" DEFAULT 1 NOT NULL,
+    "is_deleted" BOOLEAN CONSTRAINT "string_bases_is_deleted_default_constraint" DEFAULT 0 NOT NULL,
+    CONSTRAINT "string_bases_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "string_bases_string_name_id_foreign_key" FOREIGN KEY ("string_name_id") REFERENCES "string_names" ("id"),
+    CONSTRAINT "string_bases_language_id_foreign_key" FOREIGN KEY ("language_id") REFERENCES "languages" ("id")
+);
+GO
+CREATE TRIGGER "trg_string_bases_updated_at"
+AFTER UPDATE ON "string_bases"
+FOR EACH ROW
+WHEN NEW."updated" IS OLD."updated"
+BEGIN
+  UPDATE "string_bases" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+END;
+GO
+CREATE TABLE "mime_types" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "mime_types_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "mime_types_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "mime_types_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "mime_types_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "name" VARCHAR(128) NOT NULL,
+    "description" TEXT CONSTRAINT "mime_types_description_default_constraint" DEFAULT '' NOT NULL,
+    CONSTRAINT "mime_types_uuid_unique_constraint" UNIQUE ("uuid")
+);
+GO
+CREATE TRIGGER "trg_mime_types_updated_at"
+AFTER UPDATE ON "mime_types"
+FOR EACH ROW
+WHEN NEW."updated" IS OLD."updated"
+BEGIN
+  UPDATE "mime_types" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+END;
+GO
+CREATE TABLE "resource_bases" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "resource_bases_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "resource_bases_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "resource_bases_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "resource_bases_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "resource_name" VARCHAR(128) NOT NULL,
+    "mime_type_id" INTEGER NOT NULL,
+    "description" TEXT NOT NULL,
+    "location" VARCHAR(256) NOT NULL,
+    "is_enabled" BOOLEAN CONSTRAINT "resource_bases_is_enabled_default_constraint" DEFAULT 1 NOT NULL,
+    "is_deleted" BOOLEAN CONSTRAINT "resource_bases_is_deleted_default_constraint" DEFAULT 0 NOT NULL,
+    CONSTRAINT "resource_bases_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "resource_bases_mime_type_id_foreign_key" FOREIGN KEY ("mime_type_id") REFERENCES "mime_types" ("id")
+);
+GO
+CREATE TRIGGER "trg_resource_bases_updated_at"
+AFTER UPDATE ON "resource_bases"
+FOR EACH ROW
+WHEN NEW."updated" IS OLD."updated"
+BEGIN
+  UPDATE "resource_bases" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+END;
+GO
+CREATE TABLE "categories" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "categories_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "categories_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "categories_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "categories_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "category_id" INTEGER,
+    "name" VARCHAR(128) NOT NULL,
+    "description" TEXT NOT NULL,
+    "is_enabled" BOOLEAN CONSTRAINT "categories_is_enabled_default_constraint" DEFAULT 1 NOT NULL,
+    "is_deleted" BOOLEAN CONSTRAINT "categories_is_deleted_default_constraint" DEFAULT 0 NOT NULL,
+    CONSTRAINT "categories_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "categories_category_id_foreign_key" FOREIGN KEY ("category_id") REFERENCES "categories" ("id")
+);
 GO
 CREATE TRIGGER "trg_categories_updated_at"
 AFTER UPDATE ON "categories"
@@ -271,7 +663,19 @@ BEGIN
   UPDATE "categories" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "game_parent_bases" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "game_parent_bases_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "game_parent_bases_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "game_parent_bases_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "game_parent_bases_version_default_constraint" DEFAULT X'00' NOT NULL, "name" VARCHAR(128) NOT NULL, "description" TEXT NOT NULL, "location" VARCHAR(256) NOT NULL, "is_enabled" BOOLEAN CONSTRAINT "game_parent_bases_is_enabled_default_constraint" DEFAULT 1 NOT NULL, "is_deleted" BOOLEAN CONSTRAINT "game_parent_bases_is_deleted_default_constraint" DEFAULT 0 NOT NULL, CONSTRAINT "game_parent_bases_uuid_unique_constraint" UNIQUE ("uuid"));
+CREATE TABLE "game_parent_bases" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "game_parent_bases_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "game_parent_bases_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "game_parent_bases_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "game_parent_bases_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "name" VARCHAR(128) NOT NULL,
+    "description" TEXT NOT NULL,
+    "location" VARCHAR(256) NOT NULL,
+    "is_enabled" BOOLEAN CONSTRAINT "game_parent_bases_is_enabled_default_constraint" DEFAULT 1 NOT NULL,
+    "is_deleted" BOOLEAN CONSTRAINT "game_parent_bases_is_deleted_default_constraint" DEFAULT 0 NOT NULL,
+    CONSTRAINT "game_parent_bases_uuid_unique_constraint" UNIQUE ("uuid")
+);
 GO
 CREATE TRIGGER "trg_game_parent_bases_updated_at"
 AFTER UPDATE ON "game_parent_bases"
@@ -281,7 +685,18 @@ BEGIN
   UPDATE "game_parent_bases" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "game_parent_configs" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "game_parent_configs_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "game_parent_configs_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "game_parent_configs_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "game_parent_configs_version_default_constraint" DEFAULT X'00' NOT NULL, "game_parent_id" INTEGER NOT NULL, "name" VARCHAR(128) NOT NULL, "value" TEXT NOT NULL, CONSTRAINT "game_parent_configs_uuid_unique_constraint" UNIQUE ("uuid"), CONSTRAINT "game_parent_configs_game_parent_id_foreign_key" FOREIGN KEY ("game_parent_id") REFERENCES "game_parent_bases" ("id"));
+CREATE TABLE "game_parent_configs" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "game_parent_configs_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "game_parent_configs_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "game_parent_configs_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "game_parent_configs_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "game_parent_id" INTEGER NOT NULL,
+    "name" VARCHAR(128) NOT NULL,
+    "value" TEXT NOT NULL,
+    CONSTRAINT "game_parent_configs_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "game_parent_configs_game_parent_id_foreign_key" FOREIGN KEY ("game_parent_id") REFERENCES "game_parent_bases" ("id")
+);
 GO
 CREATE TRIGGER "trg_game_parent_configs_updated_at"
 AFTER UPDATE ON "game_parent_configs"
@@ -291,7 +706,22 @@ BEGIN
   UPDATE "game_parent_configs" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "games" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "games_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "games_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "games_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "games_version_default_constraint" DEFAULT X'00' NOT NULL, "name" VARCHAR(128) NOT NULL, "description" TEXT NOT NULL, "game_parent_id" INTEGER NOT NULL, "game_parent_config_id" INTEGER NOT NULL, "is_deleted" BOOLEAN CONSTRAINT "games_is_deleted_default_constraint" DEFAULT 0 NOT NULL, "is_enabled" BOOLEAN CONSTRAINT "games_is_enabled_default_constraint" DEFAULT 1 NOT NULL, CONSTRAINT "games_uuid_unique_constraint" UNIQUE ("uuid"), CONSTRAINT "games_game_parent_id_foreign_key" FOREIGN KEY ("game_parent_id") REFERENCES "game_parent_bases" ("id"), CONSTRAINT "games_game_parent_config_id_foreign_key" FOREIGN KEY ("game_parent_config_id") REFERENCES "game_parent_configs" ("id"));
+CREATE TABLE "games" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "games_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "games_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "games_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "games_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "name" VARCHAR(128) NOT NULL,
+    "description" TEXT NOT NULL,
+    "game_parent_id" INTEGER NOT NULL,
+    "game_parent_config_id" INTEGER NOT NULL,
+    "is_deleted" BOOLEAN CONSTRAINT "games_is_deleted_default_constraint" DEFAULT 0 NOT NULL,
+    "is_enabled" BOOLEAN CONSTRAINT "games_is_enabled_default_constraint" DEFAULT 1 NOT NULL,
+    CONSTRAINT "games_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "games_game_parent_id_foreign_key" FOREIGN KEY ("game_parent_id") REFERENCES "game_parent_bases" ("id"),
+    CONSTRAINT "games_game_parent_config_id_foreign_key" FOREIGN KEY ("game_parent_config_id") REFERENCES "game_parent_configs" ("id")
+);
 GO
 CREATE TRIGGER "trg_games_updated_at"
 AFTER UPDATE ON "games"
@@ -301,7 +731,18 @@ BEGIN
   UPDATE "games" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "game_categories" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "game_categories_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "game_categories_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "game_categories_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "game_categories_version_default_constraint" DEFAULT X'00' NOT NULL, "game_id" INTEGER NOT NULL, "category_id" INTEGER NOT NULL, CONSTRAINT "game_categories_uuid_unique_constraint" UNIQUE ("uuid"), CONSTRAINT "game_categories_game_id_foreign_key" FOREIGN KEY ("game_id") REFERENCES "games" ("id"), CONSTRAINT "game_categories_category_id_foreign_key" FOREIGN KEY ("category_id") REFERENCES "categories" ("id"));
+CREATE TABLE "game_categories" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "game_categories_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "game_categories_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "game_categories_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "game_categories_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "game_id" INTEGER NOT NULL,
+    "category_id" INTEGER NOT NULL,
+    CONSTRAINT "game_categories_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "game_categories_game_id_foreign_key" FOREIGN KEY ("game_id") REFERENCES "games" ("id"),
+    CONSTRAINT "game_categories_category_id_foreign_key" FOREIGN KEY ("category_id") REFERENCES "categories" ("id")
+);
 GO
 CREATE UNIQUE INDEX "game_categories_game_category_game_id_category_id_index" ON "game_categories" ("game_id", "category_id");
 GO
@@ -313,7 +754,42 @@ BEGIN
   UPDATE "game_categories" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "game_states" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "game_states_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "game_states_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "game_states_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "game_states_version_default_constraint" DEFAULT X'00' NOT NULL, "game_id" INTEGER NOT NULL, "user_id" INTEGER NOT NULL, "state" VARCHAR(256) NOT NULL, CONSTRAINT "game_states_uuid_unique_constraint" UNIQUE ("uuid"), CONSTRAINT "game_states_game_id_foreign_key" FOREIGN KEY ("game_id") REFERENCES "games" ("id"), CONSTRAINT "game_states_user_id_foreign_key" FOREIGN KEY ("user_id") REFERENCES "users" ("id"));
+CREATE TABLE "game_parent_categories" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "game_parent_categories_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "game_parent_categories_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "game_parent_categories_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "game_parent_categories_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "game_parent_id" INTEGER NOT NULL,
+    "category_id" INTEGER NOT NULL,
+    CONSTRAINT "game_parent_categories_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "game_parent_categories_game_parent_id_foreign_key" FOREIGN KEY ("game_parent_id") REFERENCES "game_parent_bases" ("id"),
+    CONSTRAINT "game_parent_categories_category_id_foreign_key" FOREIGN KEY ("category_id") REFERENCES "categories" ("id")
+);
+GO
+CREATE UNIQUE INDEX "game_parent_categories_game_parent_category_game_parent_id_category_id_index" ON "game_parent_categories" ("game_parent_id", "category_id");
+GO
+CREATE TRIGGER "trg_game_parent_categories_updated_at"
+AFTER UPDATE ON "game_parent_categories"
+FOR EACH ROW
+WHEN NEW."updated" IS OLD."updated"
+BEGIN
+  UPDATE "game_parent_categories" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+END;
+GO
+CREATE TABLE "game_states" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "game_states_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "game_states_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "game_states_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "game_states_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "game_id" INTEGER NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "state" VARCHAR(256) NOT NULL,
+    CONSTRAINT "game_states_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "game_states_game_id_foreign_key" FOREIGN KEY ("game_id") REFERENCES "games" ("id"),
+    CONSTRAINT "game_states_user_id_foreign_key" FOREIGN KEY ("user_id") REFERENCES "users" ("id")
+);
 GO
 CREATE TRIGGER "trg_game_states_updated_at"
 AFTER UPDATE ON "game_states"
@@ -323,7 +799,18 @@ BEGIN
   UPDATE "game_states" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "game_parent_settings" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "game_parent_settings_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "game_parent_settings_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "game_parent_settings_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "game_parent_settings_version_default_constraint" DEFAULT X'00' NOT NULL, "game_parent_id" INTEGER NOT NULL, "name" VARCHAR(128) NOT NULL, "value" TEXT NOT NULL, CONSTRAINT "game_parent_settings_uuid_unique_constraint" UNIQUE ("uuid"), CONSTRAINT "game_parent_settings_game_parent_id_foreign_key" FOREIGN KEY ("game_parent_id") REFERENCES "game_parent_bases" ("id"));
+CREATE TABLE "game_parent_settings" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "game_parent_settings_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "game_parent_settings_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "game_parent_settings_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "game_parent_settings_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "game_parent_id" INTEGER NOT NULL,
+    "name" VARCHAR(128) NOT NULL,
+    "value" TEXT NOT NULL,
+    CONSTRAINT "game_parent_settings_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "game_parent_settings_game_parent_id_foreign_key" FOREIGN KEY ("game_parent_id") REFERENCES "game_parent_bases" ("id")
+);
 GO
 CREATE UNIQUE INDEX "game_parent_settings_game_parent_setting_game_parent_id_name_index" ON "game_parent_settings" ("game_parent_id", "name");
 GO
@@ -335,7 +822,18 @@ BEGIN
   UPDATE "game_parent_settings" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "game_settings" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "game_settings_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "game_settings_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "game_settings_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "game_settings_version_default_constraint" DEFAULT X'00' NOT NULL, "game_id" INTEGER NOT NULL, "name" VARCHAR(128) NOT NULL, "value" TEXT NOT NULL, CONSTRAINT "game_settings_uuid_unique_constraint" UNIQUE ("uuid"), CONSTRAINT "game_settings_game_id_foreign_key" FOREIGN KEY ("game_id") REFERENCES "games" ("id"));
+CREATE TABLE "game_settings" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "game_settings_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "game_settings_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "game_settings_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "game_settings_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "game_id" INTEGER NOT NULL,
+    "name" VARCHAR(128) NOT NULL,
+    "value" TEXT NOT NULL,
+    CONSTRAINT "game_settings_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "game_settings_game_id_foreign_key" FOREIGN KEY ("game_id") REFERENCES "games" ("id")
+);
 GO
 CREATE UNIQUE INDEX "game_settings_game_setting_game_id_name_index" ON "game_settings" ("game_id", "name");
 GO
@@ -347,7 +845,21 @@ BEGIN
   UPDATE "game_settings" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "reviews" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "uuid" TEXT CONSTRAINT "reviews_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL, "created" TEXT CONSTRAINT "reviews_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "updated" TEXT CONSTRAINT "reviews_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL, "version" BLOB CONSTRAINT "reviews_version_default_constraint" DEFAULT X'00' NOT NULL, "game_id" INTEGER NOT NULL, "user_id" INTEGER NOT NULL, "description" TEXT NOT NULL, "rating" NUMERIC NOT NULL, "is_approved" BOOLEAN CONSTRAINT "reviews_is_approved_default_constraint" DEFAULT 0 NOT NULL, CONSTRAINT "reviews_uuid_unique_constraint" UNIQUE ("uuid"), CONSTRAINT "reviews_game_id_foreign_key" FOREIGN KEY ("game_id") REFERENCES "games" ("id"), CONSTRAINT "reviews_user_id_foreign_key" FOREIGN KEY ("user_id") REFERENCES "users" ("id"));
+CREATE TABLE "reviews" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "reviews_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "reviews_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "reviews_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "reviews_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "game_id" INTEGER NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "description" TEXT NOT NULL,
+    "rating" NUMERIC NOT NULL,
+    "is_approved" BOOLEAN CONSTRAINT "reviews_is_approved_default_constraint" DEFAULT 0 NOT NULL,
+    CONSTRAINT "reviews_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "reviews_game_id_foreign_key" FOREIGN KEY ("game_id") REFERENCES "games" ("id"),
+    CONSTRAINT "reviews_user_id_foreign_key" FOREIGN KEY ("user_id") REFERENCES "users" ("id")
+);
 GO
 CREATE TRIGGER "trg_reviews_updated_at"
 AFTER UPDATE ON "reviews"
@@ -555,3 +1067,489 @@ GO
 INSERT INTO "labels" ("id", "uuid", "name", "description") VALUES (2, 'ae2f4fca-f8b6-544f-903c-06487fb1aefc', 'Friends', 'Personal friends');
 GO
 INSERT INTO "labels" ("id", "uuid", "name", "description") VALUES (3, '9bd502c5-a97d-5b2e-9b6e-571e62d814f5', 'Work', 'Work and professional contacts');
+GO
+-- Seeds: languages
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (1, '3588dd76-6f65-5ae8-8188-1e9097f7d333', 'aa', 'Afar');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (2, '86abf6ed-4b32-514e-bc49-ca0704f4b704', 'ab', 'Abkhazian');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (3, '3398867c-f19d-562b-a25d-7503ca435233', 'ae', 'Avestan');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (4, '3c0b28bb-75d4-5430-9c96-4f157584a166', 'af', 'Afrikaans');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (5, '18abf683-733c-5205-8122-3783d0d377d3', 'ak', 'Akan');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (6, '1e6ac3d9-f1e2-5988-a7d3-5df959fe4b8f', 'am', 'Amharic');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (7, '8224b9aa-e649-5d80-915d-9ec5c665ab4d', 'an', 'Aragonese');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (8, '0f3486cd-120e-5fa1-8780-5cecffc9623e', 'ar', 'Arabic');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (9, '43e6d759-4a25-5bb0-ac5d-17332d8aa6fe', 'as', 'Assamese');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (10, '177258fb-6241-5032-ba8c-e60e6497a266', 'av', 'Avaric');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (11, '07825b32-f547-533a-897b-5f20fee5ab31', 'ay', 'Aymara');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (12, '21d827e5-30d9-532f-aa2b-2ad64d6cc65c', 'az', 'Azerbaijani');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (13, '3fc9fc70-5646-5eb1-aa25-e6d5cc1613ae', 'ba', 'Bashkir');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (14, '8e37c1c1-c26b-502b-9bc1-fa8d4dada3d4', 'be', 'Belarusian');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (15, 'ef72833f-05d5-5016-a9ca-2bc081ed5e92', 'bg', 'Bulgarian');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (16, '3324e8c1-7e77-5eca-bd17-022935909c44', 'bh', 'Bihari languages');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (17, '242229c8-521a-51e1-816f-668fc47d3709', 'bi', 'Bislama');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (18, 'bbeff5d2-43b8-5e3b-b594-7b7ff5e2453d', 'bm', 'Bambara');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (19, '7caf21d9-1592-579a-a10b-12ce359b4524', 'bn', 'Bengali');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (20, '3115c467-1ead-540d-9add-d3eff98191ce', 'bo', 'Tibetan');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (21, '59c64be0-3ebb-514e-8ee3-1bd5347314e4', 'br', 'Breton');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (22, '24451616-143a-56ca-96bf-41d22f02cce2', 'bs', 'Bosnian');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (23, '46f9509e-7dc9-5160-96ea-fc42c5054ba8', 'ca', 'Catalan');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (24, '05c73764-4768-518b-ac19-de52edd44c38', 'ce', 'Chechen');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (25, '08c0bfae-795e-57e7-b947-7165d6e9cf18', 'ch', 'Chamorro');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (26, 'b57d9420-5e6e-5d75-9b91-db59b3689247', 'co', 'Corsican');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (27, 'f85415e1-2021-5f31-89a4-d9b4fb81c799', 'cr', 'Cree');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (28, '8a3df0b5-3c71-50c9-84cd-662a48923709', 'cs', 'Czech');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (29, '029668a3-86c2-5a2b-ae5e-7672e78b8813', 'cu', 'Church Slavic');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (30, '12258e06-f956-598c-983c-d69aff9202cb', 'cv', 'Chuvash');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (31, '40edc641-e056-5019-9aa4-656a0febdd1c', 'cy', 'Welsh');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (32, '71f34b93-f822-5f08-8ae8-8e4f29e3dff8', 'da', 'Danish');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (33, 'ae83dcf5-c8f2-5a93-a438-87c99d726685', 'de', 'German');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (34, '193d348c-4202-57e0-a659-3e9e9d4974d4', 'dv', 'Divehi');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (35, 'c30dac90-6eb6-582b-99b9-85af0511e609', 'dz', 'Dzongkha');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (36, '98990674-a333-58a5-914c-7624a39fb611', 'ee', 'Ewe');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (37, '2da2007d-e3d0-5210-a64f-7da632f0c27e', 'el', 'Greek');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (38, '808a00a3-8be0-5f91-a1df-069289b510e7', 'en', 'English');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (39, '8867a148-d7e9-5895-9c9e-c57ba2123148', 'eo', 'Esperanto');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (40, '2d3b25ed-1940-5b70-a37d-7886f6d7821b', 'es', 'Spanish');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (41, '22823f13-6071-51da-809e-b1e0b4ab32b1', 'et', 'Estonian');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (42, '36c5a03e-748c-578d-84a7-68f9d9083f0d', 'eu', 'Basque');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (43, '01e07c44-ad6f-5a75-9925-d8d511af7957', 'fa', 'Persian');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (44, '9db1ba4f-54a4-59ae-8a4f-fdc7f3c63a62', 'ff', 'Fulah');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (45, '7bb87cb1-091c-5817-9029-8322c9d6a5bb', 'fi', 'Finnish');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (46, 'aef8d9d6-168a-5e1d-a8a5-b3bbdef6706c', 'fj', 'Fijian');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (47, 'e360458f-6378-57f2-8908-e26bc732b50d', 'fo', 'Faroese');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (48, '5e75b46d-d800-57cc-ab38-5dc9f363aa45', 'fr', 'French');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (49, 'c304e04a-0e39-5aa8-8c83-906916d893b6', 'fy', 'Western Frisian');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (50, 'e1be3579-6098-5d4a-b2ba-d34a9fac0e03', 'ga', 'Irish');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (51, '3ac26b41-76fe-53aa-9e6e-be432c7cd9f4', 'gd', 'Scottish Gaelic');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (52, '9866b057-bd1f-5810-be70-f2c0d89aa976', 'gl', 'Galician');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (53, 'f715e32c-1ad2-56cf-acb0-3c3988447f25', 'gn', 'Guarani');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (54, '098af0cf-1288-5e83-8d87-7a84b6f6baac', 'gu', 'Gujarati');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (55, '7e506e6c-982f-5477-9795-c427822ad38e', 'gv', 'Manx');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (56, '6bfa60e7-64e8-596d-8a13-6463cff878af', 'ha', 'Hausa');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (57, '441e54aa-86c9-52ad-96de-823213884625', 'he', 'Hebrew');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (58, 'e108667d-a732-5475-84f0-e198b9c10a69', 'hi', 'Hindi');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (59, '423ea542-17c1-5969-ad1a-01e3401042ad', 'ho', 'Hiri Motu');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (60, '118fe3ee-15fb-55c9-ac6a-598f6d219604', 'hr', 'Croatian');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (61, 'f63dde93-1088-59ec-8b60-5b54da7bbd8f', 'ht', 'Haitian Creole');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (62, 'aea98c5e-9465-5605-9870-503023f4ba77', 'hu', 'Hungarian');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (63, '1118fc41-706f-5c57-8dde-a145a144b9b5', 'hy', 'Armenian');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (64, '79356262-b887-5fb9-9ce3-0874d504c596', 'hz', 'Herero');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (65, '83899dbc-831f-5364-8c5c-cc8a9b852eb9', 'ia', 'Interlingua');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (66, 'da046742-ec86-5d08-a66c-d63ff5820470', 'id', 'Indonesian');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (67, '415ba56e-ac8a-5f9d-b18d-b5649848ceb9', 'ie', 'Interlingue');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (68, '0b80fb5f-2dd4-5f76-b8e7-8ba514f9ceb8', 'ig', 'Igbo');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (69, '8dc5228c-4567-5ad4-8c39-7fba7c51d1f9', 'ii', 'Sichuan Yi');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (70, 'e28415d8-68f6-53e3-ac7d-db0badfdb821', 'ik', 'Inupiaq');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (71, 'bca7d620-3d42-55b7-8f19-48693a939dca', 'io', 'Ido');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (72, 'e0b44cc7-e151-5950-97cc-a7552447d029', 'is', 'Icelandic');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (73, '99f44b2a-6357-5806-a4cc-33ca560f0c3b', 'it', 'Italian');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (74, 'fc55baf6-1ba9-5891-b428-86825199cdf7', 'iu', 'Inuktitut');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (75, '656fbcf7-a1c2-500e-93cd-25f77a94b3ec', 'ja', 'Japanese');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (76, 'a3dee40d-6804-5121-ae2d-577928d928f6', 'jv', 'Javanese');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (77, 'a2536373-79a8-551e-b849-23896324d866', 'ka', 'Georgian');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (78, '87d1a977-b16b-59b3-96c5-a63d70953298', 'kg', 'Kongo');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (79, '9a60358a-8636-5efb-a1d7-81d332d9651b', 'ki', 'Kikuyu');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (80, '69b5f594-a537-5c80-837f-80c3322ea379', 'kj', 'Kuanyama');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (81, 'd5f43b99-2cf1-5c8a-b572-2176c99b6620', 'kk', 'Kazakh');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (82, '4912f56f-e742-5dfb-b6a1-3ea26e72e044', 'kl', 'Kalaallisut');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (83, 'c506449e-33ea-5fdf-8653-c03f2dbe73b9', 'km', 'Khmer');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (84, '5f84390e-1bb8-5bbb-b61d-b38324efb801', 'kn', 'Kannada');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (85, '669bcfce-a25f-51ee-98e2-f057943fcfa6', 'ko', 'Korean');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (86, '022dcb88-38c4-5309-a07e-d65a20089ded', 'kr', 'Kanuri');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (87, 'e7e1a1e1-b35c-5a34-9c88-cab66c94da84', 'ks', 'Kashmiri');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (88, 'b796590d-aec2-5b86-8d9f-1b0b25d3ce1f', 'ku', 'Kurdish');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (89, '04156088-8d9e-541b-9f72-3ebb36d70810', 'kv', 'Komi');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (90, '5ce7cc0b-56c4-5116-8757-f65108e56542', 'kw', 'Cornish');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (91, 'cfd6e6c9-c03e-5c55-8cec-759fe504dd87', 'ky', 'Kyrgyz');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (92, 'f136173a-ea8c-5582-803d-81437589ecfe', 'la', 'Latin');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (93, '109d08da-a569-5305-9133-c0bb1f72fd4f', 'lb', 'Luxembourgish');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (94, '88ad6602-0253-5304-9649-08b983e20cfe', 'lg', 'Ganda');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (95, 'ede8e2d6-e345-5d75-b374-070f2c0b6049', 'li', 'Limburgish');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (96, '979c0662-0a24-54c2-a62d-63b2b27a23d6', 'ln', 'Lingala');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (97, '3ab9a2fd-a3e5-5454-a0b7-f142f3ddb54a', 'lo', 'Lao');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (98, 'c618fb52-e61a-5f39-a951-813ddc125a2f', 'lt', 'Lithuanian');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (99, 'c4abf205-27e7-5dec-be7f-dcb6cf83c62e', 'lu', 'Luba-Katanga');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (100, '1415095e-a487-501c-b81e-4c551c56c74b', 'lv', 'Latvian');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (101, 'cb36dc35-2435-597d-9d65-043b40e5342b', 'mg', 'Malagasy');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (102, '7d14a8a0-425d-5998-9fdd-04aaf118ef2f', 'mh', 'Marshallese');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (103, '14611c38-cfb4-5270-b595-685877b9a462', 'mi', 'Maori');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (104, 'f431cae2-604b-5e36-94a8-1842b8cd70ff', 'mk', 'Macedonian');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (105, '4f74ad2c-9e71-5871-a3a8-316cc7139fdf', 'ml', 'Malayalam');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (106, '3763cff0-6063-54bd-94f8-b1f2b1423a41', 'mn', 'Mongolian');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (107, 'f701b9da-feb8-5acd-b5e6-b7923dca8bce', 'mr', 'Marathi');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (108, '5f2c86d3-b1e9-58b2-b086-d33161f482c2', 'ms', 'Malay');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (109, '9d175926-921c-5f64-9748-15dba9194a51', 'mt', 'Maltese');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (110, '5790738a-769f-5b6d-9e85-b8fddb858b68', 'my', 'Burmese');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (111, 'c5ae6122-ca58-5079-a969-9e24ad6c8e18', 'na', 'Nauru');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (112, '192addef-2157-5f4f-af9c-6221b7842238', 'nb', 'Norwegian Bokmål');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (113, '47b7c109-561f-50a4-b061-43d3305bd561', 'nd', 'North Ndebele');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (114, '1d7c28e6-d704-5e8d-ad13-69a1d60fc994', 'ne', 'Nepali');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (115, '7f4da38f-065b-5946-a5cd-6dd48a77f2a8', 'ng', 'Ndonga');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (116, 'b31e93cc-9f61-5b69-84f2-fa10664de606', 'nl', 'Dutch');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (117, '481aad26-5219-53dc-ab5c-1b02aac4afa5', 'nn', 'Norwegian Nynorsk');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (118, '5957c47c-8880-5785-a73c-93dcc623655f', 'no', 'Norwegian');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (119, '032fc4a5-d4e2-5921-8d8b-16000b78cefb', 'nr', 'South Ndebele');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (120, '0d422058-bee8-5b25-82b2-3911067a0178', 'nv', 'Navajo');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (121, 'c04a0e01-effe-5e24-b1b6-6ee819672d99', 'ny', 'Chichewa');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (122, '36056299-cc88-58ed-8bc3-68b4666fb58c', 'oc', 'Occitan');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (123, '1ea0aaf1-e2fd-5ad6-9ecc-7ce45624d28a', 'oj', 'Ojibwa');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (124, '170065ef-0ff9-5d6e-9df3-cae81d22716c', 'om', 'Oromo');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (125, 'c0091168-3095-5c54-b656-bfeb09288092', 'or', 'Odia');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (126, 'f8e85ced-cfd0-5352-99fa-f8be1c5d01a4', 'os', 'Ossetian');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (127, '1e0edb9f-80aa-5dec-b0a9-fdff536c05bc', 'pa', 'Punjabi');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (128, '4246a754-a2b4-538d-9980-a2bc327928a1', 'pi', 'Pali');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (129, '1ebbb3d6-307f-58d2-ab91-9a1552d81419', 'pl', 'Polish');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (130, '216cd728-89a7-58b4-b78a-b7f46e97202a', 'ps', 'Pashto');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (131, '4f8ab6d5-931e-5123-9a87-21306cdfdfa9', 'pt', 'Portuguese');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (132, 'd0de3acf-1535-5bd3-9f46-dbb3131941b4', 'qu', 'Quechua');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (133, '8e31e494-80e6-5e21-99b3-9eaea5c8b642', 'rm', 'Romansh');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (134, '052215d3-0bb9-5d5b-8ec0-6f6703f9f6ce', 'rn', 'Kirundi');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (135, 'f09f2eb3-35a0-5df9-8904-b776e421551a', 'ro', 'Romanian');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (136, '739919bd-4d14-56ef-aee8-67c8f92bc0d4', 'ru', 'Russian');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (137, '27cde54d-cea0-5e2f-b385-bac5e5d74cc5', 'rw', 'Kinyarwanda');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (138, '77d6b26b-f595-5d7f-81d9-8d1e8fa1683a', 'sa', 'Sanskrit');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (139, 'f9bcb24a-8ddd-54c3-8fe8-13dff9979e59', 'sc', 'Sardinian');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (140, '2687ade8-9c6e-5b8d-aa14-272e5557d09b', 'sd', 'Sindhi');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (141, 'cb8abd1a-add8-5dbf-8e80-3535d1e91983', 'se', 'Northern Sami');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (142, 'c49c9a84-0ec3-5c39-a6d3-a97e825e1d11', 'sg', 'Sango');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (143, 'c11538af-3ed3-534b-896a-22c0a46676dd', 'si', 'Sinhala');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (144, '7420e503-2972-5372-8ec7-fd1f23edd02a', 'sk', 'Slovak');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (145, '78460c2a-828d-5312-bb03-a79494ec1d67', 'sl', 'Slovenian');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (146, '16ecd7e9-7db4-5fd6-95f2-7b36c088ab5d', 'sm', 'Samoan');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (147, '978c137b-ae08-5e9f-ac85-8ceb098a1065', 'sn', 'Shona');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (148, '57fab07a-0bf5-5ac7-a0dc-0107d0c9032d', 'so', 'Somali');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (149, 'e5e21b75-327b-57d9-a446-2528a6992a15', 'sq', 'Albanian');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (150, '484ace7d-f811-522a-9f46-a461e208e9f4', 'sr', 'Serbian');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (151, '642b581c-1a6a-574b-a764-d46b9d9e473b', 'ss', 'Swati');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (152, '4e1fda32-3f38-5619-bd36-aed75d9392f5', 'st', 'Southern Sotho');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (153, 'e4bb816e-7072-5f0c-91ce-b15de7e6c68b', 'su', 'Sundanese');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (154, '2a509577-6ac2-5e4b-9dea-f791df7730bf', 'sv', 'Swedish');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (155, 'f85f3030-5e17-5346-9b2b-83b24977a396', 'sw', 'Swahili');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (156, 'de984cef-3048-574e-9310-2b76d3e5bfe9', 'ta', 'Tamil');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (157, 'e0d7b7e1-deaf-572c-84c8-6bc71aa95d7c', 'te', 'Telugu');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (158, '6e13bf27-5f12-5ec5-8cb8-2215acc71c76', 'tg', 'Tajik');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (159, '1d4dd014-563e-56ce-8bda-ab187b5eaf8f', 'th', 'Thai');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (160, '238e0b4a-661b-566d-b30e-b9b0952789c8', 'ti', 'Tigrinya');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (161, 'e52ad6be-4b3c-542a-9226-a5e4597fdfb4', 'tk', 'Turkmen');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (162, '93079df2-a81d-5443-aa33-4932f7e8cc24', 'tl', 'Tagalog');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (163, '8e2bedf8-4842-5b22-bb34-225fd33c39b2', 'tn', 'Tswana');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (164, '9bc3e47c-61da-5441-9dd5-7ec3d484f87e', 'to', 'Tonga');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (165, 'eeb98262-53c3-540c-9921-37e45690814e', 'tr', 'Turkish');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (166, '469c1121-0fc7-59b6-9657-4c4e911b90a2', 'ts', 'Tsonga');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (167, '7ca20f8b-5664-57cc-ace9-0374a2fb4a21', 'tt', 'Tatar');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (168, 'a2dd435a-99e4-57a3-a183-3ca98738a686', 'tw', 'Twi');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (169, '735f5a43-3f87-5bdb-bbaa-a5c6fc5db87c', 'ty', 'Tahitian');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (170, '8c6de9d4-6c45-520c-9165-5405461cf476', 'ug', 'Uyghur');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (171, '2c9cac34-6433-513c-8190-c0e454935e74', 'uk', 'Ukrainian');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (172, 'f0edd6d9-a7bc-530e-b887-115b34dc36aa', 'ur', 'Urdu');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (173, 'a4608fb9-729b-5b1b-a97b-3e98c66d3ad3', 'uz', 'Uzbek');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (174, '721a3c9e-2665-5682-8649-fd5f3bbb0e53', 've', 'Venda');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (175, '2b6bcf5c-8095-5a97-8101-05236d33d816', 'vi', 'Vietnamese');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (176, '47766421-855a-5c1c-8302-e9876e1236b3', 'vo', 'Volapük');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (177, '78a4f133-2db3-520d-96b0-1efec813089b', 'wa', 'Walloon');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (178, 'a6a97a23-0c34-53ea-bb74-1bde7cb6d129', 'wo', 'Wolof');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (179, 'a2423d31-7399-5cb4-b6b1-e25566780c02', 'xh', 'Xhosa');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (180, '30c61d86-b203-5370-b41b-74468ae45c46', 'yi', 'Yiddish');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (181, '5aacffe7-f0fd-5e45-ad74-53afd6c1b4cb', 'yo', 'Yoruba');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (182, '3204c7bf-15c6-5508-88e3-b5d5f4768310', 'za', 'Zhuang');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (183, 'ad3167e0-2e44-565e-9674-175ac3573ebc', 'zh', 'Chinese');
+GO
+INSERT INTO "languages" ("id", "uuid", "code", "name") VALUES (184, '00f38ad9-a827-5e61-b2f9-fca105399186', 'zu', 'Zulu');
+GO
+-- Seeds: mime_types
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (1, 'c314036d-1636-599c-8f07-873b287dfaf8', 'text/plain', 'Plain text');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (2, 'a2d56a1d-e6a9-5f75-a8f9-f561ec9f1c1e', 'text/html', 'HTML document');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (3, 'eff17426-2427-58c4-a20b-9161f71f3318', 'text/css', 'Cascading Style Sheets');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (4, '6f44322f-e2d0-52d6-bd95-a65fccaa4eac', 'text/csv', 'Comma-separated values');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (5, '2e7c1c3a-760a-5cb5-bd6d-727222793ea2', 'text/markdown', 'Markdown document');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (6, 'b020a6fc-91c2-5201-b826-aa230bd31583', 'text/javascript', 'JavaScript');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (7, '40bd465e-0bf4-5c79-8134-2ca7e7c92068', 'text/calendar', 'iCalendar');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (8, '6fc1eb1b-2946-5cc1-9926-53def72bb068', 'text/xml', 'XML (text)');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (9, '26df0145-760a-5c51-9264-b029e825c359', 'application/json', 'JSON');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (10, '688f7089-bad3-5e42-aa40-4eac057cd163', 'application/xml', 'XML');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (11, 'd8e3a307-19bb-5daf-a240-2971745bd709', 'application/pdf', 'Adobe PDF document');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (12, 'e544b14e-e5e2-558d-bdae-d29ccd2dc08c', 'application/zip', 'ZIP archive');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (13, 'dd5af9fc-5ef5-5681-a333-aa98d8c4b293', 'application/gzip', 'GZip archive');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (14, '270f2e24-9bc8-56a7-8dcf-d597c676d2ae', 'application/x-tar', 'Tape archive (tar)');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (15, '968dadca-46a2-55e6-ac77-4b554743474d', 'application/x-7z-compressed', '7-Zip archive');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (16, 'b8a266ef-7c5a-56c9-a754-19cd543f56e0', 'application/x-rar-compressed', 'RAR archive');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (17, 'a78bd65e-83c2-5093-8d8b-e5ef9b671b01', 'application/octet-stream', 'Arbitrary binary data');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (18, 'cd6eee64-ae2d-5187-997d-a73bd20e61c2', 'application/javascript', 'JavaScript');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (19, 'dad44d80-0812-50ee-ae2c-2b9e035ce0b6', 'application/x-www-form-urlencoded', 'URL-encoded form data');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (20, '9fad4d69-b6c1-52c5-9ba0-c24fa2624ca8', 'application/yaml', 'YAML');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (21, '0dccdd96-8da6-5d7b-9d46-6642948cc4b7', 'application/sql', 'SQL');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (22, 'a8e2777d-21d8-5969-9f10-cce3eb5df587', 'application/rtf', 'Rich Text Format');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (23, '9abba6b8-3582-5efc-be74-4125f283d7d7', 'application/msword', 'Microsoft Word (.doc)');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (24, 'bbb21ad8-bf70-5e13-91aa-e322f750a854', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'Microsoft Word (.docx)');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (25, '3b8c0d22-f538-544a-b4ce-413efa011ff2', 'application/vnd.ms-excel', 'Microsoft Excel (.xls)');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (26, '0d3c9367-795c-52cc-a47a-f362165097e3', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'Microsoft Excel (.xlsx)');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (27, '3e898c1e-3e24-5e58-b6c2-146cbda9c09c', 'application/vnd.ms-powerpoint', 'Microsoft PowerPoint (.ppt)');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (28, '48c6edfb-2d65-5151-9059-a97a53a78664', 'application/vnd.openxmlformats-officedocument.presentationml.presentation', 'Microsoft PowerPoint (.pptx)');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (29, '9073ed4a-5368-5ca7-8132-01e1145e78d5', 'application/vnd.oasis.opendocument.text', 'OpenDocument text');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (30, 'b7cca9d2-cdd3-5baa-8719-72fcd3ec7afc', 'application/vnd.oasis.opendocument.spreadsheet', 'OpenDocument spreadsheet');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (31, '0148db5e-c81a-5615-adfb-9b7b67f37a0d', 'application/wasm', 'WebAssembly');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (32, 'be65518c-1f0a-50bb-8f22-43da72edb01b', 'image/jpeg', 'JPEG image');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (33, 'fab62806-2bc1-5dfb-b84f-3182042fbf00', 'image/png', 'PNG image');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (34, '1562a470-e867-5721-b81c-cc9cd82ef940', 'image/gif', 'GIF image');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (35, 'fbc1747b-f259-5e42-ac96-971b45786c76', 'image/webp', 'WebP image');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (36, '974a5247-d5ef-51aa-b1b7-dfefa01ae2c1', 'image/svg+xml', 'SVG image');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (37, 'fb647af9-b1c5-57bd-a2ea-cba9ee76b9aa', 'image/bmp', 'Bitmap image');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (38, '9f6a882e-1cc2-519f-b704-05565ed047ac', 'image/tiff', 'TIFF image');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (39, 'b0749282-ea19-59b0-8eef-96683832ec7a', 'image/x-icon', 'Icon image');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (40, '53be37ed-8b02-5d97-ae86-0cf071639288', 'image/avif', 'AVIF image');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (41, '8bf77392-4627-5928-9e4f-c7537064a618', 'audio/mpeg', 'MP3 audio');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (42, 'ef25cb4f-02f6-5901-a09f-7c099f89f1b5', 'audio/ogg', 'Ogg audio');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (43, '9942c2d6-5dee-5837-9922-f94d0a5e9083', 'audio/wav', 'WAV audio');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (44, '81a9751d-2a08-586a-9efe-3ebadc61faee', 'audio/webm', 'WebM audio');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (45, '24be6b58-a801-5b67-8ae4-221ba95218b5', 'audio/aac', 'AAC audio');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (46, 'c35fa815-9810-556d-a409-fa6be290732e', 'audio/flac', 'FLAC audio');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (47, 'd74a455f-c8d1-5506-a78c-dd1b5c16c6ee', 'video/mp4', 'MP4 video');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (48, 'adbb7e18-8861-56a2-b4e4-a94126b444a5', 'video/mpeg', 'MPEG video');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (49, '206c181c-dcbe-5573-9c71-22e8b03693dd', 'video/ogg', 'Ogg video');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (50, 'a2a36e34-7180-5a6b-8b5d-49930b40ce92', 'video/webm', 'WebM video');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (51, '4c2b4eeb-f34a-5bdd-b7ef-38f7006595ee', 'video/quicktime', 'QuickTime video');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (52, 'b0e0d96e-b80e-54ac-80f1-d9130c1a53c6', 'video/x-msvideo', 'AVI video');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (53, 'db703a8a-a881-596e-abd6-5eef447db7b1', 'font/woff', 'Web Open Font Format');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (54, 'a24f44b7-b6e2-5954-bd4e-36f1c35027af', 'font/woff2', 'Web Open Font Format 2');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (55, 'cf4dcb66-76ee-5b92-a8dc-9fd853452303', 'font/ttf', 'TrueType font');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (56, 'e41fdd8d-b4de-5114-b7bf-af1da0d12fd0', 'font/otf', 'OpenType font');
+GO
+INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (57, 'c6e1daa8-d09a-5bd9-815b-bc8c82e57c52', 'multipart/form-data', 'Multipart form data');

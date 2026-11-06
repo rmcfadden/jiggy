@@ -1,9 +1,8 @@
 language: rust
 providers:
   - name: sqlite
-    location: providers/sqlite
   - name: postgres
-    location: providers/postgres
   - name: mysql
-    location: providers/mysql
+  - name: sqlserver
+  - name: oracle
 binDir: rust/target/debug

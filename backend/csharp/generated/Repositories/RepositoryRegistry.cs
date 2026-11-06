@@ -23,6 +23,7 @@ public static class RepositoryRegistry
         factory.Register("Game", "Games", connection => new GamesRepository(connection), connection => GamesRepository.CreateReadonly(connection));
         factory.Register("GameCategory", "GameCategories", connection => new GameCategoriesRepository(connection), connection => GameCategoriesRepository.CreateReadonly(connection));
         factory.Register("GameParent", "GameParents", connection => new GameParentsRepository(connection), connection => GameParentsRepository.CreateReadonly(connection));
+        factory.Register("GameParentCategory", "GameParentCategories", connection => new GameParentCategoriesRepository(connection), connection => GameParentCategoriesRepository.CreateReadonly(connection));
         factory.Register("GameParentConfig", "GameParentConfigs", connection => new GameParentConfigsRepository(connection), connection => GameParentConfigsRepository.CreateReadonly(connection));
         factory.Register("GameParentSetting", "GameParentSettings", connection => new GameParentSettingsRepository(connection), connection => GameParentSettingsRepository.CreateReadonly(connection));
         factory.Register("GameSetting", "GameSettings", connection => new GameSettingsRepository(connection), connection => GameSettingsRepository.CreateReadonly(connection));
@@ -30,12 +31,17 @@ public static class RepositoryRegistry
         factory.Register("Gender", "Genders", connection => new GendersRepository(connection), connection => GendersRepository.CreateReadonly(connection));
         factory.Register("Group", "Groups", connection => new GroupsRepository(connection), connection => GroupsRepository.CreateReadonly(connection));
         factory.Register("Label", "Labels", connection => new LabelsRepository(connection), connection => LabelsRepository.CreateReadonly(connection));
+        factory.Register("Language", "Languages", connection => new LanguagesRepository(connection), connection => LanguagesRepository.CreateReadonly(connection));
+        factory.Register("MimeType", "MimeTypes", connection => new MimeTypesRepository(connection), connection => MimeTypesRepository.CreateReadonly(connection));
         factory.Register("Phone", "Phones", connection => new PhonesRepository(connection), connection => PhonesRepository.CreateReadonly(connection));
         factory.Register("PhoneAttribute", "PhoneAttributes", connection => new PhoneAttributesRepository(connection), connection => PhoneAttributesRepository.CreateReadonly(connection));
         factory.Register("PhoneLabel", "PhoneLabels", connection => new PhoneLabelsRepository(connection), connection => PhoneLabelsRepository.CreateReadonly(connection));
         factory.Register("PhoneType", "PhoneTypes", connection => new PhoneTypesRepository(connection), connection => PhoneTypesRepository.CreateReadonly(connection));
+        factory.Register("Resource", "Resources", connection => new ResourcesRepository(connection), connection => ResourcesRepository.CreateReadonly(connection));
         factory.Register("Review", "Reviews", connection => new ReviewsRepository(connection), connection => ReviewsRepository.CreateReadonly(connection));
         factory.Register("Role", "Roles", connection => new RolesRepository(connection), connection => RolesRepository.CreateReadonly(connection));
+        factory.Register("String", "Strings", connection => new StringsRepository(connection), connection => StringsRepository.CreateReadonly(connection));
+        factory.Register("StringName", "StringNames", connection => new StringNamesRepository(connection), connection => StringNamesRepository.CreateReadonly(connection));
         factory.Register("User", "Users", connection => new UsersRepository(connection), connection => UsersRepository.CreateReadonly(connection));
         factory.Register("UserGroup", "UserGroups", connection => new UserGroupsRepository(connection), connection => UserGroupsRepository.CreateReadonly(connection));
         factory.Register("UserRole", "UserRoles", connection => new UserRolesRepository(connection), connection => UserRolesRepository.CreateReadonly(connection));

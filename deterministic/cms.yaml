@@ -22,15 +22,15 @@ types:
             default_value: false
 
   - string_name:
-    tags: [datasource_type, view_type]
-    inherits: base
-    fields:
-      - name:
-          type: string
-          size: 128
-      - description:
-          type: string
-          size: unlimited
+      tags: [datasource_type, view_type]
+      inherits: base
+      fields:
+        - name:
+            type: string
+            size: 128
+        - description:
+            type: string
+            size: unlimited
 
   - string_base:
       tags: [datasource_type]
@@ -52,6 +52,9 @@ types:
   - string:
       tags: [view_type]
       inherits: string_base
+      remove_fields:
+        - string_name_id
+        - language_id
       union:
         - string_name
         - languages
@@ -59,8 +62,7 @@ types:
         - string_name.name
         - languages.name
       mapping:
-        name: string_name
-        language_name: languages
+        languages.name: language_name
   - mime_type:
       tags:
         - datasource_type
@@ -79,7 +81,7 @@ types:
       tags: [datasource_type]
       inherits: base
       fields:
-        - name:
+        - resource_name:
             type: string
             size: 128
         - mime_type_id:
@@ -99,12 +101,14 @@ types:
   - resource:
       tags: [view_type]
       inherits: resource_base
+      remove_fields:
+        - mime_type_id
       union:
         - mime_type
       extract:
         - mime_type.name
       mapping:
-        mime_type_name: mime_type
+        name: mime_type_name
 
 
 

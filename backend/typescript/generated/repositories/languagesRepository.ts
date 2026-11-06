@@ -1,0 +1,20 @@
+import type { Language } from "../types/view/language";
+import { CRUDRepository, CRUDRepositoryBuilder, DictionaryMapper, ReadonlyRepository, Schema, type IConnection } from "@deterministic-code/datasources";
+const options = (connection: IConnection) =>
+  new CRUDRepositoryBuilder<Language>()
+    .add({ entity: "Language", entityMapper: new DictionaryMapper([["Language", "languages"]]), propertyMappings: new DictionaryMapper([["isEnabled", "is_enabled"], ["isDeleted", "is_deleted"]]), ids: ["id"], createProperties: ["code", "name", "isEnabled", "isDeleted"], updateProperties: ["uuid", "code", "name", "isEnabled", "isDeleted"], readProperties: ["id", "uuid", "created", "updated", "version", "code", "name", "isEnabled", "isDeleted"], schema: new Schema({ id: { type: "biginteger", nullable: false, hasDefault: false, isId: true }, uuid: { type: "uuid", nullable: false, hasDefault: true }, created: { type: "datetime", nullable: false, hasDefault: true }, updated: { type: "datetime", nullable: false, hasDefault: true }, version: { type: "binary", nullable: false, hasDefault: true } }) })
+    .add("sqlite", { entity: "Language", entityMapper: new DictionaryMapper([["Language", "languages"]]), propertyMappings: new DictionaryMapper([["isEnabled", "is_enabled"], ["isDeleted", "is_deleted"]]), ids: ["id"], createProperties: ["uuid", "created", "version", "code", "name", "isEnabled", "isDeleted"], updateProperties: ["uuid", "created", "version", "code", "name", "isEnabled", "isDeleted"], readProperties: ["id", "uuid", "created", "updated", "version", "code", "name", "isEnabled", "isDeleted"], schema: new Schema({ id: { type: "biginteger", nullable: false, hasDefault: false, isId: true }, uuid: { type: "uuid", nullable: false, hasDefault: true }, created: { type: "datetime", nullable: false, hasDefault: true }, updated: { type: "datetime", nullable: false, hasDefault: true }, version: { type: "binary", nullable: false, hasDefault: true } }) })
+    .for(connection);
+
+const readonlyOptions = (connection: IConnection) =>
+  new CRUDRepositoryBuilder<Language>()
+    .add({ entity: "Language", entityMapper: new DictionaryMapper([["Language", "languages"]]), propertyMappings: new DictionaryMapper([["isEnabled", "is_enabled"], ["isDeleted", "is_deleted"]]), readProperties: ["id", "uuid", "created", "updated", "version", "code", "name", "isEnabled", "isDeleted"], schema: new Schema({ id: { type: "biginteger", nullable: false, hasDefault: false, isId: true }, uuid: { type: "uuid", nullable: false, hasDefault: true }, created: { type: "datetime", nullable: false, hasDefault: true }, updated: { type: "datetime", nullable: false, hasDefault: true }, version: { type: "binary", nullable: false, hasDefault: true } }) })
+    .add("sqlite", { entity: "Language", entityMapper: new DictionaryMapper([["Language", "languages"]]), propertyMappings: new DictionaryMapper([["isEnabled", "is_enabled"], ["isDeleted", "is_deleted"]]), readProperties: ["id", "uuid", "created", "updated", "version", "code", "name", "isEnabled", "isDeleted"], schema: new Schema({ id: { type: "biginteger", nullable: false, hasDefault: false, isId: true }, uuid: { type: "uuid", nullable: false, hasDefault: true }, created: { type: "datetime", nullable: false, hasDefault: true }, updated: { type: "datetime", nullable: false, hasDefault: true }, version: { type: "binary", nullable: false, hasDefault: true } }) })
+    .for(connection);
+
+export class LanguagesRepository extends CRUDRepository<Language> {
+  constructor(connection: IConnection) {
+    super(connection, options(connection));
+  }
+  static createReadonly = (connection: IConnection) => new ReadonlyRepository<Language>(connection, readonlyOptions(connection));
+}
