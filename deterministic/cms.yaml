@@ -21,7 +21,7 @@ types:
             type: boolean
             default_value: false
 
-  - string_name:
+  - localized_string_name:
       tags: [datasource_type, view_type]
       inherits: base
       fields:
@@ -32,12 +32,12 @@ types:
             type: string
             size: unlimited
 
-  - string_base:
+  - localized_string_base:
       tags: [datasource_type]
       inherits: base
       fields:
-        - string_name_id:
-            references: string_name.id
+        - localized_string_name_id:
+            references: localized_string_name.id
         - language_id:
             references: languages.id
         - value:
@@ -49,17 +49,17 @@ types:
         - is_deleted:
             type: boolean
             default_value: false
-  - string:
+  - localized_string:
       tags: [view_type]
-      inherits: string_base
+      inherits: localized_string_base
       remove_fields:
-        - string_name_id
+        - localized_string_name_id
         - language_id
       union:
-        - string_name
+        - localized_string_name
         - languages
       extract:
-        - string_name.name
+        - localized_string_name.name
         - languages.name
       mapping:
         languages.name: language_name
