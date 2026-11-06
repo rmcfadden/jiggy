@@ -31,17 +31,17 @@ impl SchemaObject for EmailType {}
 
 impl SchemaObject for Game {}
 
-impl SchemaObject for GameConfig {}
+impl SchemaObject for GameCategory {}
 
-impl SchemaObject for GameInstance {}
+impl SchemaObject for GameParent {}
 
-impl SchemaObject for GameInstanceCategory {}
+impl SchemaObject for GameParentConfig {}
 
-impl SchemaObject for GameInstanceSetting {}
-
-impl SchemaObject for GameInstanceState {}
+impl SchemaObject for GameParentSetting {}
 
 impl SchemaObject for GameSetting {}
+
+impl SchemaObject for GameState {}
 
 impl SchemaObject for Gender {}
 

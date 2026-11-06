@@ -3,19 +3,19 @@
 -- DROP tables (reverse dependency order)
 DROP TABLE IF EXISTS "reviews";
 GO
-DROP TABLE IF EXISTS "game_instance_settings";
-GO
 DROP TABLE IF EXISTS "game_settings";
 GO
-DROP TABLE IF EXISTS "game_instance_states";
+DROP TABLE IF EXISTS "game_parent_settings";
 GO
-DROP TABLE IF EXISTS "game_instance_categories";
+DROP TABLE IF EXISTS "game_states";
 GO
-DROP TABLE IF EXISTS "game_instances";
+DROP TABLE IF EXISTS "game_categories";
 GO
-DROP TABLE IF EXISTS "game_configs";
+DROP TABLE IF EXISTS "games";
 GO
-DROP TABLE IF EXISTS "game_bases";
+DROP TABLE IF EXISTS "game_parent_configs";
+GO
+DROP TABLE IF EXISTS "game_parent_bases";
 GO
 DROP TABLE IF EXISTS "categories";
 GO

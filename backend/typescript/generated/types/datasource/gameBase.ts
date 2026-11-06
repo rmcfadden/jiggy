@@ -9,7 +9,8 @@ export class GameBase {
   version: string = Buffer.from([0]).toString("base64");
   name!: string;
   description!: string;
-  location!: string;
-  isEnabled: boolean = true;
+  gameParentId!: number;
+  gameParentConfigId!: number;
   isDeleted!: boolean;
+  isEnabled: boolean = true;
 }

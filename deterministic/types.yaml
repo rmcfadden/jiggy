@@ -35,7 +35,7 @@ types:
         - is_deleted:
             type: boolean
             default_value: false
-  - game_base:
+  - game_parent_base:
       tags: [datasource_type]
       inherits: base
       fields:
@@ -54,19 +54,19 @@ types:
         - is_deleted:
             type: boolean
             default_value: false
-  - game_config:
+  - game_parent_config:
       tags: [datasource_type]
       inherits: base
       fields:
-        - game_id:
-            references: game_base.id
+        - game_parent_id:
+            references: game_parent_base.id
         - name:
             type: string
             size: 128
         - value:
             type: string
             size: unlimited
-  - game_instance_base:
+  - game_base:
       tags: [datasource_type]
       inherits: base
       fields:
@@ -76,35 +76,59 @@ types:
         - description:
             type: string
             size: unlimited
-        - game_id:
-            references: game_base.id
-        - game_config_id:
-            references: game_config.id
+        - game_parent_id:
+            references: game_parent_base.id
+        - game_parent_config_id:
+            references: game_parent_config.id
         - is_deleted:
             type: boolean
             default_value: false
         - is_enabled:
             type: boolean
             default_value: true
-  - game_instance_category:
+  - game_category:
       tags: [datasource_type, many_to_many]
       inherits: base
       fields:
-        - game_instance_id:
-            references: game_instance_base.id
+        - game_id:
+            references: game_base.id
         - category_id:
             references: category.id
-  - game_instance_state:
+  - game_state:
       tags: [datasource_type]
       inherits: base
       fields:
-        - game_instance_id:
-            references: game_instance_base.id
+        - game_id:
+            references: game_base.id
         - user_id:
             references: user_base.id
         - state:
             type: string
             size: 256
+  - game_parent_setting:
+      tags: [datasource_type]
+      inherits: base
+      fields:
+        - game_parent_id:
+            references: game_parent_base.id
+        - name:
+            type: string
+            size: 128
+        - value:
+            type: string
+            size: unlimited
+  - game_parent_setting_map:
+      tags: [view_type]
+      inherits: dictionary
+      fields:
+        - key:
+            type: string
+            size: 128
+            references: game_parent_setting.name
+        - value:
+            type: string
+            size: unlimited
+            references: game_parent_setting.value
   - game_setting:
       tags: [datasource_type]
       inherits: base
@@ -129,36 +153,12 @@ types:
             type: string
             size: unlimited
             references: game_setting.value
-  - game_instance_setting:
-      tags: [datasource_type]
-      inherits: base
-      fields:
-        - game_instance_id:
-            references: game_instance_base.id
-        - name:
-            type: string
-            size: 128
-        - value:
-            type: string
-            size: unlimited
-  - game_instance_setting_map:
-      tags: [view_type]
-      inherits: dictionary
-      fields:
-        - key:
-            type: string
-            size: 128
-            references: game_instance_setting.name
-        - value:
-            type: string
-            size: unlimited
-            references: game_instance_setting.value
   - review:
       tags: [datasource_type]
       inherits: base
       fields:
-        - game_instance_id:
-            references: game_instance_base.id
+        - game_id:
+            references: game_base.id
         - user_id:
             references: user_base.id
         - description:
@@ -170,16 +170,6 @@ types:
         - is_approved:
             type: boolean
             default_value: false
-  - game_instance:
-      tags: [view_type]
-      inherits: game_instance_base
-      fields:
-        - settings:
-            type: game_instance_setting_map{}
-            references: game_instance_setting.game_instance_id
-        - categories:
-            type: category[]
-            references: game_instance_category.game_instance_id
   - game:
       tags: [view_type]
       inherits: game_base
@@ -187,3 +177,13 @@ types:
         - settings:
             type: game_setting_map{}
             references: game_setting.game_id
+        - categories:
+            type: category[]
+            references: game_category.game_id
+  - game_parent:
+      tags: [view_type]
+      inherits: game_parent_base
+      fields:
+        - settings:
+            type: game_parent_setting_map{}
+            references: game_parent_setting.game_parent_id
