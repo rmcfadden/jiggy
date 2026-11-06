@@ -41,6 +41,11 @@ types:
         - game_category_game_id_category_id:
             fields: [game_id, category_id]
             is_unique: true
+  - game_parent_category:
+      indexes:
+        - game_parent_category_game_parent_id_category_id:
+            fields: [game_parent_id, category_id]
+            is_unique: true
   - email_base:
       indexes:
         - email_base_contact_id_index:

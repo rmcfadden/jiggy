@@ -1,0 +1,110 @@
+version: 1.0.0
+includes:
+  - file: base.yaml
+
+types:
+  - languages:
+      tags: [datasource_type, view_type]
+      inherits: base
+      fields:
+        - code:
+            # ISO 639-1 two-letter code, e.g. en, fr, de
+            type: string
+            size: 2
+        - name:
+            type: string
+            size: 128
+        - is_enabled:
+            type: boolean
+            default_value: true
+        - is_deleted:
+            type: boolean
+            default_value: false
+
+  - string_name:
+    tags: [datasource_type, view_type]
+    inherits: base
+    fields:
+      - name:
+          type: string
+          size: 128
+      - description:
+          type: string
+          size: unlimited
+
+  - string_base:
+      tags: [datasource_type]
+      inherits: base
+      fields:
+        - string_name_id:
+            references: string_name.id
+        - language_id:
+            references: languages.id
+        - value:
+            type: string
+            size: unlimited
+        - is_enabled:
+            type: boolean
+            default_value: true
+        - is_deleted:
+            type: boolean
+            default_value: false
+  - string:
+      tags: [view_type]
+      inherits: string_base
+      union:
+        - string_name
+        - languages
+      extract:
+        - string_name.name
+        - languages.name
+      mapping:
+        name: string_name
+        language_name: languages
+  - mime_type:
+      tags:
+        - datasource_type
+        - readonly_lookup
+      inherits: base
+      fields:
+        - name:
+            # e.g. application/json
+            type: string
+            size: 128
+        - description:
+            type: string
+            size: unlimited
+            default_value: ""
+  - resource_base:
+      tags: [datasource_type]
+      inherits: base
+      fields:
+        - name:
+            type: string
+            size: 128
+        - mime_type_id:
+            references: mime_type.id
+        - description:
+            type: string
+            size: unlimited
+        - location:
+            type: string
+            size: 256
+        - is_enabled:
+            type: boolean
+            default_value: true
+        - is_deleted:
+            type: boolean
+            default_value: false
+  - resource:
+      tags: [view_type]
+      inherits: resource_base
+      union:
+        - mime_type
+      extract:
+        - mime_type.name
+      mapping:
+        mime_type_name: mime_type
+
+
+
