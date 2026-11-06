@@ -35,6 +35,8 @@ impl SchemaObject for GameCategory {}
 
 impl SchemaObject for GameParent {}
 
+impl SchemaObject for GameParentCategory {}
+
 impl SchemaObject for GameParentConfig {}
 
 impl SchemaObject for GameParentSetting {}
@@ -47,15 +49,25 @@ impl SchemaObject for Gender {}
 
 impl SchemaObject for Group {}
 
+impl SchemaObject for Language {}
+
+impl SchemaObject for MimeType {}
+
 impl SchemaObject for PhoneAttribute {}
 
 impl SchemaObject for PhoneLabel {}
 
 impl SchemaObject for PhoneType {}
 
+impl SchemaObject for Resource {}
+
 impl SchemaObject for Review {}
 
 impl SchemaObject for Role {}
+
+impl SchemaObject for String {}
+
+impl SchemaObject for StringName {}
 
 impl SchemaObject for User {}
 

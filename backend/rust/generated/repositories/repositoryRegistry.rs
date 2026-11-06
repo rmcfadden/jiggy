@@ -14,6 +14,7 @@ use super::super::EmailType;
 use super::super::Game;
 use super::super::GameCategory;
 use super::super::GameParent;
+use super::super::GameParentCategory;
 use super::super::GameParentConfig;
 use super::super::GameParentSetting;
 use super::super::GameSetting;
@@ -21,12 +22,17 @@ use super::super::GameState;
 use super::super::Gender;
 use super::super::Group;
 use super::super::Label;
+use super::super::Language;
+use super::super::MimeType;
 use super::super::Phone;
 use super::super::PhoneAttribute;
 use super::super::PhoneLabel;
 use super::super::PhoneType;
+use super::super::Resource;
 use super::super::Review;
 use super::super::Role;
+use super::super::String;
+use super::super::StringName;
 use super::super::User;
 use super::super::UserGroup;
 use super::super::UserRole;
@@ -125,6 +131,12 @@ pub fn register(factory: &RepositoryFactory) {
         |connection| Arc::new(super::gameParentsRepository::game_parents_readonly_repository(connection).expect("repository")) as Arc<dyn IReadonlyRepository<GameParent>>,
     );
     factory.register_named(
+        "GameParentCategory",
+        "game_parent_categories",
+        |connection| Arc::new(super::gameParentCategoriesRepository::game_parent_categories_repository(connection).expect("repository")) as Arc<dyn ICRUDRepository<GameParentCategory>>,
+        |connection| Arc::new(super::gameParentCategoriesRepository::game_parent_categories_readonly_repository(connection).expect("repository")) as Arc<dyn IReadonlyRepository<GameParentCategory>>,
+    );
+    factory.register_named(
         "GameParentConfig",
         "game_parent_configs",
         |connection| Arc::new(super::gameParentConfigsRepository::game_parent_configs_repository(connection).expect("repository")) as Arc<dyn ICRUDRepository<GameParentConfig>>,
@@ -167,6 +179,18 @@ pub fn register(factory: &RepositoryFactory) {
         |connection| Arc::new(super::labelsRepository::labels_readonly_repository(connection).expect("repository")) as Arc<dyn IReadonlyRepository<Label>>,
     );
     factory.register_named(
+        "Language",
+        "languages",
+        |connection| Arc::new(super::languagesRepository::languages_repository(connection).expect("repository")) as Arc<dyn ICRUDRepository<Language>>,
+        |connection| Arc::new(super::languagesRepository::languages_readonly_repository(connection).expect("repository")) as Arc<dyn IReadonlyRepository<Language>>,
+    );
+    factory.register_named(
+        "MimeType",
+        "mime_types",
+        |connection| Arc::new(super::mimeTypesRepository::mime_types_repository(connection).expect("repository")) as Arc<dyn ICRUDRepository<MimeType>>,
+        |connection| Arc::new(super::mimeTypesRepository::mime_types_readonly_repository(connection).expect("repository")) as Arc<dyn IReadonlyRepository<MimeType>>,
+    );
+    factory.register_named(
         "Phone",
         "phones",
         |connection| Arc::new(super::phonesRepository::phones_repository(connection).expect("repository")) as Arc<dyn ICRUDRepository<Phone>>,
@@ -191,6 +215,12 @@ pub fn register(factory: &RepositoryFactory) {
         |connection| Arc::new(super::phoneTypesRepository::phone_types_readonly_repository(connection).expect("repository")) as Arc<dyn IReadonlyRepository<PhoneType>>,
     );
     factory.register_named(
+        "Resource",
+        "resources",
+        |connection| Arc::new(super::resourcesRepository::resources_repository(connection).expect("repository")) as Arc<dyn ICRUDRepository<Resource>>,
+        |connection| Arc::new(super::resourcesRepository::resources_readonly_repository(connection).expect("repository")) as Arc<dyn IReadonlyRepository<Resource>>,
+    );
+    factory.register_named(
         "Review",
         "reviews",
         |connection| Arc::new(super::reviewsRepository::reviews_repository(connection).expect("repository")) as Arc<dyn ICRUDRepository<Review>>,
@@ -201,6 +231,18 @@ pub fn register(factory: &RepositoryFactory) {
         "roles",
         |connection| Arc::new(super::rolesRepository::roles_repository(connection).expect("repository")) as Arc<dyn ICRUDRepository<Role>>,
         |connection| Arc::new(super::rolesRepository::roles_readonly_repository(connection).expect("repository")) as Arc<dyn IReadonlyRepository<Role>>,
+    );
+    factory.register_named(
+        "String",
+        "strings",
+        |connection| Arc::new(super::stringsRepository::strings_repository(connection).expect("repository")) as Arc<dyn ICRUDRepository<String>>,
+        |connection| Arc::new(super::stringsRepository::strings_readonly_repository(connection).expect("repository")) as Arc<dyn IReadonlyRepository<String>>,
+    );
+    factory.register_named(
+        "StringName",
+        "string_names",
+        |connection| Arc::new(super::stringNamesRepository::string_names_repository(connection).expect("repository")) as Arc<dyn ICRUDRepository<StringName>>,
+        |connection| Arc::new(super::stringNamesRepository::string_names_readonly_repository(connection).expect("repository")) as Arc<dyn IReadonlyRepository<StringName>>,
     );
     factory.register_named(
         "User",
@@ -246,6 +288,7 @@ pub trait Repositories {
     fn games(&self) -> Arc<CRUDRepository<Game>>;
     fn game_categories(&self) -> Arc<CRUDRepository<GameCategory>>;
     fn game_parents(&self) -> Arc<CRUDRepository<GameParent>>;
+    fn game_parent_categories(&self) -> Arc<CRUDRepository<GameParentCategory>>;
     fn game_parent_configs(&self) -> Arc<CRUDRepository<GameParentConfig>>;
     fn game_parent_settings(&self) -> Arc<CRUDRepository<GameParentSetting>>;
     fn game_settings(&self) -> Arc<CRUDRepository<GameSetting>>;
@@ -253,12 +296,17 @@ pub trait Repositories {
     fn genders(&self) -> Arc<CRUDRepository<Gender>>;
     fn groups(&self) -> Arc<CRUDRepository<Group>>;
     fn labels(&self) -> Arc<CRUDRepository<Label>>;
+    fn languages(&self) -> Arc<CRUDRepository<Language>>;
+    fn mime_types(&self) -> Arc<CRUDRepository<MimeType>>;
     fn phones(&self) -> Arc<CRUDRepository<Phone>>;
     fn phone_attributes(&self) -> Arc<CRUDRepository<PhoneAttribute>>;
     fn phone_labels(&self) -> Arc<CRUDRepository<PhoneLabel>>;
     fn phone_types(&self) -> Arc<CRUDRepository<PhoneType>>;
+    fn resources(&self) -> Arc<CRUDRepository<Resource>>;
     fn reviews(&self) -> Arc<CRUDRepository<Review>>;
     fn roles(&self) -> Arc<CRUDRepository<Role>>;
+    fn strings(&self) -> Arc<CRUDRepository<String>>;
+    fn string_names(&self) -> Arc<CRUDRepository<StringName>>;
     fn users(&self) -> Arc<CRUDRepository<User>>;
     fn user_groups(&self) -> Arc<CRUDRepository<UserGroup>>;
     fn user_roles(&self) -> Arc<CRUDRepository<UserRole>>;
@@ -311,6 +359,9 @@ impl Repositories for Arc<dyn Datasource> {
     fn game_parents(&self) -> Arc<CRUDRepository<GameParent>> {
         Arc::new(super::gameParentsRepository::game_parents_repository(self.bind_connection(None)).expect("game_parents"))
     }
+    fn game_parent_categories(&self) -> Arc<CRUDRepository<GameParentCategory>> {
+        Arc::new(super::gameParentCategoriesRepository::game_parent_categories_repository(self.bind_connection(None)).expect("game_parent_categories"))
+    }
     fn game_parent_configs(&self) -> Arc<CRUDRepository<GameParentConfig>> {
         Arc::new(super::gameParentConfigsRepository::game_parent_configs_repository(self.bind_connection(None)).expect("game_parent_configs"))
     }
@@ -332,6 +383,12 @@ impl Repositories for Arc<dyn Datasource> {
     fn labels(&self) -> Arc<CRUDRepository<Label>> {
         Arc::new(super::labelsRepository::labels_repository(self.bind_connection(None)).expect("labels"))
     }
+    fn languages(&self) -> Arc<CRUDRepository<Language>> {
+        Arc::new(super::languagesRepository::languages_repository(self.bind_connection(None)).expect("languages"))
+    }
+    fn mime_types(&self) -> Arc<CRUDRepository<MimeType>> {
+        Arc::new(super::mimeTypesRepository::mime_types_repository(self.bind_connection(None)).expect("mime_types"))
+    }
     fn phones(&self) -> Arc<CRUDRepository<Phone>> {
         Arc::new(super::phonesRepository::phones_repository(self.bind_connection(None)).expect("phones"))
     }
@@ -344,11 +401,20 @@ impl Repositories for Arc<dyn Datasource> {
     fn phone_types(&self) -> Arc<CRUDRepository<PhoneType>> {
         Arc::new(super::phoneTypesRepository::phone_types_repository(self.bind_connection(None)).expect("phone_types"))
     }
+    fn resources(&self) -> Arc<CRUDRepository<Resource>> {
+        Arc::new(super::resourcesRepository::resources_repository(self.bind_connection(None)).expect("resources"))
+    }
     fn reviews(&self) -> Arc<CRUDRepository<Review>> {
         Arc::new(super::reviewsRepository::reviews_repository(self.bind_connection(None)).expect("reviews"))
     }
     fn roles(&self) -> Arc<CRUDRepository<Role>> {
         Arc::new(super::rolesRepository::roles_repository(self.bind_connection(None)).expect("roles"))
+    }
+    fn strings(&self) -> Arc<CRUDRepository<String>> {
+        Arc::new(super::stringsRepository::strings_repository(self.bind_connection(None)).expect("strings"))
+    }
+    fn string_names(&self) -> Arc<CRUDRepository<StringName>> {
+        Arc::new(super::stringNamesRepository::string_names_repository(self.bind_connection(None)).expect("string_names"))
     }
     fn users(&self) -> Arc<CRUDRepository<User>> {
         Arc::new(super::usersRepository::users_repository(self.bind_connection(None)).expect("users"))

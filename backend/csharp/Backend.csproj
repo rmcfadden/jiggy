@@ -8,10 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Datasources" Version="0.1.42" />
-    <PackageReference Include="Datasources.Mysql" Version="0.1.42" />
-    <PackageReference Include="Datasources.Postgres" Version="0.1.42" />
-    <PackageReference Include="Datasources.Sqlite" Version="0.1.42" />
+    <PackageReference Include="Datasources" Version="0.1.47" />
+    <PackageReference Include="Datasources.Mysql" Version="0.1.47" />
+    <PackageReference Include="Datasources.Postgres" Version="0.1.47" />
+    <PackageReference Include="Datasources.Sqlite" Version="0.1.47" />
   </ItemGroup>
 
 </Project>

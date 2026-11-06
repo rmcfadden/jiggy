@@ -45,6 +45,16 @@ pub mod addressLabel;
 pub mod emailLabel;
 #[path = "types/datasource/phoneLabel.rs"]
 pub mod phoneLabel;
+#[path = "types/datasource/language.rs"]
+pub mod language;
+#[path = "types/datasource/stringName.rs"]
+pub mod stringName;
+#[path = "types/datasource/stringBase.rs"]
+pub mod stringBase;
+#[path = "types/datasource/mimeType.rs"]
+pub mod mimeType;
+#[path = "types/datasource/resourceBase.rs"]
+pub mod resourceBase;
 #[path = "types/datasource/category.rs"]
 pub mod category;
 #[path = "types/datasource/gameParentBase.rs"]
@@ -55,6 +65,8 @@ pub mod gameParentConfig;
 pub mod gameBase;
 #[path = "types/datasource/gameCategory.rs"]
 pub mod gameCategory;
+#[path = "types/datasource/gameParentCategory.rs"]
+pub mod gameParentCategory;
 #[path = "types/datasource/gameState.rs"]
 pub mod gameState;
 #[path = "types/datasource/gameParentSetting.rs"]
@@ -73,6 +85,10 @@ pub mod email;
 pub mod phone;
 #[path = "types/view/contact.rs"]
 pub mod contact;
+#[path = "types/view/string.rs"]
+pub mod string;
+#[path = "types/view/resource.rs"]
+pub mod resource;
 #[path = "types/view/game.rs"]
 pub mod game;
 #[path = "types/view/gameParent.rs"]
@@ -100,11 +116,17 @@ pub use contactLabel::*;
 pub use addressLabel::*;
 pub use emailLabel::*;
 pub use phoneLabel::*;
+pub use language::*;
+pub use stringName::*;
+pub use stringBase::*;
+pub use mimeType::*;
+pub use resourceBase::*;
 pub use category::*;
 pub use gameParentBase::*;
 pub use gameParentConfig::*;
 pub use gameBase::*;
 pub use gameCategory::*;
+pub use gameParentCategory::*;
 pub use gameState::*;
 pub use gameParentSetting::*;
 pub use gameSetting::*;
@@ -114,6 +136,8 @@ pub use address::*;
 pub use email::*;
 pub use phone::*;
 pub use contact::*;
+pub use string::*;
+pub use resource::*;
 pub use game::*;
 pub use gameParent::*;
 mod schema_objects;

@@ -17,6 +17,7 @@ pub struct GameParent {
     pub is_enabled: bool,
     pub is_deleted: bool,
     pub settings: HashMap<String, String>,
+    pub categories: Vec<Category>,
 }
 impl Default for GameParent {
     fn default() -> Self {
@@ -32,6 +33,7 @@ impl Default for GameParent {
             is_enabled: true,
             is_deleted: false,
             settings: HashMap::new(),
+            categories: vec![],
         }
     }
 }

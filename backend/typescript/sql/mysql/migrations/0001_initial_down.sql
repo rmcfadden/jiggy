@@ -9,6 +9,8 @@ DROP TABLE IF EXISTS game_parent_settings;
 GO
 DROP TABLE IF EXISTS game_states;
 GO
+DROP TABLE IF EXISTS game_parent_categories;
+GO
 DROP TABLE IF EXISTS game_categories;
 GO
 DROP TABLE IF EXISTS games;
@@ -18,6 +20,16 @@ GO
 DROP TABLE IF EXISTS game_parent_bases;
 GO
 DROP TABLE IF EXISTS categories;
+GO
+DROP TABLE IF EXISTS resource_bases;
+GO
+DROP TABLE IF EXISTS mime_types;
+GO
+DROP TABLE IF EXISTS string_bases;
+GO
+DROP TABLE IF EXISTS string_names;
+GO
+DROP TABLE IF EXISTS languages;
 GO
 DROP TABLE IF EXISTS phone_labels;
 GO
