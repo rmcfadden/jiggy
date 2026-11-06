@@ -94,6 +94,14 @@ types:
             references: game_base.id
         - category_id:
             references: category.id
+  - game_parent_category:
+      tags: [datasource_type, many_to_many]
+      inherits: base
+      fields:
+        - game_parent_id:
+            references: game_parent_base.id
+        - category_id:
+            references: category.id
   - game_state:
       tags: [datasource_type]
       inherits: base
@@ -187,3 +195,6 @@ types:
         - settings:
             type: game_parent_setting_map{}
             references: game_parent_setting.game_parent_id
+        - categories:
+            type: category[]
+            references: game_parent_category.game_parent_id
