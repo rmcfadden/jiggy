@@ -36,6 +36,12 @@ types:
             is_unique: true
   - game_base:
       mapping: games
+  - game_parent_base:
+      mapping: game_parent
+  - localized_string_base:
+      mapping: localized_string
+  - resource_base:
+      mapping: resource
   - game_category:
       indexes:
         - game_category_game_id_category_id:
