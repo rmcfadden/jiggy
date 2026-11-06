@@ -23,6 +23,8 @@ use super::super::Gender;
 use super::super::Group;
 use super::super::Label;
 use super::super::Language;
+use super::super::LocalizedString;
+use super::super::LocalizedStringName;
 use super::super::MimeType;
 use super::super::Phone;
 use super::super::PhoneAttribute;
@@ -31,8 +33,6 @@ use super::super::PhoneType;
 use super::super::Resource;
 use super::super::Review;
 use super::super::Role;
-use super::super::String;
-use super::super::StringName;
 use super::super::User;
 use super::super::UserGroup;
 use super::super::UserRole;
@@ -185,6 +185,18 @@ pub fn register(factory: &RepositoryFactory) {
         |connection| Arc::new(super::languagesRepository::languages_readonly_repository(connection).expect("repository")) as Arc<dyn IReadonlyRepository<Language>>,
     );
     factory.register_named(
+        "LocalizedString",
+        "localized_strings",
+        |connection| Arc::new(super::localizedStringsRepository::localized_strings_repository(connection).expect("repository")) as Arc<dyn ICRUDRepository<LocalizedString>>,
+        |connection| Arc::new(super::localizedStringsRepository::localized_strings_readonly_repository(connection).expect("repository")) as Arc<dyn IReadonlyRepository<LocalizedString>>,
+    );
+    factory.register_named(
+        "LocalizedStringName",
+        "localized_string_names",
+        |connection| Arc::new(super::localizedStringNamesRepository::localized_string_names_repository(connection).expect("repository")) as Arc<dyn ICRUDRepository<LocalizedStringName>>,
+        |connection| Arc::new(super::localizedStringNamesRepository::localized_string_names_readonly_repository(connection).expect("repository")) as Arc<dyn IReadonlyRepository<LocalizedStringName>>,
+    );
+    factory.register_named(
         "MimeType",
         "mime_types",
         |connection| Arc::new(super::mimeTypesRepository::mime_types_repository(connection).expect("repository")) as Arc<dyn ICRUDRepository<MimeType>>,
@@ -231,18 +243,6 @@ pub fn register(factory: &RepositoryFactory) {
         "roles",
         |connection| Arc::new(super::rolesRepository::roles_repository(connection).expect("repository")) as Arc<dyn ICRUDRepository<Role>>,
         |connection| Arc::new(super::rolesRepository::roles_readonly_repository(connection).expect("repository")) as Arc<dyn IReadonlyRepository<Role>>,
-    );
-    factory.register_named(
-        "String",
-        "strings",
-        |connection| Arc::new(super::stringsRepository::strings_repository(connection).expect("repository")) as Arc<dyn ICRUDRepository<String>>,
-        |connection| Arc::new(super::stringsRepository::strings_readonly_repository(connection).expect("repository")) as Arc<dyn IReadonlyRepository<String>>,
-    );
-    factory.register_named(
-        "StringName",
-        "string_names",
-        |connection| Arc::new(super::stringNamesRepository::string_names_repository(connection).expect("repository")) as Arc<dyn ICRUDRepository<StringName>>,
-        |connection| Arc::new(super::stringNamesRepository::string_names_readonly_repository(connection).expect("repository")) as Arc<dyn IReadonlyRepository<StringName>>,
     );
     factory.register_named(
         "User",
@@ -297,6 +297,8 @@ pub trait Repositories {
     fn groups(&self) -> Arc<CRUDRepository<Group>>;
     fn labels(&self) -> Arc<CRUDRepository<Label>>;
     fn languages(&self) -> Arc<CRUDRepository<Language>>;
+    fn localized_strings(&self) -> Arc<CRUDRepository<LocalizedString>>;
+    fn localized_string_names(&self) -> Arc<CRUDRepository<LocalizedStringName>>;
     fn mime_types(&self) -> Arc<CRUDRepository<MimeType>>;
     fn phones(&self) -> Arc<CRUDRepository<Phone>>;
     fn phone_attributes(&self) -> Arc<CRUDRepository<PhoneAttribute>>;
@@ -305,8 +307,6 @@ pub trait Repositories {
     fn resources(&self) -> Arc<CRUDRepository<Resource>>;
     fn reviews(&self) -> Arc<CRUDRepository<Review>>;
     fn roles(&self) -> Arc<CRUDRepository<Role>>;
-    fn strings(&self) -> Arc<CRUDRepository<String>>;
-    fn string_names(&self) -> Arc<CRUDRepository<StringName>>;
     fn users(&self) -> Arc<CRUDRepository<User>>;
     fn user_groups(&self) -> Arc<CRUDRepository<UserGroup>>;
     fn user_roles(&self) -> Arc<CRUDRepository<UserRole>>;
@@ -386,6 +386,12 @@ impl Repositories for Arc<dyn Datasource> {
     fn languages(&self) -> Arc<CRUDRepository<Language>> {
         Arc::new(super::languagesRepository::languages_repository(self.bind_connection(None)).expect("languages"))
     }
+    fn localized_strings(&self) -> Arc<CRUDRepository<LocalizedString>> {
+        Arc::new(super::localizedStringsRepository::localized_strings_repository(self.bind_connection(None)).expect("localized_strings"))
+    }
+    fn localized_string_names(&self) -> Arc<CRUDRepository<LocalizedStringName>> {
+        Arc::new(super::localizedStringNamesRepository::localized_string_names_repository(self.bind_connection(None)).expect("localized_string_names"))
+    }
     fn mime_types(&self) -> Arc<CRUDRepository<MimeType>> {
         Arc::new(super::mimeTypesRepository::mime_types_repository(self.bind_connection(None)).expect("mime_types"))
     }
@@ -409,12 +415,6 @@ impl Repositories for Arc<dyn Datasource> {
     }
     fn roles(&self) -> Arc<CRUDRepository<Role>> {
         Arc::new(super::rolesRepository::roles_repository(self.bind_connection(None)).expect("roles"))
-    }
-    fn strings(&self) -> Arc<CRUDRepository<String>> {
-        Arc::new(super::stringsRepository::strings_repository(self.bind_connection(None)).expect("strings"))
-    }
-    fn string_names(&self) -> Arc<CRUDRepository<StringName>> {
-        Arc::new(super::stringNamesRepository::string_names_repository(self.bind_connection(None)).expect("string_names"))
     }
     fn users(&self) -> Arc<CRUDRepository<User>> {
         Arc::new(super::usersRepository::users_repository(self.bind_connection(None)).expect("users"))

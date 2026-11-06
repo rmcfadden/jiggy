@@ -51,6 +51,10 @@ impl SchemaObject for Group {}
 
 impl SchemaObject for Language {}
 
+impl SchemaObject for LocalizedString {}
+
+impl SchemaObject for LocalizedStringName {}
+
 impl SchemaObject for MimeType {}
 
 impl SchemaObject for PhoneAttribute {}
@@ -64,10 +68,6 @@ impl SchemaObject for Resource {}
 impl SchemaObject for Review {}
 
 impl SchemaObject for Role {}
-
-impl SchemaObject for String {}
-
-impl SchemaObject for StringName {}
 
 impl SchemaObject for User {}
 

@@ -32,6 +32,8 @@ public static class RepositoryRegistry
         factory.Register("Group", "Groups", connection => new GroupsRepository(connection), connection => GroupsRepository.CreateReadonly(connection));
         factory.Register("Label", "Labels", connection => new LabelsRepository(connection), connection => LabelsRepository.CreateReadonly(connection));
         factory.Register("Language", "Languages", connection => new LanguagesRepository(connection), connection => LanguagesRepository.CreateReadonly(connection));
+        factory.Register("LocalizedString", "LocalizedStrings", connection => new LocalizedStringsRepository(connection), connection => LocalizedStringsRepository.CreateReadonly(connection));
+        factory.Register("LocalizedStringName", "LocalizedStringNames", connection => new LocalizedStringNamesRepository(connection), connection => LocalizedStringNamesRepository.CreateReadonly(connection));
         factory.Register("MimeType", "MimeTypes", connection => new MimeTypesRepository(connection), connection => MimeTypesRepository.CreateReadonly(connection));
         factory.Register("Phone", "Phones", connection => new PhonesRepository(connection), connection => PhonesRepository.CreateReadonly(connection));
         factory.Register("PhoneAttribute", "PhoneAttributes", connection => new PhoneAttributesRepository(connection), connection => PhoneAttributesRepository.CreateReadonly(connection));
@@ -40,8 +42,6 @@ public static class RepositoryRegistry
         factory.Register("Resource", "Resources", connection => new ResourcesRepository(connection), connection => ResourcesRepository.CreateReadonly(connection));
         factory.Register("Review", "Reviews", connection => new ReviewsRepository(connection), connection => ReviewsRepository.CreateReadonly(connection));
         factory.Register("Role", "Roles", connection => new RolesRepository(connection), connection => RolesRepository.CreateReadonly(connection));
-        factory.Register("String", "Strings", connection => new StringsRepository(connection), connection => StringsRepository.CreateReadonly(connection));
-        factory.Register("StringName", "StringNames", connection => new StringNamesRepository(connection), connection => StringNamesRepository.CreateReadonly(connection));
         factory.Register("User", "Users", connection => new UsersRepository(connection), connection => UsersRepository.CreateReadonly(connection));
         factory.Register("UserGroup", "UserGroups", connection => new UserGroupsRepository(connection), connection => UserGroupsRepository.CreateReadonly(connection));
         factory.Register("UserRole", "UserRoles", connection => new UserRolesRepository(connection), connection => UserRolesRepository.CreateReadonly(connection));

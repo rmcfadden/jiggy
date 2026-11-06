@@ -47,10 +47,10 @@ pub mod emailLabel;
 pub mod phoneLabel;
 #[path = "types/datasource/language.rs"]
 pub mod language;
-#[path = "types/datasource/stringName.rs"]
-pub mod stringName;
-#[path = "types/datasource/stringBase.rs"]
-pub mod stringBase;
+#[path = "types/datasource/localizedStringName.rs"]
+pub mod localizedStringName;
+#[path = "types/datasource/localizedStringBase.rs"]
+pub mod localizedStringBase;
 #[path = "types/datasource/mimeType.rs"]
 pub mod mimeType;
 #[path = "types/datasource/resourceBase.rs"]
@@ -85,8 +85,8 @@ pub mod email;
 pub mod phone;
 #[path = "types/view/contact.rs"]
 pub mod contact;
-#[path = "types/view/string.rs"]
-pub mod string;
+#[path = "types/view/localizedString.rs"]
+pub mod localizedString;
 #[path = "types/view/resource.rs"]
 pub mod resource;
 #[path = "types/view/game.rs"]
@@ -117,8 +117,8 @@ pub use addressLabel::*;
 pub use emailLabel::*;
 pub use phoneLabel::*;
 pub use language::*;
-pub use stringName::*;
-pub use stringBase::*;
+pub use localizedStringName::*;
+pub use localizedStringBase::*;
 pub use mimeType::*;
 pub use resourceBase::*;
 pub use category::*;
@@ -136,7 +136,7 @@ pub use address::*;
 pub use email::*;
 pub use phone::*;
 pub use contact::*;
-pub use string::*;
+pub use localizedString::*;
 pub use resource::*;
 pub use game::*;
 pub use gameParent::*;
