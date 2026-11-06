@@ -52,7 +52,8 @@ types:
       fields:
         - name:
             is_unique: true
-  - template:
+  - template_base:
+      mapping: templates
       indexes:
         - template_template_type_id_name:
             fields: [template_type_id, name]

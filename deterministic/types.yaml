@@ -51,7 +51,7 @@ types:
             type: string
             size: unlimited
             default_value: ""
-  - template:
+  - template_base:
       tags: [datasource_type]
       inherits: base
       fields:
@@ -64,6 +64,17 @@ types:
             # the template's settings as JSON
             type: string
             size: unlimited
+  - template:
+      tags: [view_type]
+      inherits: template_base
+      remove_fields:
+        - template_type_id
+      union:
+        - template_type
+      extract:
+        - template_type.name
+      mapping:
+        template_type.name: template_type_name
   - game_parent_base:
       tags: [datasource_type]
       inherits: base
@@ -95,6 +106,16 @@ types:
         - value:
             type: string
             size: unlimited
+  - game_config:
+      tags: [datasource_type]
+      inherits: base
+      fields:
+        - name:
+            type: string
+            size: 128
+        - value:
+            type: string
+            size: unlimited
   - game_base:
       tags: [datasource_type]
       inherits: base
@@ -107,8 +128,8 @@ types:
             size: unlimited
         - game_parent_id:
             references: game_parent_base.id
-        - game_parent_config_id:
-            references: game_parent_config.id
+        - game_config_id:
+            references: game_config.id
         - is_deleted:
             type: boolean
             default_value: false
