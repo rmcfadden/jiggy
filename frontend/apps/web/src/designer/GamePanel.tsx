@@ -6,6 +6,7 @@ import { TEMPLATE_SIZES, TEMPLATE_STYLES, type GameImage } from './gameAssets'
 import { SavedItems, type SavedItemsProps } from './SavedItems'
 import { ImageFormatter } from './ImageFormatter'
 import type { ImageEdits } from './imageFilters'
+import { useGameParents } from '../api/gameParents'
 import { NumberField, Panel, field, input, primaryButton, type PieceBorders } from './controls'
 
 type Props = {
@@ -109,7 +110,15 @@ export function GamePanel(p: Props) {
   const { config, onConfig } = p
   const [open, setOpen] = useState(false)
   const [tab, setTab] = useState<'general' | 'pieces' | 'effects'>('general')
-  const type = GAME_TYPES.find((t) => t.id === config.type)!
+  const { data: parents } = useGameParents()
+  // Parent games come from the server; the built-in list covers loading and a failed request.
+  const gameTypes = parents?.length
+    ? parents.flatMap((g) => {
+        const known = g.isEnabled && GAME_TYPES.find((t) => t.id === g.location)
+        return known ? [{ id: known.id, name: g.name, description: g.description }] : []
+      })
+    : GAME_TYPES
+  const type = gameTypes.find((t) => t.id === config.type) ?? GAME_TYPES.find((t) => t.id === config.type)!
   const chosenPhoto = p.photos.find((ph) => ph.id === p.photoId)
   const [query, setQuery] = useState('')
   const [formatting, setFormatting] = useState(false)
@@ -131,8 +140,18 @@ export function GamePanel(p: Props) {
         <SavedItems noun="game" {...p.games} />
       </section>
 
+      <section className="flex flex-col gap-1.5" aria-label="Parent game">
+        <h3 className={heading}>1. Parent Game</h3>
+        {gameTypes.map((t) => (
+          <button key={t.id} className={choice(t.id === config.type)} aria-pressed={t.id === config.type} onClick={() => set({ type: t.id })}>
+            {t.name}
+            {t.id === config.type && <span className="block text-xs font-normal text-slate-500">{t.description}</span>}
+          </button>
+        ))}
+      </section>
+
       <section className="flex flex-col gap-1.5" aria-label="Template">
-        <h3 className={heading}>1. Template</h3>
+        <h3 className={heading}>2. Template</h3>
         <label className={field}>
           Number of pieces
           <select className={input} value={p.templateSize} onChange={(e) => p.onTemplateSize(e.target.value)}>
@@ -157,7 +176,7 @@ export function GamePanel(p: Props) {
       </section>
 
       <section className="flex flex-col gap-1.5" aria-label="Background photo">
-        <h3 className={heading}>2. Background photo</h3>
+        <h3 className={heading}>3. Background photo</h3>
         <input
           type="search"
           aria-label="Search images"
@@ -205,16 +224,6 @@ export function GamePanel(p: Props) {
             e.target.value = ''
           }} />
         </label>
-      </section>
-
-      <section className="flex flex-col gap-1.5" aria-label="Game type">
-        <h3 className={heading}>3. Game type</h3>
-        {GAME_TYPES.map((t) => (
-          <button key={t.id} className={choice(t.id === config.type)} aria-pressed={t.id === config.type} onClick={() => set({ type: t.id })}>
-            {t.name}
-            {t.id === config.type && <span className="block text-xs font-normal text-slate-500">{t.description}</span>}
-          </button>
-        ))}
       </section>
 
       <section className="flex flex-col gap-1.5" aria-label="Game settings">

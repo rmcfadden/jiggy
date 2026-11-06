@@ -33,6 +33,8 @@ use super::super::PhoneType;
 use super::super::Resource;
 use super::super::Review;
 use super::super::Role;
+use super::super::Template;
+use super::super::TemplateType;
 use super::super::User;
 use super::super::UserGroup;
 use super::super::UserRole;
@@ -245,6 +247,18 @@ pub fn register(factory: &RepositoryFactory) {
         |connection| Arc::new(super::rolesRepository::roles_readonly_repository(connection).expect("repository")) as Arc<dyn IReadonlyRepository<Role>>,
     );
     factory.register_named(
+        "Template",
+        "templates",
+        |connection| Arc::new(super::templatesRepository::templates_repository(connection).expect("repository")) as Arc<dyn ICRUDRepository<Template>>,
+        |connection| Arc::new(super::templatesRepository::templates_readonly_repository(connection).expect("repository")) as Arc<dyn IReadonlyRepository<Template>>,
+    );
+    factory.register_named(
+        "TemplateType",
+        "template_types",
+        |connection| Arc::new(super::templateTypesRepository::template_types_repository(connection).expect("repository")) as Arc<dyn ICRUDRepository<TemplateType>>,
+        |connection| Arc::new(super::templateTypesRepository::template_types_readonly_repository(connection).expect("repository")) as Arc<dyn IReadonlyRepository<TemplateType>>,
+    );
+    factory.register_named(
         "User",
         "users",
         |connection| Arc::new(super::usersRepository::users_repository(connection).expect("repository")) as Arc<dyn ICRUDRepository<User>>,
@@ -307,6 +321,8 @@ pub trait Repositories {
     fn resources(&self) -> Arc<CRUDRepository<Resource>>;
     fn reviews(&self) -> Arc<CRUDRepository<Review>>;
     fn roles(&self) -> Arc<CRUDRepository<Role>>;
+    fn templates(&self) -> Arc<CRUDRepository<Template>>;
+    fn template_types(&self) -> Arc<CRUDRepository<TemplateType>>;
     fn users(&self) -> Arc<CRUDRepository<User>>;
     fn user_groups(&self) -> Arc<CRUDRepository<UserGroup>>;
     fn user_roles(&self) -> Arc<CRUDRepository<UserRole>>;
@@ -415,6 +431,12 @@ impl Repositories for Arc<dyn Datasource> {
     }
     fn roles(&self) -> Arc<CRUDRepository<Role>> {
         Arc::new(super::rolesRepository::roles_repository(self.bind_connection(None)).expect("roles"))
+    }
+    fn templates(&self) -> Arc<CRUDRepository<Template>> {
+        Arc::new(super::templatesRepository::templates_repository(self.bind_connection(None)).expect("templates"))
+    }
+    fn template_types(&self) -> Arc<CRUDRepository<TemplateType>> {
+        Arc::new(super::templateTypesRepository::template_types_repository(self.bind_connection(None)).expect("template_types"))
     }
     fn users(&self) -> Arc<CRUDRepository<User>> {
         Arc::new(super::usersRepository::users_repository(self.bind_connection(None)).expect("users"))

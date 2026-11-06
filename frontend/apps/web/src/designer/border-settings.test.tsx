@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, expect, it } from 'vitest'
-import Designer from './Designer'
+import { Designer } from './test-utils'
 
 afterEach(cleanup)
 

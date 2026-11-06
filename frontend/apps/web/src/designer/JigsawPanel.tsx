@@ -1,7 +1,10 @@
 import { JIGSAW_PRESETS, type JigsawTemplateParams, type Range, type VerifyReport } from '@jiggy/shared'
 import { field, input, NumberField, Panel, primaryButton, RangeField, SliderField } from './controls'
+import { SavedItems, type SavedItemsProps } from './SavedItems'
 
 type Props = {
+  /** Jigsaw templates saved on the server. */
+  templates: SavedItemsProps
   params: JigsawTemplateParams
   onChange: (params: JigsawTemplateParams) => void
   fullScreen: boolean
@@ -17,7 +20,7 @@ type Props = {
   onToleranceChange: (tolerance: number) => void
 }
 
-export function JigsawPanel({ params, onChange, fullScreen, onFullScreenChange, preserveAspect, onPreserveAspectChange, onRandom, gap,
+export function JigsawPanel({ templates, params, onChange, fullScreen, onFullScreenChange, preserveAspect, onPreserveAspectChange, onRandom, gap,
   onGapChange,
   matrixJson,
   report,
@@ -79,6 +82,10 @@ export function JigsawPanel({ params, onChange, fullScreen, onFullScreenChange, 
 
   return (
     <Panel>
+      <section className="flex flex-col gap-1.5" aria-label="Saved jigsaw templates">
+        <SavedItems noun="jigsaw template" {...templates} />
+      </section>
+
       <button className={primaryButton} onClick={onRandom}>
         Random
       </button>

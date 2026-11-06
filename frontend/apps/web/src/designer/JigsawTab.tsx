@@ -6,11 +6,18 @@ import {
   verifyJigsaw,
   type JigsawTemplateParams,
 } from '@jiggy/shared'
+import { useCreateTemplate, useDeleteTemplate, useTemplates, useUpdateTemplate } from '../api/templates'
 import { JigsawPanel } from './JigsawPanel'
 import { JigsawView, VIEW_PAD } from './JigsawView'
 
+const TYPE = 'jigsaw'
+
 export function JigsawTab() {
   const [params, setParams] = useState<JigsawTemplateParams>(DEFAULT_JIGSAW_PARAMS)
+  const { data: saved = [] } = useTemplates<Partial<JigsawTemplateParams>>(TYPE)
+  const create = useCreateTemplate<JigsawTemplateParams>()
+  const update = useUpdateTemplate<JigsawTemplateParams>()
+  const remove = useDeleteTemplate()
   const [fullScreen, setFullScreen] = useState(false)
   const [area, setArea] = useState<{ width: number; height: number } | null>(null)
   const mainRef = useRef<HTMLElement>(null)
@@ -57,6 +64,18 @@ export function JigsawTab() {
         <JigsawView jigsaw={jigsaw} />
       </main>
       <JigsawPanel
+        templates={{
+          items: saved.map((t) => ({ id: String(t.id), name: t.name })),
+          // A template saved by an older build may lack newer settings, so fill them from the defaults.
+          onLoad: (id) => {
+            const t = saved.find((x) => String(x.id) === id)
+            if (t) setParams({ ...DEFAULT_JIGSAW_PARAMS, ...t.content })
+          },
+          onAdd: async (name) => String((await create.mutateAsync({ type: TYPE, name, content: params })).id),
+          onSave: (id) => update.mutate({ id: Number(id), content: params }),
+          onRename: (id, name) => update.mutate({ id: Number(id), name }),
+          onDelete: (id) => remove.mutate(Number(id)),
+        }}
         params={effective}
         fullScreen={fullScreen}
         onFullScreenChange={setFullScreen}

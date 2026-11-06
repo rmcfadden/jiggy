@@ -8,7 +8,7 @@ export type SavedItemsProps = {
   /** Applies a saved item to the designer. */
   onLoad: (id: string) => void
   /** Saves the designer's current setup as a new item. */
-  onAdd: (name: string) => string
+  onAdd: (name: string) => string | Promise<string>
   /** Overwrites a saved item with the designer's current setup. */
   onSave: (id: string) => void
   onRename: (id: string, name: string) => void
@@ -35,11 +35,12 @@ export function SavedItems({ noun, items, onLoad, onAdd, onSave, onRename, onDel
     setName(kind === 'rename' ? (selected?.name ?? '') : '')
     setDialog(kind)
   }
-  const submit = () => {
+  const submit = async () => {
     if (!trimmed) return
-    if (dialog === 'new') select(onAdd(trimmed))
-    else if (selected) onRename(selected.id, trimmed)
+    const creating = dialog === 'new'
     setDialog(null)
+    if (creating) select(await onAdd(trimmed))
+    else if (selected) onRename(selected.id, trimmed)
   }
 
   return (
