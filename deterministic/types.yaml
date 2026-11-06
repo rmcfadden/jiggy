@@ -14,6 +14,10 @@ includes:
             add_field:
               user_id:
                 references: user_base.id
+  - file: cms.yaml
+    combine_options:
+      source:
+        remove_types: [base]
 types:
   - category:
       tags: [datasource_type, view_type]
