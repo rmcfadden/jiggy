@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTemplates } from '../api/templates'
 import { GameTab } from './GameTab'
 import { JigsawTab } from './JigsawTab'
 import { PieceTab } from './PieceTab'
@@ -10,7 +11,11 @@ const TABS = [
 ] as const
 
 export default function Designer() {
-  const [active, setActive] = useState<(typeof TABS)[number]['id']>('game')
+  const [chosen, setActive] = useState<(typeof TABS)[number]['id']>('game')
+  const { data: templates, isLoading } = useTemplates('jigsaw')
+  // Games are built on a jigsaw template, so the Game tab waits until one exists.
+  const noTemplates = !isLoading && templates?.length === 0
+  const active = chosen === 'game' && noTemplates ? 'jigsaw' : chosen
   const Active = TABS.find((t) => t.id === active)!.content
 
   return (
@@ -23,10 +28,12 @@ export default function Designer() {
             id={`tab-${t.id}`}
             aria-selected={t.id === active}
             aria-controls="tabpanel"
+            disabled={t.id === 'game' && noTemplates}
+            title={t.id === 'game' && noTemplates ? 'Create a jigsaw template first' : undefined}
             className={`shrink-0 whitespace-nowrap rounded-t px-3 py-2 md:px-4 text-sm font-medium ${
               t.id === active
                 ? 'bg-white text-amber-700 shadow-[inset_0_2px_0_0_#f59e0b]'
-                : 'text-slate-600 hover:bg-slate-200'
+                : 'text-slate-600 hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent'
             }`}
             onClick={() => setActive(t.id)}
           >

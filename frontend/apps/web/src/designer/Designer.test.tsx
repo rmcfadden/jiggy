@@ -1,7 +1,12 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { CATALOG } from '@jiggy/shared'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Designer } from './test-utils'
+import DesignerView from './Designer'
+
+// With no saved games the Game tab opens a New game dialog by itself.
+const dismissNewGame = () => fireEvent.click(within(screen.getByRole('dialog', { name: 'New game' })).getByRole('button', { name: 'Cancel' }))
 
 beforeEach(() => localStorage.clear())
 afterEach(cleanup)
@@ -92,6 +97,7 @@ it('plays a next-pieces game: pick a piece, place it in its slot', () => {
 
 it('last-x starts with all but x pieces placed, and next-pieces limits the panel', () => {
   const { container } = render(<Designer />)
+  dismissNewGame()
   fireEvent.click(screen.getByRole('button', { name: /Solve last X pieces/ }))
   expect(container.querySelectorAll('[data-testid="slot"]')).toHaveLength(5)
   fireEvent.click(screen.getByRole('button', { name: /Next pieces in panel/ }))
@@ -125,13 +131,14 @@ const create = (section: string, noun: string, name: string) => {
 }
 const pick = (label: string, value: string) => fireEvent.change(screen.getByLabelText(label), { target: { value } })
 
+
 it('saves, loads, renames and deletes a template', () => {
   render(<Designer />)
+  dismissNewGame()
   pick('Number of pieces', '20')
   create('Template', 'template', 'Big')
   pick('Number of pieces', '6')
   pick('Saved templates', screen.getByRole('option', { name: 'Big' }).getAttribute('value')!)
-  click('Load', 'Template')
   expect(screen.getByLabelText('Number of pieces')).toHaveProperty('value', '20')
 
   click('Rename…', 'Template')
@@ -139,10 +146,14 @@ it('saves, loads, renames and deletes a template', () => {
   fireEvent.click(screen.getByRole('button', { name: 'Rename' }))
   expect(screen.getByRole('option', { name: 'Large' })).toBeTruthy()
 
+  expect(within(screen.getByLabelText('Template')).getByRole('button', { name: 'Save' })).toHaveProperty('disabled', true)
   pick('Number of pieces', '48')
+  expect(within(screen.getByLabelText('Template')).getByRole('button', { name: 'Save' })).toHaveProperty('disabled', false)
   click('Save', 'Template')
+  expect(within(screen.getByLabelText('Template')).getByRole('button', { name: 'Save' })).toHaveProperty('disabled', true)
   pick('Number of pieces', '6')
-  click('Load', 'Template')
+  pick('Saved templates', '')
+  pick('Saved templates', screen.getByRole('option', { name: 'Large' }).getAttribute('value')!)
   expect(screen.getByLabelText('Number of pieces')).toHaveProperty('value', '48')
 
   click('Delete', 'Template')
@@ -152,15 +163,16 @@ it('saves, loads, renames and deletes a template', () => {
 
 it('saves a game and restores its setup, and keeps it after a reload', () => {
   const { unmount } = render(<Designer />)
+  dismissNewGame()
   click(/Solve last X pieces/, 'Parent game')
   pick('Number of pieces', '20')
   create('Games', 'game', 'Mine')
   unmount()
 
   render(<Designer />)
+  expect(screen.queryByRole('dialog')).toBeNull()
   expect(screen.getByLabelText('Number of pieces')).toHaveProperty('value', '12')
   pick('Saved games', screen.getByRole('option', { name: 'Mine' }).getAttribute('value')!)
-  click('Load', 'Games')
   expect(screen.getByLabelText('Number of pieces')).toHaveProperty('value', '20')
   expect(within(screen.getByLabelText('Parent game')).getByRole('button', { name: /Solve last X pieces/ }).getAttribute('aria-pressed')).toBe('true')
 })
@@ -299,14 +311,38 @@ it('saves, loads and deletes jigsaw templates through the templates API', async 
 
   const saved = await screen.findByRole('combobox', { name: 'Saved jigsaw templates' })
   await waitFor(() => expect(within(saved).getByRole('option', { name: 'Five wide' })).toBeTruthy())
+  expect(saved).toHaveProperty('value', '7')
   fireEvent.change(screen.getByLabelText('Columns'), { target: { value: '2' } })
-  await waitFor(() => expect(screen.getByRole('button', { name: 'Load' })).toHaveProperty('disabled', false))
-  fireEvent.blur(screen.getByLabelText('Columns'))
-  fireEvent.click(screen.getByRole('button', { name: 'Load' }))
-  expect(screen.getByLabelText('Columns')).toHaveProperty('value', '5')
+  expect(screen.getByRole('button', { name: 'Save' })).toHaveProperty('disabled', false)
+  fireEvent.change(screen.getByLabelText('Columns'), { target: { value: '5' } })
+  expect(screen.getByRole('button', { name: 'Save' })).toHaveProperty('disabled', true)
+  fireEvent.change(screen.getByLabelText('Columns'), { target: { value: '2' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+  await waitFor(() => expect(calls).toContain('PUT /api/templates/7'))
+  expect(screen.getByRole('button', { name: 'Save' })).toHaveProperty('disabled', true)
 
   fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
   fireEvent.click(screen.getByRole('button', { name: 'Confirm delete' }))
   await waitFor(() => expect(calls).toContain('DELETE /api/templates/7'))
+  vi.unstubAllGlobals()
+})
+
+it('asks for a first game when none are saved, and not again once one exists', () => {
+  const { unmount } = render(<Designer />)
+  expect(screen.getByRole('dialog', { name: 'New game' })).toBeTruthy()
+  fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'First' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Create' }))
+  expect(screen.queryByRole('dialog')).toBeNull()
+  unmount()
+  render(<Designer />)
+  expect(screen.queryByRole('dialog')).toBeNull()
+})
+
+it('disables the Game tab and opens the Jigsaw Template tab while there are no templates', async () => {
+  vi.stubGlobal('fetch', vi.fn(async () => new Response('[]', { status: 200 })))
+  render(<DesignerView />, { wrapper: ({ children }) => <QueryClientProvider client={new QueryClient()}>{children}</QueryClientProvider> })
+  await waitFor(() => expect(screen.getByRole('tab', { name: 'Game' })).toHaveProperty('disabled', true))
+  expect(screen.getByRole('tab', { name: 'Jigsaw Template' }).getAttribute('aria-selected')).toBe('true')
+  expect(screen.queryByLabelText('Games')).toBeNull()
   vi.unstubAllGlobals()
 })
