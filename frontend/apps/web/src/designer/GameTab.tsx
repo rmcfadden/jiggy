@@ -67,6 +67,7 @@ export function GameTab() {
 
   const games = {
     items: library.games,
+    promptWhenEmpty: true,
     onLoad: (id: string) => {
       const g = library.games.find((x) => x.id === id)
       if (!g) return
@@ -82,6 +83,11 @@ export function GameTab() {
       const id = newId()
       setLibrary((l) => ({ ...l, games: addItem(l.games, { id, name, ...snapshot() }) }))
       return id
+    },
+    isChanged: (id: string) => {
+      const g = library.games.find((x) => x.id === id)
+      const now = snapshot()
+      return !g || (Object.keys(now) as (keyof typeof now)[]).some((k) => JSON.stringify(g[k]) !== JSON.stringify(now[k]))
     },
     onSave: (id: string) => setLibrary((l) => ({ ...l, games: updateItem(l.games, id, snapshot()) })),
     onRename: (id: string, name: string) => setLibrary((l) => ({ ...l, games: updateItem(l.games, id, { name }) })),
@@ -101,6 +107,10 @@ export function GameTab() {
       const id = newId()
       setLibrary((l) => ({ ...l, templates: addItem(l.templates, { id, name, size: templateSize, style: templateStyle }) }))
       return id
+    },
+    isChanged: (id: string) => {
+      const t = library.templates.find((x) => x.id === id)
+      return !t || t.size !== templateSize || t.style !== templateStyle
     },
     onSave: (id: string) => setLibrary((l) => ({ ...l, templates: updateItem(l.templates, id, { size: templateSize, style: templateStyle }) })),
     onRename: (id: string, name: string) => setLibrary((l) => ({ ...l, templates: updateItem(l.templates, id, { name }) })),

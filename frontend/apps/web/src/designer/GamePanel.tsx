@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { GAME_TYPES, START_SIDES, type GameConfig, type JigsawVector } from '@jiggy/shared'
+import { START_SIDES, type GameConfig, type GameType, type JigsawVector } from '@jiggy/shared'
 import type { PieceEffects } from './effects'
 import { PieceSettings } from './PieceSettings'
 import { TEMPLATE_SIZES, TEMPLATE_STYLES, type GameImage } from './gameAssets'
@@ -111,14 +111,9 @@ export function GamePanel(p: Props) {
   const [open, setOpen] = useState(false)
   const [tab, setTab] = useState<'general' | 'pieces' | 'effects'>('general')
   const { data: parents } = useGameParents()
-  // Parent games come from the server; the built-in list covers loading and a failed request.
-  const gameTypes = parents?.length
-    ? parents.flatMap((g) => {
-        const known = g.isEnabled && GAME_TYPES.find((t) => t.id === g.location)
-        return known ? [{ id: known.id, name: g.name, description: g.description }] : []
-      })
-    : GAME_TYPES
-  const type = gameTypes.find((t) => t.id === config.type) ?? GAME_TYPES.find((t) => t.id === config.type)!
+  // Parent games come from the server; nothing is offered until they load.
+  const gameTypes = (parents ?? []).filter((g) => g.isEnabled).map((g) => ({ id: g.location as GameType, name: g.name, description: g.description }))
+  const type = gameTypes.find((t) => t.id === config.type) ?? { id: config.type, name: config.type, description: '' }
   const chosenPhoto = p.photos.find((ph) => ph.id === p.photoId)
   const [query, setQuery] = useState('')
   const [formatting, setFormatting] = useState(false)

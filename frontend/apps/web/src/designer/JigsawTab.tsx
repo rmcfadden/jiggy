@@ -14,7 +14,9 @@ const TYPE = 'jigsaw'
 
 export function JigsawTab() {
   const [params, setParams] = useState<JigsawTemplateParams>(DEFAULT_JIGSAW_PARAMS)
-  const { data: saved = [] } = useTemplates<Partial<JigsawTemplateParams>>(TYPE)
+  // What the selected template looked like when it was loaded or last saved; Save compares against this.
+  const [baseline, setBaseline] = useState<{ id: string; params: JigsawTemplateParams } | null>(null)
+  const { data: saved = [], error: loadError, isLoading } = useTemplates<Partial<JigsawTemplateParams>>(TYPE)
   const create = useCreateTemplate<JigsawTemplateParams>()
   const update = useUpdateTemplate<JigsawTemplateParams>()
   const remove = useDeleteTemplate()
@@ -65,14 +67,30 @@ export function JigsawTab() {
       </main>
       <JigsawPanel
         templates={{
+          loading: isLoading,
+          required: true,
+          error: [loadError, create.error, update.error, remove.error].find(Boolean)?.message ?? null,
           items: saved.map((t) => ({ id: String(t.id), name: t.name })),
           // A template saved by an older build may lack newer settings, so fill them from the defaults.
           onLoad: (id) => {
             const t = saved.find((x) => String(x.id) === id)
-            if (t) setParams({ ...DEFAULT_JIGSAW_PARAMS, ...t.content })
+            if (!t) return
+            const loaded = { ...DEFAULT_JIGSAW_PARAMS, ...t.content }
+            setParams(loaded)
+            setBaseline({ id, params: loaded })
           },
-          onAdd: async (name) => String((await create.mutateAsync({ type: TYPE, name, content: params })).id),
-          onSave: (id) => update.mutate({ id: Number(id), content: params }),
+          onAdd: async (name) => {
+            const id = String((await create.mutateAsync({ type: TYPE, name, content: params })).id)
+            setBaseline({ id, params })
+            return id
+          },
+          isChanged: (id) =>
+            baseline?.id !== id ||
+            (Object.keys(params) as (keyof JigsawTemplateParams)[]).some((k) => JSON.stringify(params[k]) !== JSON.stringify(baseline.params[k])),
+          onSave: (id) => {
+            update.mutate({ id: Number(id), content: params })
+            setBaseline({ id, params })
+          },
           onRename: (id, name) => update.mutate({ id: Number(id), name }),
           onDelete: (id) => remove.mutate(Number(id)),
         }}

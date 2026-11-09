@@ -3,12 +3,6 @@ import type { StartSide } from "./puzzle";
 
 export type GameType = "scrambled" | "next-pieces" | "last-x";
 
-export const GAME_TYPES: { id: GameType; name: string; description: string }[] = [
-  { id: "scrambled", name: "Scrambled pieces", description: "Every piece starts in the tray, shuffled." },
-  { id: "next-pieces", name: "Next pieces in panel", description: "The panel only offers the next few pieces." },
-  { id: "last-x", name: "Solve last X pieces", description: "The puzzle starts nearly done; finish the last few." },
-];
-
 /** Which edge of the board the piece panel is docked to. */
 export type PanelDock = "top" | "bottom" | "left" | "right";
 
