@@ -2,18 +2,23 @@ using Datasources;
 
 public sealed class LocalizedStringsRepository : CRUDRepository<Backend.Types.View.LocalizedString>
 {
+    public LocalizedStringNamesRepository LocalizedStringName { get; }
     public LanguagesRepository Languages { get; }
 
     public LocalizedStringsRepository(IConnection connection) : base(connection, Options(connection))
     {
+        LocalizedStringName = new LocalizedStringNamesRepository(connection);
         Languages = new LanguagesRepository(connection);
+        AddEnriched(new("Name", "LocalizedStringNameId", "Id", "Name"), LocalizedStringName);
         AddEnriched(new("LanguageName", "LanguageId", "Id", "Name"), Languages);
     }
 
     public static IReadonlyRepository<Backend.Types.View.LocalizedString> CreateReadonly(IConnection connection)
     {
         var repo = new ReadonlyRepository<Backend.Types.View.LocalizedString>(connection, Options(connection));
+        var LocalizedStringName = new LocalizedStringNamesRepository(connection);
         var Languages = new LanguagesRepository(connection);
+        repo.AddEnriched(new("Name", "LocalizedStringNameId", "Id", "Name"), LocalizedStringName);
         repo.AddEnriched(new("LanguageName", "LanguageId", "Id", "Name"), Languages);
         return repo;
     }
@@ -23,7 +28,7 @@ public sealed class LocalizedStringsRepository : CRUDRepository<Backend.Types.Vi
             .Add(new()
             {
                 Entity = "LocalizedString",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["LocalizedString"] = "localized_string_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["LocalizedString"] = "localized_strings" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",
@@ -31,16 +36,16 @@ public sealed class LocalizedStringsRepository : CRUDRepository<Backend.Types.Vi
                     ["Created"] = "created",
                     ["Updated"] = "updated",
                     ["Version"] = "version",
-                    ["LocalizedStringNameId"] = "localized_string_name_id",
-                    ["LanguageId"] = "language_id",
                     ["Value"] = "value",
                     ["IsEnabled"] = "is_enabled",
                     ["IsDeleted"] = "is_deleted",
+                    ["LocalizedStringNameId"] = "localized_string_name_id",
+                    ["LanguageId"] = "language_id",
                 }),
                 Ids = ["Id"],
-                ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "LocalizedStringNameId", "LanguageId", "Value", "IsEnabled", "IsDeleted"],
-                CreateProperties = ["LocalizedStringNameId", "LanguageId", "Value", "IsEnabled", "IsDeleted"],
-                UpdateProperties = ["Uuid", "LocalizedStringNameId", "LanguageId", "Value", "IsEnabled", "IsDeleted"],
+                ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "Value", "IsEnabled", "IsDeleted", "LocalizedStringNameId", "LanguageId"],
+                CreateProperties = ["Value", "IsEnabled", "IsDeleted"],
+                UpdateProperties = ["Uuid", "Value", "IsEnabled", "IsDeleted"],
                 Schema = new(new Dictionary<string, SchemaColumn>
                 {
                     ["Id"] = new("biginteger", false, false, true),
@@ -48,17 +53,17 @@ public sealed class LocalizedStringsRepository : CRUDRepository<Backend.Types.Vi
                     ["Created"] = new("datetime", false, true),
                     ["Updated"] = new("datetime", false, true),
                     ["Version"] = new("binary", false, true),
-                    ["LocalizedStringNameId"] = new("biginteger", false, false),
-                    ["LanguageId"] = new("biginteger", false, false),
                     ["Value"] = new("string", false, false),
                     ["IsEnabled"] = new("boolean", false, true),
                     ["IsDeleted"] = new("boolean", false, true),
+                    ["Name"] = new("string", false, false),
+                    ["LanguageName"] = new("string", false, false),
                 }),
             })
             .Add("sqlite", new()
             {
                 Entity = "LocalizedString",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["LocalizedString"] = "localized_string_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["LocalizedString"] = "localized_strings" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",
@@ -66,16 +71,16 @@ public sealed class LocalizedStringsRepository : CRUDRepository<Backend.Types.Vi
                     ["Created"] = "created",
                     ["Updated"] = "updated",
                     ["Version"] = "version",
-                    ["LocalizedStringNameId"] = "localized_string_name_id",
-                    ["LanguageId"] = "language_id",
                     ["Value"] = "value",
                     ["IsEnabled"] = "is_enabled",
                     ["IsDeleted"] = "is_deleted",
+                    ["LocalizedStringNameId"] = "localized_string_name_id",
+                    ["LanguageId"] = "language_id",
                 }),
                 Ids = ["Id"],
-                ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "LocalizedStringNameId", "LanguageId", "Value", "IsEnabled", "IsDeleted"],
-                CreateProperties = ["Uuid", "Created", "Version", "LocalizedStringNameId", "LanguageId", "Value", "IsEnabled", "IsDeleted"],
-                UpdateProperties = ["Uuid", "Created", "Version", "LocalizedStringNameId", "LanguageId", "Value", "IsEnabled", "IsDeleted"],
+                ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "Value", "IsEnabled", "IsDeleted", "LocalizedStringNameId", "LanguageId"],
+                CreateProperties = ["Uuid", "Created", "Version", "Value", "IsEnabled", "IsDeleted"],
+                UpdateProperties = ["Uuid", "Created", "Version", "Value", "IsEnabled", "IsDeleted"],
                 Schema = new(new Dictionary<string, SchemaColumn>
                 {
                     ["Id"] = new("biginteger", false, false, true),
@@ -83,11 +88,11 @@ public sealed class LocalizedStringsRepository : CRUDRepository<Backend.Types.Vi
                     ["Created"] = new("datetime", false, true),
                     ["Updated"] = new("datetime", false, true),
                     ["Version"] = new("binary", false, true),
-                    ["LocalizedStringNameId"] = new("biginteger", false, false),
-                    ["LanguageId"] = new("biginteger", false, false),
                     ["Value"] = new("string", false, false),
                     ["IsEnabled"] = new("boolean", false, true),
                     ["IsDeleted"] = new("boolean", false, true),
+                    ["Name"] = new("string", false, false),
+                    ["LanguageName"] = new("string", false, false),
                 }),
             })
             .For(connection);

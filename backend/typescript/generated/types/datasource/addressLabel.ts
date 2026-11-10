@@ -1,6 +1,6 @@
 // schema-version: 1.0
 /** Type AddressLabel. */
-export const addressLabel = (init: Partial<AddressLabel>): AddressLabel => ({ ...init } as AddressLabel);
+export const addressLabel = (init: Partial<AddressLabel>): AddressLabel => Object.assign(new AddressLabel(), init);
 export class AddressLabel {
   id!: number;
   uuid: string = crypto.randomUUID();

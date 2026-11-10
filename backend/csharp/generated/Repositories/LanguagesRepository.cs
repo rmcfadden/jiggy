@@ -36,6 +36,10 @@ public sealed class LanguagesRepository : CRUDRepository<Backend.Types.View.Lang
                     ["Created"] = new("datetime", false, true),
                     ["Updated"] = new("datetime", false, true),
                     ["Version"] = new("binary", false, true),
+                    ["Code"] = new("string", false, false),
+                    ["Name"] = new("string", false, false),
+                    ["IsEnabled"] = new("boolean", false, true),
+                    ["IsDeleted"] = new("boolean", false, true),
                 }),
             })
             .Add("sqlite", new()
@@ -65,6 +69,10 @@ public sealed class LanguagesRepository : CRUDRepository<Backend.Types.View.Lang
                     ["Created"] = new("datetime", false, true),
                     ["Updated"] = new("datetime", false, true),
                     ["Version"] = new("binary", false, true),
+                    ["Code"] = new("string", false, false),
+                    ["Name"] = new("string", false, false),
+                    ["IsEnabled"] = new("boolean", false, true),
+                    ["IsDeleted"] = new("boolean", false, true),
                 }),
             })
             .For(connection);

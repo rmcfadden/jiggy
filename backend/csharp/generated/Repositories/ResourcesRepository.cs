@@ -23,7 +23,7 @@ public sealed class ResourcesRepository : CRUDRepository<Backend.Types.View.Reso
             .Add(new()
             {
                 Entity = "Resource",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["Resource"] = "resource_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["Resource"] = "resources" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",
@@ -32,16 +32,16 @@ public sealed class ResourcesRepository : CRUDRepository<Backend.Types.View.Reso
                     ["Updated"] = "updated",
                     ["Version"] = "version",
                     ["ResourceName"] = "resource_name",
-                    ["MimeTypeId"] = "mime_type_id",
                     ["Description"] = "description",
                     ["Location"] = "location",
                     ["IsEnabled"] = "is_enabled",
                     ["IsDeleted"] = "is_deleted",
+                    ["MimeTypeId"] = "mime_type_id",
                 }),
                 Ids = ["Id"],
-                ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "ResourceName", "MimeTypeId", "Description", "Location", "IsEnabled", "IsDeleted"],
-                CreateProperties = ["ResourceName", "MimeTypeId", "Description", "Location", "IsEnabled", "IsDeleted"],
-                UpdateProperties = ["Uuid", "ResourceName", "MimeTypeId", "Description", "Location", "IsEnabled", "IsDeleted"],
+                ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "ResourceName", "Description", "Location", "IsEnabled", "IsDeleted", "MimeTypeId"],
+                CreateProperties = ["ResourceName", "Description", "Location", "IsEnabled", "IsDeleted"],
+                UpdateProperties = ["Uuid", "ResourceName", "Description", "Location", "IsEnabled", "IsDeleted"],
                 Schema = new(new Dictionary<string, SchemaColumn>
                 {
                     ["Id"] = new("biginteger", false, false, true),
@@ -50,17 +50,17 @@ public sealed class ResourcesRepository : CRUDRepository<Backend.Types.View.Reso
                     ["Updated"] = new("datetime", false, true),
                     ["Version"] = new("binary", false, true),
                     ["ResourceName"] = new("string", false, false),
-                    ["MimeTypeId"] = new("biginteger", false, false),
                     ["Description"] = new("string", false, false),
                     ["Location"] = new("string", false, false),
                     ["IsEnabled"] = new("boolean", false, true),
                     ["IsDeleted"] = new("boolean", false, true),
+                    ["MimeTypeName"] = new("string", false, false),
                 }),
             })
             .Add("sqlite", new()
             {
                 Entity = "Resource",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["Resource"] = "resource_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["Resource"] = "resources" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",
@@ -69,16 +69,16 @@ public sealed class ResourcesRepository : CRUDRepository<Backend.Types.View.Reso
                     ["Updated"] = "updated",
                     ["Version"] = "version",
                     ["ResourceName"] = "resource_name",
-                    ["MimeTypeId"] = "mime_type_id",
                     ["Description"] = "description",
                     ["Location"] = "location",
                     ["IsEnabled"] = "is_enabled",
                     ["IsDeleted"] = "is_deleted",
+                    ["MimeTypeId"] = "mime_type_id",
                 }),
                 Ids = ["Id"],
-                ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "ResourceName", "MimeTypeId", "Description", "Location", "IsEnabled", "IsDeleted"],
-                CreateProperties = ["Uuid", "Created", "Version", "ResourceName", "MimeTypeId", "Description", "Location", "IsEnabled", "IsDeleted"],
-                UpdateProperties = ["Uuid", "Created", "Version", "ResourceName", "MimeTypeId", "Description", "Location", "IsEnabled", "IsDeleted"],
+                ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "ResourceName", "Description", "Location", "IsEnabled", "IsDeleted", "MimeTypeId"],
+                CreateProperties = ["Uuid", "Created", "Version", "ResourceName", "Description", "Location", "IsEnabled", "IsDeleted"],
+                UpdateProperties = ["Uuid", "Created", "Version", "ResourceName", "Description", "Location", "IsEnabled", "IsDeleted"],
                 Schema = new(new Dictionary<string, SchemaColumn>
                 {
                     ["Id"] = new("biginteger", false, false, true),
@@ -87,11 +87,11 @@ public sealed class ResourcesRepository : CRUDRepository<Backend.Types.View.Reso
                     ["Updated"] = new("datetime", false, true),
                     ["Version"] = new("binary", false, true),
                     ["ResourceName"] = new("string", false, false),
-                    ["MimeTypeId"] = new("biginteger", false, false),
                     ["Description"] = new("string", false, false),
                     ["Location"] = new("string", false, false),
                     ["IsEnabled"] = new("boolean", false, true),
                     ["IsDeleted"] = new("boolean", false, true),
+                    ["MimeTypeName"] = new("string", false, false),
                 }),
             })
             .For(connection);

@@ -11,7 +11,7 @@ public record TemplateInput(string? Type, string? Name, JsonElement? Content);
 
 public class UnknownTemplateTypeException(string type) : Exception($"unknown template type: {type}");
 
-public class TemplatesService(ICRUDRepository<Template> repo, ICRUDRepository<TemplateType> types)
+public class TemplatesService(ICRUDRepository<TemplateBase> repo, ICRUDRepository<TemplateType> types)
 {
     /// <summary>Templates of <paramref name="type"/> (a template type name such as "jigsaw"), or all of them when null.</summary>
     public async Task<List<TemplateDto>> List(string? type = null)
@@ -32,7 +32,7 @@ public class TemplatesService(ICRUDRepository<Template> repo, ICRUDRepository<Te
     public async Task<TemplateDto> Create(TemplateInput input)
     {
         var names = await TypeNames();
-        var row = new Template { TemplateTypeId = TypeId(names, input.Type ?? ""), Name = input.Name ?? "", Content = Json(input.Content) };
+        var row = new TemplateBase { TemplateTypeId = TypeId(names, input.Type ?? ""), Name = input.Name ?? "", Content = Json(input.Content) };
         var created = await repo.Create(row);
         return ToDto(await repo.ReadSingleById(created.Id) ?? created, names);
     }
@@ -72,6 +72,6 @@ public class TemplatesService(ICRUDRepository<Template> repo, ICRUDRepository<Te
 
     static string Json(JsonElement? content) => content?.GetRawText() ?? "{}";
 
-    static TemplateDto ToDto(Template row, Dictionary<long, string> names) =>
-        new(row.Id, row.Uuid, names.GetValueOrDefault(row.TemplateTypeId, ""), row.Name, JsonDocument.Parse(row.Content).RootElement.Clone(), row.Created, row.Updated);
+    static TemplateDto ToDto(TemplateBase row, Dictionary<long, string> names) =>
+        new(row.Id, row.Uuid.ToString(), names.GetValueOrDefault(row.TemplateTypeId, ""), row.Name, JsonDocument.Parse(row.Content).RootElement.Clone(), row.Created, row.Updated);
 }

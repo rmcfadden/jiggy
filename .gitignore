@@ -8,3 +8,4 @@ target
 bin
 obj
 *.sqlite
+backend/csharp/uploads

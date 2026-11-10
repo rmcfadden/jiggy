@@ -1,14 +1,25 @@
 using Datasources;
 
-public sealed class TemplatesRepository : CRUDRepository<Backend.Types.Datasource.Template>
+public sealed class TemplatesRepository : CRUDRepository<Backend.Types.View.Template>
 {
-    public TemplatesRepository(IConnection connection) : base(connection, Options(connection)) { }
+    public TemplateTypesRepository TemplateType { get; }
 
-    public static IReadonlyRepository<Backend.Types.Datasource.Template> CreateReadonly(IConnection connection) =>
-        new ReadonlyRepository<Backend.Types.Datasource.Template>(connection, Options(connection));
+    public TemplatesRepository(IConnection connection) : base(connection, Options(connection))
+    {
+        TemplateType = new TemplateTypesRepository(connection);
+        AddEnriched(new("TemplateTypeName", "TemplateTypeId", "Id", "Name"), TemplateType);
+    }
 
-    static CRUDRepositoryOptions<Backend.Types.Datasource.Template> Options(IConnection connection) =>
-        new CRUDRepositoryBuilder<Backend.Types.Datasource.Template>()
+    public static IReadonlyRepository<Backend.Types.View.Template> CreateReadonly(IConnection connection)
+    {
+        var repo = new ReadonlyRepository<Backend.Types.View.Template>(connection, Options(connection));
+        var TemplateType = new TemplateTypesRepository(connection);
+        repo.AddEnriched(new("TemplateTypeName", "TemplateTypeId", "Id", "Name"), TemplateType);
+        return repo;
+    }
+
+    static CRUDRepositoryOptions<Backend.Types.View.Template> Options(IConnection connection) =>
+        new CRUDRepositoryBuilder<Backend.Types.View.Template>()
             .Add(new()
             {
                 Entity = "Template",
@@ -20,14 +31,14 @@ public sealed class TemplatesRepository : CRUDRepository<Backend.Types.Datasourc
                     ["Created"] = "created",
                     ["Updated"] = "updated",
                     ["Version"] = "version",
-                    ["TemplateTypeId"] = "template_type_id",
                     ["Name"] = "name",
                     ["Content"] = "content",
+                    ["TemplateTypeId"] = "template_type_id",
                 }),
                 Ids = ["Id"],
-                ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "TemplateTypeId", "Name", "Content"],
-                CreateProperties = ["TemplateTypeId", "Name", "Content"],
-                UpdateProperties = ["Uuid", "TemplateTypeId", "Name", "Content"],
+                ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "Name", "Content", "TemplateTypeId"],
+                CreateProperties = ["Name", "Content"],
+                UpdateProperties = ["Uuid", "Name", "Content"],
                 Schema = new(new Dictionary<string, SchemaColumn>
                 {
                     ["Id"] = new("biginteger", false, false, true),
@@ -35,9 +46,9 @@ public sealed class TemplatesRepository : CRUDRepository<Backend.Types.Datasourc
                     ["Created"] = new("datetime", false, true),
                     ["Updated"] = new("datetime", false, true),
                     ["Version"] = new("binary", false, true),
-                    ["TemplateTypeId"] = new("biginteger", false, false),
                     ["Name"] = new("string", false, false),
                     ["Content"] = new("string", false, false),
+                    ["TemplateTypeName"] = new("string", false, false),
                 }),
             })
             .Add("sqlite", new()
@@ -51,14 +62,14 @@ public sealed class TemplatesRepository : CRUDRepository<Backend.Types.Datasourc
                     ["Created"] = "created",
                     ["Updated"] = "updated",
                     ["Version"] = "version",
-                    ["TemplateTypeId"] = "template_type_id",
                     ["Name"] = "name",
                     ["Content"] = "content",
+                    ["TemplateTypeId"] = "template_type_id",
                 }),
                 Ids = ["Id"],
-                ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "TemplateTypeId", "Name", "Content"],
-                CreateProperties = ["Uuid", "Created", "Version", "TemplateTypeId", "Name", "Content"],
-                UpdateProperties = ["Uuid", "Created", "Version", "TemplateTypeId", "Name", "Content"],
+                ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "Name", "Content", "TemplateTypeId"],
+                CreateProperties = ["Uuid", "Created", "Version", "Name", "Content"],
+                UpdateProperties = ["Uuid", "Created", "Version", "Name", "Content"],
                 Schema = new(new Dictionary<string, SchemaColumn>
                 {
                     ["Id"] = new("biginteger", false, false, true),
@@ -66,9 +77,9 @@ public sealed class TemplatesRepository : CRUDRepository<Backend.Types.Datasourc
                     ["Created"] = new("datetime", false, true),
                     ["Updated"] = new("datetime", false, true),
                     ["Version"] = new("binary", false, true),
-                    ["TemplateTypeId"] = new("biginteger", false, false),
                     ["Name"] = new("string", false, false),
                     ["Content"] = new("string", false, false),
+                    ["TemplateTypeName"] = new("string", false, false),
                 }),
             })
             .For(connection);

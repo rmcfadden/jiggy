@@ -1,28 +1,30 @@
 // schema-version: 1.0
-/// Type Template.
+#[allow(unused_imports)]
+use super::*;
+/// View Template.
 #[derive(Clone, Debug, PartialEq, datasources::Facet)]
 #[facet(crate = ::datasources::facet)]
 pub struct Template {
     pub id: i64,
-    pub uuid: String,
+    pub uuid: datasources::uuid::Uuid,
     pub created: datasources::chrono::DateTime<datasources::chrono::Utc>,
     pub updated: datasources::chrono::DateTime<datasources::chrono::Utc>,
     pub version: Vec<u8>,
-    pub template_type_id: i64,
     pub name: String,
     pub content: String,
+    pub template_type_name: String,
 }
 impl Default for Template {
     fn default() -> Self {
         Self {
             id: 0,
-            uuid: datasources::uuid::Uuid::new_v4().to_string(),
+            uuid: datasources::uuid::Uuid::new_v4(),
             created: datasources::chrono::Utc::now(),
             updated: datasources::chrono::Utc::now(),
             version: vec![0],
-            template_type_id: 0,
             name: String::new(),
             content: String::new(),
+            template_type_name: String::new(),
         }
     }
 }

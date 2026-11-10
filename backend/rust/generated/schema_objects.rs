@@ -9,8 +9,6 @@ impl SchemaObject for AddressAttribute {}
 
 impl SchemaObject for AddressLabel {}
 
-impl SchemaObject for AddressType {}
-
 impl SchemaObject for Category {}
 
 impl SchemaObject for Contact {}
@@ -32,6 +30,8 @@ impl SchemaObject for EmailType {}
 impl SchemaObject for Game {}
 
 impl SchemaObject for GameCategory {}
+
+impl SchemaObject for GameConfig {}
 
 impl SchemaObject for GameParent {}
 

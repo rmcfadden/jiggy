@@ -13,9 +13,10 @@ public sealed class EmailsRepository : CRUDRepository<Backend.Types.View.Email>
         Label = new LabelsRepository(connection);
         EmailLabel = new EmailLabelsRepository(connection);
         EmailType = new EmailTypesRepository(connection);
-        AddEnriched(new("Attributes", "Id", "EmailId", "Value", Type: EnrichmentPropertyType.Dictionary), EmailAttribute);
+        AddEnriched(new("Attributes", "Id", "EmailId", "Value", Type: EnrichmentPropertyType.Dictionary, DictionaryKey: "Name"), EmailAttribute);
         AddLinked(new("Labels", "Id", "Id", "Name", Association: new("EmailId", "LabelId")), Label, EmailLabel);
         AddEnriched(new("EmailTypeName", "EmailTypeId", "Id", "Name"), EmailType);
+        AddEnriched(new("Description", "EmailTypeId", "Id", "Description"), EmailType);
     }
 
     public static IReadonlyRepository<Backend.Types.View.Email> CreateReadonly(IConnection connection)
@@ -25,9 +26,10 @@ public sealed class EmailsRepository : CRUDRepository<Backend.Types.View.Email>
         var Label = new LabelsRepository(connection);
         var EmailLabel = new EmailLabelsRepository(connection);
         var EmailType = new EmailTypesRepository(connection);
-        repo.AddEnriched(new("Attributes", "Id", "EmailId", "Value", Type: EnrichmentPropertyType.Dictionary), EmailAttribute);
+        repo.AddEnriched(new("Attributes", "Id", "EmailId", "Value", Type: EnrichmentPropertyType.Dictionary, DictionaryKey: "Name"), EmailAttribute);
         repo.AddEnriched(new("Labels", "Id", "Id", "Name", Type: EnrichmentPropertyType.List), Label);
         repo.AddEnriched(new("EmailTypeName", "EmailTypeId", "Id", "Name"), EmailType);
+        repo.AddEnriched(new("Description", "EmailTypeId", "Id", "Description"), EmailType);
         return repo;
     }
 
@@ -66,12 +68,14 @@ public sealed class EmailsRepository : CRUDRepository<Backend.Types.View.Email>
                     ["Address"] = new("string", false, false),
                     ["DisplayName"] = new("string", false, true),
                     ["IsPrimary"] = new("boolean", false, false),
+                    ["EmailTypeName"] = new("string", false, false),
+                    ["Description"] = new("string", false, true),
                 }),
             })
             .Add("sqlite", new()
             {
                 Entity = "Email",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["Email"] = "email_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["Email"] = "emails" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",
@@ -101,6 +105,8 @@ public sealed class EmailsRepository : CRUDRepository<Backend.Types.View.Email>
                     ["Address"] = new("string", false, false),
                     ["DisplayName"] = new("string", false, true),
                     ["IsPrimary"] = new("boolean", false, false),
+                    ["EmailTypeName"] = new("string", false, false),
+                    ["Description"] = new("string", false, true),
                 }),
             })
             .For(connection);

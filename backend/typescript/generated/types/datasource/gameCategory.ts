@@ -1,6 +1,6 @@
 // schema-version: 1.0
 /** Type GameCategory. */
-export const gameCategory = (init: Partial<GameCategory>): GameCategory => ({ ...init } as GameCategory);
+export const gameCategory = (init: Partial<GameCategory>): GameCategory => Object.assign(new GameCategory(), init);
 export class GameCategory {
   id!: number;
   uuid: string = crypto.randomUUID();

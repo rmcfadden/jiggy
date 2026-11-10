@@ -37,6 +37,11 @@ public sealed class CategoriesRepository : CRUDRepository<Backend.Types.View.Cat
                     ["Created"] = new("datetime", false, true),
                     ["Updated"] = new("datetime", false, true),
                     ["Version"] = new("binary", false, true),
+                    ["CategoryId"] = new("biginteger", true, false),
+                    ["Name"] = new("string", false, false),
+                    ["Description"] = new("string", false, false),
+                    ["IsEnabled"] = new("boolean", false, true),
+                    ["IsDeleted"] = new("boolean", false, true),
                 }),
             })
             .Add("sqlite", new()
@@ -67,6 +72,11 @@ public sealed class CategoriesRepository : CRUDRepository<Backend.Types.View.Cat
                     ["Created"] = new("datetime", false, true),
                     ["Updated"] = new("datetime", false, true),
                     ["Version"] = new("binary", false, true),
+                    ["CategoryId"] = new("biginteger", true, false),
+                    ["Name"] = new("string", false, false),
+                    ["Description"] = new("string", false, false),
+                    ["IsEnabled"] = new("boolean", false, true),
+                    ["IsDeleted"] = new("boolean", false, true),
                 }),
             })
             .For(connection);

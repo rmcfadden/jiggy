@@ -1,5 +1,5 @@
 import type { ICRUDRepository } from '@deterministic-code/datasources'
-import { template, type Template } from '../../generated/types/datasource/template.ts'
+import { templateBase, type TemplateBase } from '../../generated/types/datasource/templateBase.ts'
 import type { TemplateType } from '../../generated/types/datasource/templateType.ts'
 
 /** What the API exchanges: `content` is the template's settings as JSON, stored as text. */
@@ -10,7 +10,7 @@ export class UnknownTemplateTypeError extends Error {}
 
 export class TemplatesService {
   constructor(
-    private readonly repo: ICRUDRepository<Template>,
+    private readonly repo: ICRUDRepository<TemplateBase>,
     private readonly types: ICRUDRepository<TemplateType>,
   ) {}
 
@@ -32,7 +32,7 @@ export class TemplatesService {
   async create(input: TemplateInput): Promise<TemplateDto> {
     const types = await this.typeNames()
     const row = await this.repo.create(
-      template({ templateTypeId: typeId(types, input.type), name: input.name, content: JSON.stringify(input.content) }),
+      templateBase({ templateTypeId: typeId(types, input.type), name: input.name, content: JSON.stringify(input.content) }),
     )
     return toDto((await this.repo.readSingleById(row.id)) ?? row, types)
   }
@@ -68,7 +68,7 @@ function typeId(types: Map<number, string>, name: string): number {
   throw new UnknownTemplateTypeError(`unknown template type: ${name}`)
 }
 
-function toDto(row: Template, types: Map<number, string>): TemplateDto {
+function toDto(row: TemplateBase, types: Map<number, string>): TemplateDto {
   return {
     id: Number(row.id),
     uuid: row.uuid,

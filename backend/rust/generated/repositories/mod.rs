@@ -2,7 +2,6 @@
 pub mod addressesRepository;
 pub mod addressAttributesRepository;
 pub mod addressLabelsRepository;
-pub mod addressTypesRepository;
 pub mod categoriesRepository;
 pub mod contactsRepository;
 pub mod contactAttributesRepository;
@@ -13,6 +12,7 @@ pub mod emailLabelsRepository;
 pub mod emailTypesRepository;
 pub mod gamesRepository;
 pub mod gameCategoriesRepository;
+pub mod gameConfigsRepository;
 pub mod gameParentsRepository;
 pub mod gameParentCategoriesRepository;
 pub mod gameParentConfigsRepository;

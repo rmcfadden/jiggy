@@ -80,12 +80,6 @@ types:
       mapping: contact
   - address_base:
       mapping: address
-      indexes:
-        - address_contact_id_address_type_id_index:
-            fields:
-              - contact_id
-              - address_type_id
-            is_unique: true
   - phone_base:
       mapping: phone
       fields:

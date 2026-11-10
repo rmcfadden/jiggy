@@ -11,7 +11,6 @@ public static class RepositoryRegistry
         factory.Register("Address", "Addresses", connection => new AddressesRepository(connection), connection => AddressesRepository.CreateReadonly(connection));
         factory.Register("AddressAttribute", "AddressAttributes", connection => new AddressAttributesRepository(connection), connection => AddressAttributesRepository.CreateReadonly(connection));
         factory.Register("AddressLabel", "AddressLabels", connection => new AddressLabelsRepository(connection), connection => AddressLabelsRepository.CreateReadonly(connection));
-        factory.Register("AddressType", "AddressTypes", connection => new AddressTypesRepository(connection), connection => AddressTypesRepository.CreateReadonly(connection));
         factory.Register("Category", "Categories", connection => new CategoriesRepository(connection), connection => CategoriesRepository.CreateReadonly(connection));
         factory.Register("Contact", "Contacts", connection => new ContactsRepository(connection), connection => ContactsRepository.CreateReadonly(connection));
         factory.Register("ContactAttribute", "ContactAttributes", connection => new ContactAttributesRepository(connection), connection => ContactAttributesRepository.CreateReadonly(connection));
@@ -22,6 +21,7 @@ public static class RepositoryRegistry
         factory.Register("EmailType", "EmailTypes", connection => new EmailTypesRepository(connection), connection => EmailTypesRepository.CreateReadonly(connection));
         factory.Register("Game", "Games", connection => new GamesRepository(connection), connection => GamesRepository.CreateReadonly(connection));
         factory.Register("GameCategory", "GameCategories", connection => new GameCategoriesRepository(connection), connection => GameCategoriesRepository.CreateReadonly(connection));
+        factory.Register("GameConfig", "GameConfigs", connection => new GameConfigsRepository(connection), connection => GameConfigsRepository.CreateReadonly(connection));
         factory.Register("GameParent", "GameParents", connection => new GameParentsRepository(connection), connection => GameParentsRepository.CreateReadonly(connection));
         factory.Register("GameParentCategory", "GameParentCategories", connection => new GameParentCategoriesRepository(connection), connection => GameParentCategoriesRepository.CreateReadonly(connection));
         factory.Register("GameParentConfig", "GameParentConfigs", connection => new GameParentConfigsRepository(connection), connection => GameParentConfigsRepository.CreateReadonly(connection));

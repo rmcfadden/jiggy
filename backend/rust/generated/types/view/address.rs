@@ -7,12 +7,11 @@ use std::collections::HashMap;
 #[facet(crate = ::datasources::facet)]
 pub struct Address {
     pub id: i64,
-    pub uuid: String,
+    pub uuid: datasources::uuid::Uuid,
     pub created: datasources::chrono::DateTime<datasources::chrono::Utc>,
     pub updated: datasources::chrono::DateTime<datasources::chrono::Utc>,
     pub version: Vec<u8>,
-    pub contact_id: String,
-    pub address_type_id: String,
+    pub contact_id: i64,
     pub display_name: String,
     pub line_1: String,
     pub line_2: String,
@@ -24,11 +23,9 @@ pub struct Address {
     pub postal_code: String,
     pub country_code: String,
     pub formatted_address: String,
-    pub latitude: Option<String>,
-    pub longitude: Option<String>,
+    pub latitude: Option<datasources::rust_decimal::Decimal>,
+    pub longitude: Option<datasources::rust_decimal::Decimal>,
     pub is_primary: bool,
-    pub address_type_name: String,
-    pub description: String,
     pub attributes: HashMap<String, String>,
     pub labels: Vec<Label>,
 }
@@ -36,12 +33,11 @@ impl Default for Address {
     fn default() -> Self {
         Self {
             id: 0,
-            uuid: datasources::uuid::Uuid::new_v4().to_string(),
+            uuid: datasources::uuid::Uuid::new_v4(),
             created: datasources::chrono::Utc::now(),
             updated: datasources::chrono::Utc::now(),
             version: vec![0],
-            contact_id: String::new(),
-            address_type_id: String::new(),
+            contact_id: 0,
             display_name: String::new(),
             line_1: String::new(),
             line_2: String::new(),
@@ -56,8 +52,6 @@ impl Default for Address {
             latitude: None,
             longitude: None,
             is_primary: false,
-            address_type_name: String::new(),
-            description: String::new(),
             attributes: HashMap::new(),
             labels: vec![],
         }

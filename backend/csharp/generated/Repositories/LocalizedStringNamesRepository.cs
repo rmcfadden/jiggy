@@ -34,6 +34,8 @@ public sealed class LocalizedStringNamesRepository : CRUDRepository<Backend.Type
                     ["Created"] = new("datetime", false, true),
                     ["Updated"] = new("datetime", false, true),
                     ["Version"] = new("binary", false, true),
+                    ["Name"] = new("string", false, false),
+                    ["Description"] = new("string", false, false),
                 }),
             })
             .Add("sqlite", new()
@@ -61,6 +63,8 @@ public sealed class LocalizedStringNamesRepository : CRUDRepository<Backend.Type
                     ["Created"] = new("datetime", false, true),
                     ["Updated"] = new("datetime", false, true),
                     ["Version"] = new("binary", false, true),
+                    ["Name"] = new("string", false, false),
+                    ["Description"] = new("string", false, false),
                 }),
             })
             .For(connection);

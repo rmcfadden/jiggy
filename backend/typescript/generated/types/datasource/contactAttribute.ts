@@ -1,6 +1,6 @@
 // schema-version: 1.0
 /** Type ContactAttribute. */
-export const contactAttribute = (init: Partial<ContactAttribute>): ContactAttribute => ({ ...init } as ContactAttribute);
+export const contactAttribute = (init: Partial<ContactAttribute>): ContactAttribute => Object.assign(new ContactAttribute(), init);
 export class ContactAttribute {
   id!: number;
   uuid: string = crypto.randomUUID();
@@ -8,6 +8,6 @@ export class ContactAttribute {
   updated: Date = new Date();
   version: string = Buffer.from([0]).toString("base64");
   contactId!: number;
-  name!: string;
-  value!: string;
+  name: string = "";
+  value: string = "";
 }

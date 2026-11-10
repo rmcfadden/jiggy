@@ -1,6 +1,6 @@
 // schema-version: 1.0
 /** Type LocalizedStringBase. */
-export const localizedStringBase = (init: Partial<LocalizedStringBase>): LocalizedStringBase => ({ ...init } as LocalizedStringBase);
+export const localizedStringBase = (init: Partial<LocalizedStringBase>): LocalizedStringBase => Object.assign(new LocalizedStringBase(), init);
 export class LocalizedStringBase {
   id!: number;
   uuid: string = crypto.randomUUID();
@@ -9,7 +9,7 @@ export class LocalizedStringBase {
   version: string = Buffer.from([0]).toString("base64");
   localizedStringNameId!: number;
   languageId!: number;
-  value!: string;
+  value: string = "";
   isEnabled: boolean = true;
-  isDeleted!: boolean;
+  isDeleted: boolean = false;
 }

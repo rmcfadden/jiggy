@@ -1,6 +1,6 @@
 // schema-version: 1.0
 /** Type EmailLabel. */
-export const emailLabel = (init: Partial<EmailLabel>): EmailLabel => ({ ...init } as EmailLabel);
+export const emailLabel = (init: Partial<EmailLabel>): EmailLabel => Object.assign(new EmailLabel(), init);
 export class EmailLabel {
   id!: number;
   uuid: string = crypto.randomUUID();

@@ -1,4 +1,6 @@
--- Generated migration for mysql
+-- Generated initial migration for mysql
+
+-- Create added tables
 CREATE TABLE users (
     id BIGINT AUTO_INCREMENT NOT NULL,
     uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
@@ -222,21 +224,6 @@ GO
 CREATE TRIGGER trg_phones_updated_at BEFORE UPDATE ON phones
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
-CREATE TABLE address_types (
-    id BIGINT AUTO_INCREMENT NOT NULL,
-    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
-    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
-    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
-    version BLOB DEFAULT (X'00') NOT NULL,
-    name VARCHAR(128) NOT NULL,
-    description TEXT DEFAULT ('') NOT NULL,
-    CONSTRAINT address_types_primary_key PRIMARY KEY (id),
-    CONSTRAINT address_types_uuid_unique_constraint UNIQUE (uuid)
-);
-GO
-CREATE TRIGGER trg_address_types_updated_at BEFORE UPDATE ON address_types
-FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
-GO
 CREATE TABLE addresses (
     id BIGINT AUTO_INCREMENT NOT NULL,
     uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
@@ -244,7 +231,6 @@ CREATE TABLE addresses (
     updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
     version BLOB DEFAULT (X'00') NOT NULL,
     contact_id BIGINT NOT NULL,
-    address_type_id BIGINT NOT NULL,
     display_name VARCHAR(255) DEFAULT ('') NOT NULL,
     `line_1` VARCHAR(255) NOT NULL,
     `line_2` VARCHAR(255) DEFAULT ('') NOT NULL,
@@ -261,11 +247,8 @@ CREATE TABLE addresses (
     is_primary TINYINT(1) DEFAULT 0 NOT NULL,
     CONSTRAINT addresses_primary_key PRIMARY KEY (id),
     CONSTRAINT addresses_uuid_unique_constraint UNIQUE (uuid),
-    CONSTRAINT addresses_contact_id_foreign_key FOREIGN KEY (contact_id) REFERENCES contacts (id),
-    CONSTRAINT addresses_address_type_id_foreign_key FOREIGN KEY (address_type_id) REFERENCES address_types (id)
+    CONSTRAINT addresses_contact_id_foreign_key FOREIGN KEY (contact_id) REFERENCES contacts (id)
 );
-GO
-CREATE UNIQUE INDEX addresses_address_contact_id_address_type_id_index_index ON addresses (contact_id, address_type_id);
 GO
 CREATE TRIGGER trg_addresses_updated_at BEFORE UPDATE ON addresses
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
@@ -476,7 +459,7 @@ GO
 CREATE TRIGGER trg_localized_string_names_updated_at BEFORE UPDATE ON localized_string_names
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
-CREATE TABLE localized_string_bases (
+CREATE TABLE localized_strings (
     id BIGINT AUTO_INCREMENT NOT NULL,
     uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
     created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
@@ -487,13 +470,13 @@ CREATE TABLE localized_string_bases (
     value TEXT NOT NULL,
     is_enabled TINYINT(1) DEFAULT 1 NOT NULL,
     is_deleted TINYINT(1) DEFAULT 0 NOT NULL,
-    CONSTRAINT localized_string_bases_primary_key PRIMARY KEY (id),
-    CONSTRAINT localized_string_bases_uuid_unique_constraint UNIQUE (uuid),
-    CONSTRAINT localized_string_bases_localized_string_name_id_foreign_key FOREIGN KEY (localized_string_name_id) REFERENCES localized_string_names (id),
-    CONSTRAINT localized_string_bases_language_id_foreign_key FOREIGN KEY (language_id) REFERENCES languages (id)
+    CONSTRAINT localized_strings_primary_key PRIMARY KEY (id),
+    CONSTRAINT localized_strings_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT localized_strings_localized_string_name_id_foreign_key FOREIGN KEY (localized_string_name_id) REFERENCES localized_string_names (id),
+    CONSTRAINT localized_strings_language_id_foreign_key FOREIGN KEY (language_id) REFERENCES languages (id)
 );
 GO
-CREATE TRIGGER trg_localized_string_bases_updated_at BEFORE UPDATE ON localized_string_bases
+CREATE TRIGGER trg_localized_strings_updated_at BEFORE UPDATE ON localized_strings
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
 CREATE TABLE mime_types (
@@ -511,7 +494,7 @@ GO
 CREATE TRIGGER trg_mime_types_updated_at BEFORE UPDATE ON mime_types
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
-CREATE TABLE resource_bases (
+CREATE TABLE resources (
     id BIGINT AUTO_INCREMENT NOT NULL,
     uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
     created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
@@ -523,12 +506,47 @@ CREATE TABLE resource_bases (
     location VARCHAR(256) NOT NULL,
     is_enabled TINYINT(1) DEFAULT 1 NOT NULL,
     is_deleted TINYINT(1) DEFAULT 0 NOT NULL,
-    CONSTRAINT resource_bases_primary_key PRIMARY KEY (id),
-    CONSTRAINT resource_bases_uuid_unique_constraint UNIQUE (uuid),
-    CONSTRAINT resource_bases_mime_type_id_foreign_key FOREIGN KEY (mime_type_id) REFERENCES mime_types (id)
+    CONSTRAINT resources_primary_key PRIMARY KEY (id),
+    CONSTRAINT resources_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT resources_mime_type_id_foreign_key FOREIGN KEY (mime_type_id) REFERENCES mime_types (id)
 );
 GO
-CREATE TRIGGER trg_resource_bases_updated_at BEFORE UPDATE ON resource_bases
+CREATE TRIGGER trg_resources_updated_at BEFORE UPDATE ON resources
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE template_types (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    name VARCHAR(128) NOT NULL,
+    description TEXT DEFAULT ('') NOT NULL,
+    CONSTRAINT template_types_primary_key PRIMARY KEY (id),
+    CONSTRAINT template_types_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT template_types_name_unique_constraint UNIQUE (name)
+);
+GO
+CREATE TRIGGER trg_template_types_updated_at BEFORE UPDATE ON template_types
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE templates (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    template_type_id BIGINT NOT NULL,
+    name VARCHAR(128) NOT NULL,
+    content TEXT NOT NULL,
+    CONSTRAINT templates_primary_key PRIMARY KEY (id),
+    CONSTRAINT templates_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT templates_template_type_id_foreign_key FOREIGN KEY (template_type_id) REFERENCES template_types (id)
+);
+GO
+CREATE UNIQUE INDEX templates_template_template_type_id_name_index ON templates (template_type_id, name);
+GO
+CREATE TRIGGER trg_templates_updated_at BEFORE UPDATE ON templates
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
 CREATE TABLE categories (
@@ -550,7 +568,7 @@ GO
 CREATE TRIGGER trg_categories_updated_at BEFORE UPDATE ON categories
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
-CREATE TABLE game_parent_bases (
+CREATE TABLE game_parents (
     id BIGINT AUTO_INCREMENT NOT NULL,
     uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
     created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
@@ -561,11 +579,11 @@ CREATE TABLE game_parent_bases (
     location VARCHAR(256) NOT NULL,
     is_enabled TINYINT(1) DEFAULT 1 NOT NULL,
     is_deleted TINYINT(1) DEFAULT 0 NOT NULL,
-    CONSTRAINT game_parent_bases_primary_key PRIMARY KEY (id),
-    CONSTRAINT game_parent_bases_uuid_unique_constraint UNIQUE (uuid)
+    CONSTRAINT game_parents_primary_key PRIMARY KEY (id),
+    CONSTRAINT game_parents_uuid_unique_constraint UNIQUE (uuid)
 );
 GO
-CREATE TRIGGER trg_game_parent_bases_updated_at BEFORE UPDATE ON game_parent_bases
+CREATE TRIGGER trg_game_parents_updated_at BEFORE UPDATE ON game_parents
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
 CREATE TABLE game_parent_configs (
@@ -579,10 +597,27 @@ CREATE TABLE game_parent_configs (
     value TEXT NOT NULL,
     CONSTRAINT game_parent_configs_primary_key PRIMARY KEY (id),
     CONSTRAINT game_parent_configs_uuid_unique_constraint UNIQUE (uuid),
-    CONSTRAINT game_parent_configs_game_parent_id_foreign_key FOREIGN KEY (game_parent_id) REFERENCES game_parent_bases (id)
+    CONSTRAINT game_parent_configs_game_parent_id_foreign_key FOREIGN KEY (game_parent_id) REFERENCES game_parents (id)
 );
 GO
 CREATE TRIGGER trg_game_parent_configs_updated_at BEFORE UPDATE ON game_parent_configs
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE game_configs (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    template_id BIGINT NOT NULL,
+    image_id BIGINT,
+    CONSTRAINT game_configs_primary_key PRIMARY KEY (id),
+    CONSTRAINT game_configs_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT game_configs_template_id_foreign_key FOREIGN KEY (template_id) REFERENCES templates (id),
+    CONSTRAINT game_configs_image_id_foreign_key FOREIGN KEY (image_id) REFERENCES resources (id)
+);
+GO
+CREATE TRIGGER trg_game_configs_updated_at BEFORE UPDATE ON game_configs
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
 CREATE TABLE games (
@@ -594,13 +629,13 @@ CREATE TABLE games (
     name VARCHAR(128) NOT NULL,
     description TEXT NOT NULL,
     game_parent_id BIGINT NOT NULL,
-    game_parent_config_id BIGINT NOT NULL,
+    game_config_id BIGINT NOT NULL,
     is_deleted TINYINT(1) DEFAULT 0 NOT NULL,
     is_enabled TINYINT(1) DEFAULT 1 NOT NULL,
     CONSTRAINT games_primary_key PRIMARY KEY (id),
     CONSTRAINT games_uuid_unique_constraint UNIQUE (uuid),
-    CONSTRAINT games_game_parent_id_foreign_key FOREIGN KEY (game_parent_id) REFERENCES game_parent_bases (id),
-    CONSTRAINT games_game_parent_config_id_foreign_key FOREIGN KEY (game_parent_config_id) REFERENCES game_parent_configs (id)
+    CONSTRAINT games_game_parent_id_foreign_key FOREIGN KEY (game_parent_id) REFERENCES game_parents (id),
+    CONSTRAINT games_game_config_id_foreign_key FOREIGN KEY (game_config_id) REFERENCES game_configs (id)
 );
 GO
 CREATE TRIGGER trg_games_updated_at BEFORE UPDATE ON games
@@ -635,7 +670,7 @@ CREATE TABLE game_parent_categories (
     category_id BIGINT NOT NULL,
     CONSTRAINT game_parent_categories_primary_key PRIMARY KEY (id),
     CONSTRAINT game_parent_categories_uuid_unique_constraint UNIQUE (uuid),
-    CONSTRAINT game_parent_categories_game_parent_id_foreign_key FOREIGN KEY (game_parent_id) REFERENCES game_parent_bases (id),
+    CONSTRAINT game_parent_categories_game_parent_id_foreign_key FOREIGN KEY (game_parent_id) REFERENCES game_parents (id),
     CONSTRAINT game_parent_categories_category_id_foreign_key FOREIGN KEY (category_id) REFERENCES categories (id)
 );
 GO
@@ -673,7 +708,7 @@ CREATE TABLE game_parent_settings (
     value TEXT NOT NULL,
     CONSTRAINT game_parent_settings_primary_key PRIMARY KEY (id),
     CONSTRAINT game_parent_settings_uuid_unique_constraint UNIQUE (uuid),
-    CONSTRAINT game_parent_settings_game_parent_id_foreign_key FOREIGN KEY (game_parent_id) REFERENCES game_parent_bases (id)
+    CONSTRAINT game_parent_settings_game_parent_id_foreign_key FOREIGN KEY (game_parent_id) REFERENCES game_parents (id)
 );
 GO
 CREATE UNIQUE INDEX game_parent_settings_game_parent_setting_game_parent_id_name_index ON game_parent_settings (game_parent_id, name);
@@ -719,6 +754,7 @@ CREATE TABLE reviews (
 GO
 CREATE TRIGGER trg_reviews_updated_at BEFORE UPDATE ON reviews
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
 -- Seed data
 -- Seeds: genders
 GO
@@ -897,18 +933,6 @@ GO
 INSERT INTO phone_types (id, uuid, name, description) VALUES (4, 'c86ffd75-2e88-56c0-81a7-a6bf8fbbccf7', 'Fax', 'Fax');
 GO
 INSERT INTO phone_types (id, uuid, name, description) VALUES (5, '6a107d46-427f-5501-935a-7b2d7a1f7361', 'Other', 'Other');
-GO
--- Seeds: address_types
-GO
-INSERT INTO address_types (id, uuid, name, description) VALUES (1, '1e75343a-f291-5115-a555-47c1f64a2c69', 'Home', 'Home');
-GO
-INSERT INTO address_types (id, uuid, name, description) VALUES (2, '17222ad6-7a4a-547c-b7c7-083cf9664323', 'Work', 'Work');
-GO
-INSERT INTO address_types (id, uuid, name, description) VALUES (3, 'd393ea16-d09f-5ce4-943c-96d390ae888c', 'Billing', 'Billing');
-GO
-INSERT INTO address_types (id, uuid, name, description) VALUES (4, 'c3723ff5-17fb-5b95-97bb-6222e5fa1b6e', 'Shipping', 'Shipping');
-GO
-INSERT INTO address_types (id, uuid, name, description) VALUES (5, 'fa48e29e-cfbc-50d9-b1b1-a9021e9725fb', 'Other', 'Other');
 GO
 -- Seeds: labels
 GO
@@ -1403,3 +1427,7 @@ GO
 INSERT INTO mime_types (id, uuid, name, description) VALUES (56, 'e41fdd8d-b4de-5114-b7bf-af1da0d12fd0', 'font/otf', 'OpenType font');
 GO
 INSERT INTO mime_types (id, uuid, name, description) VALUES (57, 'c6e1daa8-d09a-5bd9-815b-bc8c82e57c52', 'multipart/form-data', 'Multipart form data');
+GO
+-- Seeds: template_types
+GO
+INSERT INTO template_types (id, uuid, name, description) VALUES (1, '88ba1ed1-69f1-54cf-9b1f-0273aaa19012', 'jigsaw', 'Jigsaw template settings');

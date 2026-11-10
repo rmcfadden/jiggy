@@ -11,7 +11,7 @@ public sealed class GamesRepository : CRUDRepository<Backend.Types.View.Game>
         GameSetting = new GameSettingsRepository(connection);
         Category = new CategoriesRepository(connection);
         GameCategory = new GameCategoriesRepository(connection);
-        AddEnriched(new("Settings", "Id", "GameId", "Value", Type: EnrichmentPropertyType.Dictionary), GameSetting);
+        AddEnriched(new("Settings", "Id", "GameId", "Value", Type: EnrichmentPropertyType.Dictionary, DictionaryKey: "Name"), GameSetting);
         AddLinked(new("Categories", "Id", "Id", "Name", Association: new("GameId", "CategoryId")), Category, GameCategory);
     }
 
@@ -21,7 +21,7 @@ public sealed class GamesRepository : CRUDRepository<Backend.Types.View.Game>
         var GameSetting = new GameSettingsRepository(connection);
         var Category = new CategoriesRepository(connection);
         var GameCategory = new GameCategoriesRepository(connection);
-        repo.AddEnriched(new("Settings", "Id", "GameId", "Value", Type: EnrichmentPropertyType.Dictionary), GameSetting);
+        repo.AddEnriched(new("Settings", "Id", "GameId", "Value", Type: EnrichmentPropertyType.Dictionary, DictionaryKey: "Name"), GameSetting);
         repo.AddEnriched(new("Categories", "Id", "Id", "Name", Type: EnrichmentPropertyType.List), Category);
         return repo;
     }
@@ -42,14 +42,14 @@ public sealed class GamesRepository : CRUDRepository<Backend.Types.View.Game>
                     ["Name"] = "name",
                     ["Description"] = "description",
                     ["GameParentId"] = "game_parent_id",
-                    ["GameParentConfigId"] = "game_parent_config_id",
+                    ["GameConfigId"] = "game_config_id",
                     ["IsDeleted"] = "is_deleted",
                     ["IsEnabled"] = "is_enabled",
                 }),
                 Ids = ["Id"],
-                ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "Name", "Description", "GameParentId", "GameParentConfigId", "IsDeleted", "IsEnabled"],
-                CreateProperties = ["Name", "Description", "GameParentId", "GameParentConfigId", "IsDeleted", "IsEnabled"],
-                UpdateProperties = ["Uuid", "Name", "Description", "GameParentId", "GameParentConfigId", "IsDeleted", "IsEnabled"],
+                ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "Name", "Description", "GameParentId", "GameConfigId", "IsDeleted", "IsEnabled"],
+                CreateProperties = ["Name", "Description", "GameParentId", "GameConfigId", "IsDeleted", "IsEnabled"],
+                UpdateProperties = ["Uuid", "Name", "Description", "GameParentId", "GameConfigId", "IsDeleted", "IsEnabled"],
                 Schema = new(new Dictionary<string, SchemaColumn>
                 {
                     ["Id"] = new("biginteger", false, false, true),
@@ -60,7 +60,7 @@ public sealed class GamesRepository : CRUDRepository<Backend.Types.View.Game>
                     ["Name"] = new("string", false, false),
                     ["Description"] = new("string", false, false),
                     ["GameParentId"] = new("biginteger", false, false),
-                    ["GameParentConfigId"] = new("biginteger", false, false),
+                    ["GameConfigId"] = new("biginteger", false, false),
                     ["IsDeleted"] = new("boolean", false, true),
                     ["IsEnabled"] = new("boolean", false, true),
                 }),
@@ -79,14 +79,14 @@ public sealed class GamesRepository : CRUDRepository<Backend.Types.View.Game>
                     ["Name"] = "name",
                     ["Description"] = "description",
                     ["GameParentId"] = "game_parent_id",
-                    ["GameParentConfigId"] = "game_parent_config_id",
+                    ["GameConfigId"] = "game_config_id",
                     ["IsDeleted"] = "is_deleted",
                     ["IsEnabled"] = "is_enabled",
                 }),
                 Ids = ["Id"],
-                ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "Name", "Description", "GameParentId", "GameParentConfigId", "IsDeleted", "IsEnabled"],
-                CreateProperties = ["Uuid", "Created", "Version", "Name", "Description", "GameParentId", "GameParentConfigId", "IsDeleted", "IsEnabled"],
-                UpdateProperties = ["Uuid", "Created", "Version", "Name", "Description", "GameParentId", "GameParentConfigId", "IsDeleted", "IsEnabled"],
+                ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "Name", "Description", "GameParentId", "GameConfigId", "IsDeleted", "IsEnabled"],
+                CreateProperties = ["Uuid", "Created", "Version", "Name", "Description", "GameParentId", "GameConfigId", "IsDeleted", "IsEnabled"],
+                UpdateProperties = ["Uuid", "Created", "Version", "Name", "Description", "GameParentId", "GameConfigId", "IsDeleted", "IsEnabled"],
                 Schema = new(new Dictionary<string, SchemaColumn>
                 {
                     ["Id"] = new("biginteger", false, false, true),
@@ -97,7 +97,7 @@ public sealed class GamesRepository : CRUDRepository<Backend.Types.View.Game>
                     ["Name"] = new("string", false, false),
                     ["Description"] = new("string", false, false),
                     ["GameParentId"] = new("biginteger", false, false),
-                    ["GameParentConfigId"] = new("biginteger", false, false),
+                    ["GameConfigId"] = new("biginteger", false, false),
                     ["IsDeleted"] = new("boolean", false, true),
                     ["IsEnabled"] = new("boolean", false, true),
                 }),

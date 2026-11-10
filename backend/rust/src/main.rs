@@ -6,6 +6,7 @@ mod services;
 use axum::{routing::get, Json, Router};
 use datasources::default;
 use serde_json::{json, Value};
+use generated::repositories::templatesRepository::TemplatesRepository;
 use generated::Repositories;
 use services::categories::CategoriesService;
 use services::game_parents::GameParentsService;
@@ -31,7 +32,7 @@ async fn main() {
         return;
     }
     let categories = Arc::new(CategoriesService::new(ds.categories()));
-    let templates = Arc::new(TemplatesService::new(ds.templates(), ds.template_types()));
+    let templates = Arc::new(TemplatesService::new(Arc::new(TemplatesRepository::new(ds.bind_connection(None)).expect("templates"))));
 
     let app = Router::new()
         .route("/health", get(health))

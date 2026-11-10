@@ -1,4 +1,6 @@
--- Generated migration for sqlite
+-- Generated initial migration for sqlite
+
+-- Create added tables
 CREATE TABLE "users" (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     "uuid" TEXT CONSTRAINT "users_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
@@ -131,8 +133,7 @@ CREATE TABLE "genders" (
     "version" BLOB CONSTRAINT "genders_version_default_constraint" DEFAULT X'00' NOT NULL,
     "name" VARCHAR(128) NOT NULL,
     "description" TEXT CONSTRAINT "genders_description_default_constraint" DEFAULT '' NOT NULL,
-    CONSTRAINT "genders_uuid_unique_constraint" UNIQUE ("uuid"),
-    CONSTRAINT "genders_name_unique_constraint" UNIQUE ("name")
+    CONSTRAINT "genders_uuid_unique_constraint" UNIQUE ("uuid")
 );
 GO
 CREATE TRIGGER "trg_genders_updated_at"
@@ -183,8 +184,7 @@ CREATE TABLE "email_types" (
     "version" BLOB CONSTRAINT "email_types_version_default_constraint" DEFAULT X'00' NOT NULL,
     "name" VARCHAR(128) NOT NULL,
     "description" TEXT CONSTRAINT "email_types_description_default_constraint" DEFAULT '' NOT NULL,
-    CONSTRAINT "email_types_uuid_unique_constraint" UNIQUE ("uuid"),
-    CONSTRAINT "email_types_name_unique_constraint" UNIQUE ("name")
+    CONSTRAINT "email_types_uuid_unique_constraint" UNIQUE ("uuid")
 );
 GO
 CREATE TRIGGER "trg_email_types_updated_at"
@@ -211,7 +211,7 @@ CREATE TABLE "emails" (
     CONSTRAINT "emails_contact_id_foreign_key" FOREIGN KEY ("contact_id") REFERENCES "contacts" ("id")
 );
 GO
-CREATE UNIQUE INDEX "emails_contact_id_email_type_id_index_index" ON "emails" ("contact_id", "email_type_id");
+CREATE INDEX "emails_email_base_contact_id_index_index" ON "emails" ("contact_id");
 GO
 CREATE TRIGGER "trg_emails_updated_at"
 AFTER UPDATE ON "emails"
@@ -229,8 +229,7 @@ CREATE TABLE "phone_types" (
     "version" BLOB CONSTRAINT "phone_types_version_default_constraint" DEFAULT X'00' NOT NULL,
     "name" VARCHAR(128) NOT NULL,
     "description" TEXT CONSTRAINT "phone_types_description_default_constraint" DEFAULT '' NOT NULL,
-    CONSTRAINT "phone_types_uuid_unique_constraint" UNIQUE ("uuid"),
-    CONSTRAINT "phone_types_name_unique_constraint" UNIQUE ("name")
+    CONSTRAINT "phone_types_uuid_unique_constraint" UNIQUE ("uuid")
 );
 GO
 CREATE TRIGGER "trg_phone_types_updated_at"
@@ -255,12 +254,11 @@ CREATE TABLE "phones" (
     "is_primary" BOOLEAN NOT NULL,
     "is_verified" BOOLEAN CONSTRAINT "phones_is_verified_default_constraint" DEFAULT 0 NOT NULL,
     CONSTRAINT "phones_uuid_unique_constraint" UNIQUE ("uuid"),
-    CONSTRAINT "phones_number_unique_constraint" UNIQUE ("number"),
     CONSTRAINT "phones_phone_type_id_foreign_key" FOREIGN KEY ("phone_type_id") REFERENCES "phone_types" ("id"),
     CONSTRAINT "phones_contact_id_foreign_key" FOREIGN KEY ("contact_id") REFERENCES "contacts" ("id")
 );
 GO
-CREATE UNIQUE INDEX "phones_contact_id_phone_type_id_index_index" ON "phones" ("contact_id", "phone_type_id");
+CREATE INDEX "phones_phone_base_contact_id_index_index" ON "phones" ("contact_id");
 GO
 CREATE TRIGGER "trg_phones_updated_at"
 AFTER UPDATE ON "phones"
@@ -270,25 +268,6 @@ BEGIN
   UPDATE "phones" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "address_types" (
-    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    "uuid" TEXT CONSTRAINT "address_types_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
-    "created" TEXT CONSTRAINT "address_types_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-    "updated" TEXT CONSTRAINT "address_types_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-    "version" BLOB CONSTRAINT "address_types_version_default_constraint" DEFAULT X'00' NOT NULL,
-    "name" VARCHAR(128) NOT NULL,
-    "description" TEXT CONSTRAINT "address_types_description_default_constraint" DEFAULT '' NOT NULL,
-    CONSTRAINT "address_types_uuid_unique_constraint" UNIQUE ("uuid")
-);
-GO
-CREATE TRIGGER "trg_address_types_updated_at"
-AFTER UPDATE ON "address_types"
-FOR EACH ROW
-WHEN NEW."updated" IS OLD."updated"
-BEGIN
-  UPDATE "address_types" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
-END;
-GO
 CREATE TABLE "addresses" (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     "uuid" TEXT CONSTRAINT "addresses_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
@@ -296,7 +275,6 @@ CREATE TABLE "addresses" (
     "updated" TEXT CONSTRAINT "addresses_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
     "version" BLOB CONSTRAINT "addresses_version_default_constraint" DEFAULT X'00' NOT NULL,
     "contact_id" INTEGER NOT NULL,
-    "address_type_id" INTEGER NOT NULL,
     "display_name" VARCHAR(255) CONSTRAINT "addresses_display_name_default_constraint" DEFAULT '' NOT NULL,
     "line_1" VARCHAR(255) NOT NULL,
     "line_2" VARCHAR(255) CONSTRAINT "addresses_line_2_default_constraint" DEFAULT '' NOT NULL,
@@ -312,11 +290,10 @@ CREATE TABLE "addresses" (
     "longitude" NUMERIC,
     "is_primary" BOOLEAN CONSTRAINT "addresses_is_primary_default_constraint" DEFAULT 0 NOT NULL,
     CONSTRAINT "addresses_uuid_unique_constraint" UNIQUE ("uuid"),
-    CONSTRAINT "addresses_contact_id_foreign_key" FOREIGN KEY ("contact_id") REFERENCES "contacts" ("id"),
-    CONSTRAINT "addresses_address_type_id_foreign_key" FOREIGN KEY ("address_type_id") REFERENCES "address_types" ("id")
+    CONSTRAINT "addresses_contact_id_foreign_key" FOREIGN KEY ("contact_id") REFERENCES "contacts" ("id")
 );
 GO
-CREATE UNIQUE INDEX "addresses_address_contact_id_address_type_id_index_index" ON "addresses" ("contact_id", "address_type_id");
+CREATE INDEX "addresses_address_base_contact_id_index_index" ON "addresses" ("contact_id");
 GO
 CREATE TRIGGER "trg_addresses_updated_at"
 AFTER UPDATE ON "addresses"
@@ -339,7 +316,7 @@ CREATE TABLE "contact_attributes" (
     CONSTRAINT "contact_attributes_contact_id_foreign_key" FOREIGN KEY ("contact_id") REFERENCES "contacts" ("id")
 );
 GO
-CREATE INDEX "contact_attributes_contact_attribute_contact_id_name_index_index" ON "contact_attributes" ("contact_id", "name");
+CREATE INDEX "contact_attributes_contact_attribute_contact_id_index_index" ON "contact_attributes" ("contact_id");
 GO
 CREATE UNIQUE INDEX "contact_attributes_owner_key_index" ON "contact_attributes" ("contact_id", "name");
 GO
@@ -430,8 +407,7 @@ CREATE TABLE "labels" (
     "version" BLOB CONSTRAINT "labels_version_default_constraint" DEFAULT X'00' NOT NULL,
     "name" VARCHAR(255) NOT NULL,
     "description" TEXT CONSTRAINT "labels_description_default_constraint" DEFAULT '' NOT NULL,
-    CONSTRAINT "labels_uuid_unique_constraint" UNIQUE ("uuid"),
-    CONSTRAINT "labels_name_unique_constraint" UNIQUE ("name")
+    CONSTRAINT "labels_uuid_unique_constraint" UNIQUE ("uuid")
 );
 GO
 CREATE TRIGGER "trg_labels_updated_at"
@@ -455,7 +431,7 @@ CREATE TABLE "contact_labels" (
     CONSTRAINT "contact_labels_label_id_foreign_key" FOREIGN KEY ("label_id") REFERENCES "labels" ("id")
 );
 GO
-CREATE UNIQUE INDEX "contact_labels_contact_label_contact_id_label_id_index_index" ON "contact_labels" ("contact_id", "label_id");
+CREATE UNIQUE INDEX "contact_labels_contact_label_contact_id_label_id_index" ON "contact_labels" ("contact_id", "label_id");
 GO
 CREATE INDEX "contact_labels_contact_label_label_id_index_index" ON "contact_labels" ("label_id");
 GO
@@ -576,28 +552,28 @@ BEGIN
   UPDATE "localized_string_names" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "localized_string_bases" (
+CREATE TABLE "localized_strings" (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    "uuid" TEXT CONSTRAINT "localized_string_bases_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
-    "created" TEXT CONSTRAINT "localized_string_bases_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-    "updated" TEXT CONSTRAINT "localized_string_bases_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-    "version" BLOB CONSTRAINT "localized_string_bases_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "uuid" TEXT CONSTRAINT "localized_strings_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "localized_strings_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "localized_strings_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "localized_strings_version_default_constraint" DEFAULT X'00' NOT NULL,
     "localized_string_name_id" INTEGER NOT NULL,
     "language_id" INTEGER NOT NULL,
     "value" TEXT NOT NULL,
-    "is_enabled" BOOLEAN CONSTRAINT "localized_string_bases_is_enabled_default_constraint" DEFAULT 1 NOT NULL,
-    "is_deleted" BOOLEAN CONSTRAINT "localized_string_bases_is_deleted_default_constraint" DEFAULT 0 NOT NULL,
-    CONSTRAINT "localized_string_bases_uuid_unique_constraint" UNIQUE ("uuid"),
-    CONSTRAINT "localized_string_bases_localized_string_name_id_foreign_key" FOREIGN KEY ("localized_string_name_id") REFERENCES "localized_string_names" ("id"),
-    CONSTRAINT "localized_string_bases_language_id_foreign_key" FOREIGN KEY ("language_id") REFERENCES "languages" ("id")
+    "is_enabled" BOOLEAN CONSTRAINT "localized_strings_is_enabled_default_constraint" DEFAULT 1 NOT NULL,
+    "is_deleted" BOOLEAN CONSTRAINT "localized_strings_is_deleted_default_constraint" DEFAULT 0 NOT NULL,
+    CONSTRAINT "localized_strings_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "localized_strings_localized_string_name_id_foreign_key" FOREIGN KEY ("localized_string_name_id") REFERENCES "localized_string_names" ("id"),
+    CONSTRAINT "localized_strings_language_id_foreign_key" FOREIGN KEY ("language_id") REFERENCES "languages" ("id")
 );
 GO
-CREATE TRIGGER "trg_localized_string_bases_updated_at"
-AFTER UPDATE ON "localized_string_bases"
+CREATE TRIGGER "trg_localized_strings_updated_at"
+AFTER UPDATE ON "localized_strings"
 FOR EACH ROW
 WHEN NEW."updated" IS OLD."updated"
 BEGIN
-  UPDATE "localized_string_bases" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+  UPDATE "localized_strings" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
 CREATE TABLE "mime_types" (
@@ -619,28 +595,70 @@ BEGIN
   UPDATE "mime_types" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "resource_bases" (
+CREATE TABLE "resources" (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    "uuid" TEXT CONSTRAINT "resource_bases_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
-    "created" TEXT CONSTRAINT "resource_bases_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-    "updated" TEXT CONSTRAINT "resource_bases_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-    "version" BLOB CONSTRAINT "resource_bases_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "uuid" TEXT CONSTRAINT "resources_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "resources_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "resources_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "resources_version_default_constraint" DEFAULT X'00' NOT NULL,
     "resource_name" VARCHAR(128) NOT NULL,
     "mime_type_id" INTEGER NOT NULL,
     "description" TEXT NOT NULL,
     "location" VARCHAR(256) NOT NULL,
-    "is_enabled" BOOLEAN CONSTRAINT "resource_bases_is_enabled_default_constraint" DEFAULT 1 NOT NULL,
-    "is_deleted" BOOLEAN CONSTRAINT "resource_bases_is_deleted_default_constraint" DEFAULT 0 NOT NULL,
-    CONSTRAINT "resource_bases_uuid_unique_constraint" UNIQUE ("uuid"),
-    CONSTRAINT "resource_bases_mime_type_id_foreign_key" FOREIGN KEY ("mime_type_id") REFERENCES "mime_types" ("id")
+    "is_enabled" BOOLEAN CONSTRAINT "resources_is_enabled_default_constraint" DEFAULT 1 NOT NULL,
+    "is_deleted" BOOLEAN CONSTRAINT "resources_is_deleted_default_constraint" DEFAULT 0 NOT NULL,
+    CONSTRAINT "resources_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "resources_mime_type_id_foreign_key" FOREIGN KEY ("mime_type_id") REFERENCES "mime_types" ("id")
 );
 GO
-CREATE TRIGGER "trg_resource_bases_updated_at"
-AFTER UPDATE ON "resource_bases"
+CREATE TRIGGER "trg_resources_updated_at"
+AFTER UPDATE ON "resources"
 FOR EACH ROW
 WHEN NEW."updated" IS OLD."updated"
 BEGIN
-  UPDATE "resource_bases" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+  UPDATE "resources" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+END;
+GO
+CREATE TABLE "template_types" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "template_types_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "template_types_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "template_types_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "template_types_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "name" VARCHAR(128) NOT NULL,
+    "description" TEXT CONSTRAINT "template_types_description_default_constraint" DEFAULT '' NOT NULL,
+    CONSTRAINT "template_types_uuid_unique_constraint" UNIQUE ("uuid")
+);
+GO
+CREATE TRIGGER "trg_template_types_updated_at"
+AFTER UPDATE ON "template_types"
+FOR EACH ROW
+WHEN NEW."updated" IS OLD."updated"
+BEGIN
+  UPDATE "template_types" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+END;
+GO
+CREATE TABLE "templates" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "templates_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "templates_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "templates_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "templates_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "template_type_id" INTEGER NOT NULL,
+    "name" VARCHAR(128) NOT NULL,
+    "content" TEXT NOT NULL,
+    CONSTRAINT "templates_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "templates_template_type_id_foreign_key" FOREIGN KEY ("template_type_id") REFERENCES "template_types" ("id")
+);
+GO
+CREATE UNIQUE INDEX "templates_template_template_type_id_name_index" ON "templates" ("template_type_id", "name");
+GO
+CREATE TRIGGER "trg_templates_updated_at"
+AFTER UPDATE ON "templates"
+FOR EACH ROW
+WHEN NEW."updated" IS OLD."updated"
+BEGIN
+  UPDATE "templates" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
 CREATE TABLE "categories" (
@@ -666,26 +684,26 @@ BEGIN
   UPDATE "categories" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "game_parent_bases" (
+CREATE TABLE "game_parents" (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    "uuid" TEXT CONSTRAINT "game_parent_bases_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
-    "created" TEXT CONSTRAINT "game_parent_bases_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-    "updated" TEXT CONSTRAINT "game_parent_bases_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-    "version" BLOB CONSTRAINT "game_parent_bases_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "uuid" TEXT CONSTRAINT "game_parents_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "game_parents_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "game_parents_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "game_parents_version_default_constraint" DEFAULT X'00' NOT NULL,
     "name" VARCHAR(128) NOT NULL,
     "description" TEXT NOT NULL,
     "location" VARCHAR(256) NOT NULL,
-    "is_enabled" BOOLEAN CONSTRAINT "game_parent_bases_is_enabled_default_constraint" DEFAULT 1 NOT NULL,
-    "is_deleted" BOOLEAN CONSTRAINT "game_parent_bases_is_deleted_default_constraint" DEFAULT 0 NOT NULL,
-    CONSTRAINT "game_parent_bases_uuid_unique_constraint" UNIQUE ("uuid")
+    "is_enabled" BOOLEAN CONSTRAINT "game_parents_is_enabled_default_constraint" DEFAULT 1 NOT NULL,
+    "is_deleted" BOOLEAN CONSTRAINT "game_parents_is_deleted_default_constraint" DEFAULT 0 NOT NULL,
+    CONSTRAINT "game_parents_uuid_unique_constraint" UNIQUE ("uuid")
 );
 GO
-CREATE TRIGGER "trg_game_parent_bases_updated_at"
-AFTER UPDATE ON "game_parent_bases"
+CREATE TRIGGER "trg_game_parents_updated_at"
+AFTER UPDATE ON "game_parents"
 FOR EACH ROW
 WHEN NEW."updated" IS OLD."updated"
 BEGIN
-  UPDATE "game_parent_bases" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+  UPDATE "game_parents" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
 CREATE TABLE "game_parent_configs" (
@@ -698,7 +716,7 @@ CREATE TABLE "game_parent_configs" (
     "name" VARCHAR(128) NOT NULL,
     "value" TEXT NOT NULL,
     CONSTRAINT "game_parent_configs_uuid_unique_constraint" UNIQUE ("uuid"),
-    CONSTRAINT "game_parent_configs_game_parent_id_foreign_key" FOREIGN KEY ("game_parent_id") REFERENCES "game_parent_bases" ("id")
+    CONSTRAINT "game_parent_configs_game_parent_id_foreign_key" FOREIGN KEY ("game_parent_id") REFERENCES "game_parents" ("id")
 );
 GO
 CREATE TRIGGER "trg_game_parent_configs_updated_at"
@@ -707,6 +725,27 @@ FOR EACH ROW
 WHEN NEW."updated" IS OLD."updated"
 BEGIN
   UPDATE "game_parent_configs" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+END;
+GO
+CREATE TABLE "game_configs" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "game_configs_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "game_configs_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "game_configs_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "game_configs_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "template_id" INTEGER NOT NULL,
+    "image_id" INTEGER,
+    CONSTRAINT "game_configs_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "game_configs_template_id_foreign_key" FOREIGN KEY ("template_id") REFERENCES "templates" ("id"),
+    CONSTRAINT "game_configs_image_id_foreign_key" FOREIGN KEY ("image_id") REFERENCES "resources" ("id")
+);
+GO
+CREATE TRIGGER "trg_game_configs_updated_at"
+AFTER UPDATE ON "game_configs"
+FOR EACH ROW
+WHEN NEW."updated" IS OLD."updated"
+BEGIN
+  UPDATE "game_configs" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
 CREATE TABLE "games" (
@@ -718,12 +757,12 @@ CREATE TABLE "games" (
     "name" VARCHAR(128) NOT NULL,
     "description" TEXT NOT NULL,
     "game_parent_id" INTEGER NOT NULL,
-    "game_parent_config_id" INTEGER NOT NULL,
+    "game_config_id" INTEGER NOT NULL,
     "is_deleted" BOOLEAN CONSTRAINT "games_is_deleted_default_constraint" DEFAULT 0 NOT NULL,
     "is_enabled" BOOLEAN CONSTRAINT "games_is_enabled_default_constraint" DEFAULT 1 NOT NULL,
     CONSTRAINT "games_uuid_unique_constraint" UNIQUE ("uuid"),
-    CONSTRAINT "games_game_parent_id_foreign_key" FOREIGN KEY ("game_parent_id") REFERENCES "game_parent_bases" ("id"),
-    CONSTRAINT "games_game_parent_config_id_foreign_key" FOREIGN KEY ("game_parent_config_id") REFERENCES "game_parent_configs" ("id")
+    CONSTRAINT "games_game_parent_id_foreign_key" FOREIGN KEY ("game_parent_id") REFERENCES "game_parents" ("id"),
+    CONSTRAINT "games_game_config_id_foreign_key" FOREIGN KEY ("game_config_id") REFERENCES "game_configs" ("id")
 );
 GO
 CREATE TRIGGER "trg_games_updated_at"
@@ -766,7 +805,7 @@ CREATE TABLE "game_parent_categories" (
     "game_parent_id" INTEGER NOT NULL,
     "category_id" INTEGER NOT NULL,
     CONSTRAINT "game_parent_categories_uuid_unique_constraint" UNIQUE ("uuid"),
-    CONSTRAINT "game_parent_categories_game_parent_id_foreign_key" FOREIGN KEY ("game_parent_id") REFERENCES "game_parent_bases" ("id"),
+    CONSTRAINT "game_parent_categories_game_parent_id_foreign_key" FOREIGN KEY ("game_parent_id") REFERENCES "game_parents" ("id"),
     CONSTRAINT "game_parent_categories_category_id_foreign_key" FOREIGN KEY ("category_id") REFERENCES "categories" ("id")
 );
 GO
@@ -812,7 +851,7 @@ CREATE TABLE "game_parent_settings" (
     "name" VARCHAR(128) NOT NULL,
     "value" TEXT NOT NULL,
     CONSTRAINT "game_parent_settings_uuid_unique_constraint" UNIQUE ("uuid"),
-    CONSTRAINT "game_parent_settings_game_parent_id_foreign_key" FOREIGN KEY ("game_parent_id") REFERENCES "game_parent_bases" ("id")
+    CONSTRAINT "game_parent_settings_game_parent_id_foreign_key" FOREIGN KEY ("game_parent_id") REFERENCES "game_parents" ("id")
 );
 GO
 CREATE UNIQUE INDEX "game_parent_settings_game_parent_setting_game_parent_id_name_index" ON "game_parent_settings" ("game_parent_id", "name");
@@ -871,6 +910,7 @@ WHEN NEW."updated" IS OLD."updated"
 BEGIN
   UPDATE "reviews" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
+GO
 -- Seed data
 -- Seeds: genders
 GO
@@ -1049,18 +1089,6 @@ GO
 INSERT INTO "phone_types" ("id", "uuid", "name", "description") VALUES (4, 'c86ffd75-2e88-56c0-81a7-a6bf8fbbccf7', 'Fax', 'Fax');
 GO
 INSERT INTO "phone_types" ("id", "uuid", "name", "description") VALUES (5, '6a107d46-427f-5501-935a-7b2d7a1f7361', 'Other', 'Other');
-GO
--- Seeds: address_types
-GO
-INSERT INTO "address_types" ("id", "uuid", "name", "description") VALUES (1, '1e75343a-f291-5115-a555-47c1f64a2c69', 'Home', 'Home');
-GO
-INSERT INTO "address_types" ("id", "uuid", "name", "description") VALUES (2, '17222ad6-7a4a-547c-b7c7-083cf9664323', 'Work', 'Work');
-GO
-INSERT INTO "address_types" ("id", "uuid", "name", "description") VALUES (3, 'd393ea16-d09f-5ce4-943c-96d390ae888c', 'Billing', 'Billing');
-GO
-INSERT INTO "address_types" ("id", "uuid", "name", "description") VALUES (4, 'c3723ff5-17fb-5b95-97bb-6222e5fa1b6e', 'Shipping', 'Shipping');
-GO
-INSERT INTO "address_types" ("id", "uuid", "name", "description") VALUES (5, 'fa48e29e-cfbc-50d9-b1b1-a9021e9725fb', 'Other', 'Other');
 GO
 -- Seeds: labels
 GO
@@ -1555,3 +1583,7 @@ GO
 INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (56, 'e41fdd8d-b4de-5114-b7bf-af1da0d12fd0', 'font/otf', 'OpenType font');
 GO
 INSERT INTO "mime_types" ("id", "uuid", "name", "description") VALUES (57, 'c6e1daa8-d09a-5bd9-815b-bc8c82e57c52', 'multipart/form-data', 'Multipart form data');
+GO
+-- Seeds: template_types
+GO
+INSERT INTO "template_types" ("id", "uuid", "name", "description") VALUES (1, '88ba1ed1-69f1-54cf-9b1f-0273aaa19012', 'jigsaw', 'Jigsaw template settings');
