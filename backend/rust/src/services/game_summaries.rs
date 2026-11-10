@@ -10,21 +10,21 @@ use std::sync::Arc;
 type Result<T> = std::result::Result<T, ImageError>;
 
 /// Entity names the join statement uses, mapped to their tables.
-const ENTITIES: [(&str, &str); 6] = [
+const ENTITIES: [(&str, &str); 7] = [
     ("Game", "games"),
     ("GameParent", "game_parents"),
     ("PuzzleGame", "puzzle_games"),
     ("Resource", "resources"),
     ("GameCategory", "game_categories"),
     ("Category", "categories"),
+    ("GameAttribute", "game_attributes"),
 ];
 
 /// Property names to columns. A path such as `GameParent.name` is qualified by its entity (`game_parents.name`).
-const PROPERTIES: [(&str, &str); 7] = [
+const PROPERTIES: [(&str, &str); 6] = [
     ("gameParentId", "game_parent_id"),
     ("gameId", "game_id"),
     ("imageId", "image_id"),
-    ("templateId", "template_id"),
     ("categoryId", "category_id"),
     ("isDeleted", "is_deleted"),
     ("isEnabled", "is_enabled"),
@@ -33,24 +33,24 @@ const PROPERTIES: [(&str, &str); 7] = [
 /// One enabled, undeleted game with its categories, as the list API returns it.
 pub struct GameSummary {
     pub id: i64,
-    pub template_id: i64,
     pub name: String,
     pub description: String,
     pub parent_name: String,
     pub thumbname_location: String,
     pub categories: Vec<(i64, String)>,
+    pub attributes: Vec<(String, String)>,
 }
 
 impl GameSummary {
     pub fn to_json(&self) -> serde_json::Value {
         json!({
             "id": self.id,
-            "templateId": self.template_id,
             "name": self.name,
             "description": self.description,
             "parentName": self.parent_name,
             "thumbnameLocation": self.thumbname_location,
             "categories": self.categories.iter().map(|(id, name)| json!({ "id": id, "name": name })).collect::<Vec<_>>(),
+            "attributes": self.attributes.iter().map(|(name, value)| json!({ "name": name, "value": value })).collect::<Vec<_>>(),
         })
     }
 }
@@ -81,17 +81,18 @@ impl GameSummariesService {
             Join::left("Resource", "Resource.id", "PuzzleGame.imageId"),
             Join::left("GameCategory", "GameCategory.gameId", "Game.id"),
             Join::left("Category", "Category.id", "GameCategory.categoryId"),
+            Join::left("GameAttribute", "GameAttribute.gameId", "Game.id"),
         ];
         // Fields are paths; each alias is the result-column name the rows are read by.
         let fields = [
             "Game.id", "Game.name", "Game.description", "Game.isDeleted", "Game.isEnabled", "GameParent.name",
-            "PuzzleGame.templateId", "PuzzleGame.imageId", "Resource.location", "GameCategory.categoryId", "Category.name",
+            "PuzzleGame.imageId", "Resource.location", "GameCategory.categoryId", "Category.name", "GameAttribute.name", "GameAttribute.value",
         ];
         let aliases = [
             Some("id"), Some("name"), Some("description"), Some("gameDeleted"), Some("gameEnabled"), Some("parentName"),
-            Some("templateId"), Some("imageId"), Some("imageLocation"), Some("categoryId"), Some("categoryName"),
+            Some("imageId"), Some("imageLocation"), Some("categoryId"), Some("categoryName"), Some("attributeName"), Some("attributeValue"),
         ];
-        let order_by = [OrderBy::asc("Game.id"), OrderBy::asc("GameCategory.categoryId")];
+        let order_by = [OrderBy::asc("Game.id"), OrderBy::asc("GameCategory.categoryId"), OrderBy::asc("GameAttribute.name")];
         let select = SelectStatement::new(SelectStatementOptions {
             table: "Game",
             fields: &fields,
@@ -116,21 +117,27 @@ impl GameSummariesService {
                 let thumb = int(row.get("imageId")).and_then(|image| thumbs.get(&image).cloned());
                 GameSummary {
                     id,
-                    template_id: int(row.get("templateId")).unwrap_or_default(),
                     name: text(row.get("name")),
                     description: text(row.get("description")),
                     parent_name: text(row.get("parentName")),
                     thumbname_location: thumb.unwrap_or_else(|| text(row.get("imageLocation"))),
                     categories: vec![],
+                    attributes: vec![],
                 }
             });
             if let Some(category) = int(row.get("categoryId")) {
                 summary.categories.push((category, text(row.get("categoryName"))));
             }
+            if row.get("attributeName").is_some_and(|v| matches!(v, Value::Text(_))) {
+                summary.attributes.push((text(row.get("attributeName")), text(row.get("attributeValue"))));
+            }
         }
         let mut list: Vec<GameSummary> = by_game.into_values().collect();
         for summary in &mut list {
             summary.categories.sort();
+            summary.categories.dedup();
+            summary.attributes.sort();
+            summary.attributes.dedup();
         }
         Ok(list)
     }
@@ -157,3 +164,4 @@ fn text(value: Option<&Value>) -> String {
         _ => String::new(),
     }
 }
+

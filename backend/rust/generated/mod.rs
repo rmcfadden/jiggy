@@ -77,6 +77,8 @@ pub mod gameState;
 pub mod gameParentSetting;
 #[path = "types/datasource/gameSetting.rs"]
 pub mod gameSetting;
+#[path = "types/datasource/gameAttribute.rs"]
+pub mod gameAttribute;
 #[path = "types/datasource/review.rs"]
 pub mod review;
 #[path = "types/view/user.rs"]
@@ -140,6 +142,7 @@ pub use gameParentCategory::*;
 pub use gameState::*;
 pub use gameParentSetting::*;
 pub use gameSetting::*;
+pub use gameAttribute::*;
 pub use review::*;
 pub use user::*;
 pub use address::*;

@@ -15,5 +15,6 @@ export class Game {
   isDeleted: boolean = false;
   isEnabled: boolean = true;
   settings: Dictionary<string, string> = {};
+  attributes: Dictionary<string, string> = {};
   categories: Category[] = [];
 }

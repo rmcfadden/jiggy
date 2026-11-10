@@ -889,6 +889,29 @@ BEGIN
   UPDATE "game_settings" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
+CREATE TABLE "game_attributes" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "game_attributes_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "game_attributes_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "game_attributes_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "game_attributes_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "game_id" INTEGER NOT NULL,
+    "name" VARCHAR(128) NOT NULL,
+    "value" TEXT NOT NULL,
+    CONSTRAINT "game_attributes_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "game_attributes_game_id_foreign_key" FOREIGN KEY ("game_id") REFERENCES "games" ("id")
+);
+GO
+CREATE UNIQUE INDEX "game_attributes_game_attribute_game_id_name_index" ON "game_attributes" ("game_id", "name");
+GO
+CREATE TRIGGER "trg_game_attributes_updated_at"
+AFTER UPDATE ON "game_attributes"
+FOR EACH ROW
+WHEN NEW."updated" IS OLD."updated"
+BEGIN
+  UPDATE "game_attributes" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+END;
+GO
 CREATE TABLE "reviews" (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     "uuid" TEXT CONSTRAINT "reviews_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,

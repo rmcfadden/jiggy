@@ -3,6 +3,8 @@
 -- DROP tables (reverse dependency order)
 DROP TABLE IF EXISTS reviews;
 GO
+DROP TABLE IF EXISTS game_attributes;
+GO
 DROP TABLE IF EXISTS game_settings;
 GO
 DROP TABLE IF EXISTS game_parent_settings;

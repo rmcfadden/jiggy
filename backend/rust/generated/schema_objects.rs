@@ -29,6 +29,8 @@ impl SchemaObject for EmailType {}
 
 impl SchemaObject for Game {}
 
+impl SchemaObject for GameAttribute {}
+
 impl SchemaObject for GameCategory {}
 
 impl SchemaObject for GameParent {}

@@ -20,6 +20,7 @@ public static class RepositoryRegistry
         factory.Register("EmailLabel", "EmailLabels", connection => new EmailLabelsRepository(connection), connection => EmailLabelsRepository.CreateReadonly(connection));
         factory.Register("EmailType", "EmailTypes", connection => new EmailTypesRepository(connection), connection => EmailTypesRepository.CreateReadonly(connection));
         factory.Register("Game", "Games", connection => new GamesRepository(connection), connection => GamesRepository.CreateReadonly(connection));
+        factory.Register("GameAttribute", "GameAttributes", connection => new GameAttributesRepository(connection), connection => GameAttributesRepository.CreateReadonly(connection));
         factory.Register("GameCategory", "GameCategories", connection => new GameCategoriesRepository(connection), connection => GameCategoriesRepository.CreateReadonly(connection));
         factory.Register("GameParent", "GameParents", connection => new GameParentsRepository(connection), connection => GameParentsRepository.CreateReadonly(connection));
         factory.Register("GameParentCategory", "GameParentCategories", connection => new GameParentCategoriesRepository(connection), connection => GameParentCategoriesRepository.CreateReadonly(connection));

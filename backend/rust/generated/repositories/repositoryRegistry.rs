@@ -11,6 +11,7 @@ use super::super::EmailAttribute;
 use super::super::EmailLabel;
 use super::super::EmailType;
 use super::super::Game;
+use super::super::GameAttribute;
 use super::super::GameCategory;
 use super::super::GameParent;
 use super::super::GameParentCategory;
@@ -113,6 +114,12 @@ pub fn register(factory: &RepositoryFactory) {
         "games",
         |connection| Arc::new(super::gamesRepository::GamesRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<Game>>,
         |connection| Arc::new(super::gamesRepository::GamesRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<Game>>,
+    );
+    factory.register_named(
+        "GameAttribute",
+        "game_attributes",
+        |connection| Arc::new(super::gameAttributesRepository::GameAttributesRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<GameAttribute>>,
+        |connection| Arc::new(super::gameAttributesRepository::GameAttributesRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<GameAttribute>>,
     );
     factory.register_named(
         "GameCategory",
@@ -299,6 +306,7 @@ pub trait Repositories {
     fn email_labels(&self) -> Arc<super::emailLabelsRepository::EmailLabelsRepository>;
     fn email_types(&self) -> Arc<super::emailTypesRepository::EmailTypesRepository>;
     fn games(&self) -> Arc<super::gamesRepository::GamesRepository>;
+    fn game_attributes(&self) -> Arc<super::gameAttributesRepository::GameAttributesRepository>;
     fn game_categories(&self) -> Arc<super::gameCategoriesRepository::GameCategoriesRepository>;
     fn game_parents(&self) -> Arc<super::gameParentsRepository::GameParentsRepository>;
     fn game_parent_categories(&self) -> Arc<super::gameParentCategoriesRepository::GameParentCategoriesRepository>;
@@ -365,6 +373,9 @@ impl Repositories for Arc<dyn Datasource> {
     }
     fn games(&self) -> Arc<super::gamesRepository::GamesRepository> {
         Arc::new(super::gamesRepository::GamesRepository::new(self.bind_connection(None)).expect("games"))
+    }
+    fn game_attributes(&self) -> Arc<super::gameAttributesRepository::GameAttributesRepository> {
+        Arc::new(super::gameAttributesRepository::GameAttributesRepository::new(self.bind_connection(None)).expect("game_attributes"))
     }
     fn game_categories(&self) -> Arc<super::gameCategoriesRepository::GameCategoriesRepository> {
         Arc::new(super::gameCategoriesRepository::GameCategoriesRepository::new(self.bind_connection(None)).expect("game_categories"))

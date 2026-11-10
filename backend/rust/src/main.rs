@@ -78,4 +78,6 @@ async fn setup(game_parents: &GameParentsService, categories: &CategoriesService
     report(&added, "sample images", "sample images");
     let added = games.add_puzzles(&seed_path("PUZZLES_SEED_PATH", "../data/puzzles.json")).await.expect("add puzzles");
     if added.is_empty() { println!("puzzles already present") } else { println!("added {} puzzles", added.len()) }
+    let added = games.add_attributes().await.expect("add game attributes");
+    if added.is_empty() { println!("game attributes already present") } else { println!("added attributes to {} games", added.len()) }
 }

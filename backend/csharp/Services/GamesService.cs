@@ -28,6 +28,8 @@ public class GamesService(
     ImagesService images)
 {
     const string ConfigKey = "config";
+    /// <summary>Attribute holding the pieces in the game's template (<c>cols * rows</c>).</summary>
+    public const string PieceCount = "pieceCount";
 
     public async Task<List<GameDto>> List()
     {
@@ -62,6 +64,7 @@ public class GamesService(
             Description = input.Description ?? "",
             GameParentId = parent.Id,
             Settings = Settings(input.Config),
+            Attributes = await AttributesOf(templateId),
         };
         var created = await repo.Create(game);
         var puzzle = await puzzles.Create(new PuzzleGame { GameId = created.Id, TemplateId = templateId, ImageId = input.ImageId });
@@ -80,6 +83,7 @@ public class GamesService(
         {
             await CheckTemplate(templateId);
             puzzle.TemplateId = templateId;
+            foreach (var (name, value) in await AttributesOf(templateId)) game.Attributes[name] = value;
         }
         if (input.ImageId is not null)
         {
@@ -144,6 +148,34 @@ public class GamesService(
         await foreach (var row in repo.Read())
             if (!row.IsDeleted) rows.Add(row);
         return rows;
+    }
+
+    /// <summary>
+    /// Gives every game its attributes where they are missing or its template changed behind its back (run by
+    /// <c>setup</c>); returns the names of the games it updated.
+    /// </summary>
+    public async Task<List<string>> AddAttributes()
+    {
+        var puzzleOf = await PuzzlesByGame();
+        var updated = new List<string>();
+        foreach (var game in await Games())
+        {
+            if (!puzzleOf.TryGetValue(game.Id, out var puzzle)) continue;
+            var wanted = await AttributesOf(puzzle.TemplateId);
+            if (wanted.All(a => game.Attributes.GetValueOrDefault(a.Key) == a.Value)) continue;
+            foreach (var (name, value) in wanted) game.Attributes[name] = value;
+            await repo.Update(game);
+            updated.Add(game.Name);
+        }
+        return updated;
+    }
+
+    /// <summary>The attributes a game gets from its template: <c>pieceCount</c> is <c>cols * rows</c> of the template's JSON.</summary>
+    async Task<Dictionary<string, string>> AttributesOf(long templateId)
+    {
+        var content = (await templates.Get(templateId))?.Content;
+        long Get(string name) => content is { ValueKind: JsonValueKind.Object } c && c.TryGetProperty(name, out var v) && v.TryGetInt64(out var n) ? n : 0;
+        return new() { [PieceCount] = (Get("cols") * Get("rows")).ToString() };
     }
 
     async Task<Dictionary<long, PuzzleGame>> PuzzlesByGame()

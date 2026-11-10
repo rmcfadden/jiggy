@@ -10,6 +10,7 @@ const ENTITIES: [string, string][] = [
   ['Resource', 'resources'],
   ['GameCategory', 'game_categories'],
   ['Category', 'categories'],
+  ['GameAttribute', 'game_attributes'],
 ]
 
 /** Property names to columns. A path such as `GameParent.name` is qualified by its entity (`game_parents.name`). */
@@ -29,16 +30,17 @@ type Mapped = GameSummary & { imageId: number | null; gameDeleted: unknown; game
 // Fields are paths; each aliases entry is the result-column name the nested mapper reads.
 const joined = new SelectStatement({
   table: 'Game',
-  fields: ['Game.id', 'Game.name', 'Game.description', 'Game.isDeleted', 'Game.isEnabled', 'GameParent.name', 'PuzzleGame.templateId', 'PuzzleGame.imageId', 'Resource.location', 'GameCategory.categoryId', 'Category.name'],
-  aliases: ['id', 'name', 'description', 'gameDeleted', 'gameEnabled', 'parentName', 'templateId', 'imageId', 'imageLocation', 'categoryId', 'categoryName'],
+  fields: ['Game.id', 'Game.name', 'Game.description', 'Game.isDeleted', 'Game.isEnabled', 'GameParent.name', 'PuzzleGame.imageId', 'Resource.location', 'GameCategory.categoryId', 'Category.name', 'GameAttribute.name', 'GameAttribute.value'],
+  aliases: ['id', 'name', 'description', 'gameDeleted', 'gameEnabled', 'parentName', 'imageId', 'imageLocation', 'categoryId', 'categoryName', 'attributeName', 'attributeValue'],
   joins: [
     Join.inner('GameParent', 'GameParent.id', 'Game.gameParentId'),
     Join.inner('PuzzleGame', 'PuzzleGame.gameId', 'Game.id'),
     Join.left('Resource', 'Resource.id', 'PuzzleGame.imageId'),
     Join.left('GameCategory', 'GameCategory.gameId', 'Game.id'),
     Join.left('Category', 'Category.id', 'GameCategory.categoryId'),
+    Join.left('GameAttribute', 'GameAttribute.gameId', 'Game.id'),
   ],
-  orderBy: [OrderBy.asc('Game.id'), OrderBy.asc('GameCategory.categoryId')],
+  orderBy: [OrderBy.asc('Game.id'), OrderBy.asc('GameCategory.categoryId'), OrderBy.asc('GameAttribute.name')],
 })
 
 /**
@@ -65,12 +67,12 @@ export class GameSummariesService extends ReadonlyRepository<GameSummary> {
           name: 'name',
           description: 'description',
           parentName: 'parentName',
-          templateId: 'templateId',
           thumbnameLocation: 'imageLocation',
           imageId: 'imageId',
           gameDeleted: 'gameDeleted',
           gameEnabled: 'gameEnabled',
           categories: { key: 'categoryId', fields: { id: 'categoryId', name: 'categoryName' } },
+          attributes: { key: 'attributeName', fields: { name: 'attributeName', value: 'attributeValue' } },
         },
       }),
     )

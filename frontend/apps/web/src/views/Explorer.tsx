@@ -10,8 +10,7 @@ import {
   type Category,
   type Puzzle,
 } from '@jiggy/shared'
-import { useGameSummaries, type GameSummaryRow } from '../api/gameSummaries'
-import { useTemplates } from '../api/templates'
+import { attributeOf, useGameSummaries, type GameSummaryRow } from '../api/gameSummaries'
 import { TEMPLATE_SIZES } from '../designer/gameAssets'
 import {
   ICON_DIMENSIONS,
@@ -272,15 +271,13 @@ function useCatalog() {
     },
   })
   const games = useGameSummaries()
-  const templates = useTemplates<{ cols?: number; rows?: number }>()
   const categories = categoriesQuery.data ?? []
   const idByName = categoryIdByName(categories)
-  const pieces = new Map((templates.data ?? []).map((t) => [t.id, (t.content?.cols ?? 0) * (t.content?.rows ?? 0)]))
   const toPuzzle = (g: GameSummaryRow): Puzzle => ({
     id: String(g.id),
     name: g.name,
     categories: g.categories.flatMap((c) => idByName.get(c.name) ?? []),
-    template: { size: String(pieces.get(g.templateId) ?? 0), style: 'subtle' },
+    template: { size: attributeOf(g, 'pieceCount') ?? '0', style: 'subtle' },
     settings: DEFAULT_GAME_CONFIG,
     image: { name: g.name, location: g.thumbnameLocation },
     reviews: [],

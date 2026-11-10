@@ -3,15 +3,18 @@ using Datasources;
 public sealed class GamesRepository : CRUDRepository<Backend.Types.View.Game>
 {
     public GameSettingsRepository GameSetting { get; }
+    public GameAttributesRepository GameAttribute { get; }
     public CategoriesRepository Category { get; }
     public GameCategoriesRepository GameCategory { get; }
 
     public GamesRepository(IConnection connection) : base(connection, Options(connection))
     {
         GameSetting = new GameSettingsRepository(connection);
+        GameAttribute = new GameAttributesRepository(connection);
         Category = new CategoriesRepository(connection);
         GameCategory = new GameCategoriesRepository(connection);
         AddEnriched(new("Settings", "Id", "GameId", "Value", Type: EnrichmentPropertyType.Dictionary, DictionaryKey: "Name"), GameSetting);
+        AddEnriched(new("Attributes", "Id", "GameId", "Value", Type: EnrichmentPropertyType.Dictionary, DictionaryKey: "Name"), GameAttribute);
         AddLinked(new("Categories", "Id", "Id", "Name", Association: new("GameId", "CategoryId")), Category, GameCategory);
     }
 
@@ -19,9 +22,11 @@ public sealed class GamesRepository : CRUDRepository<Backend.Types.View.Game>
     {
         var repo = new ReadonlyRepository<Backend.Types.View.Game>(connection, Options(connection));
         var GameSetting = new GameSettingsRepository(connection);
+        var GameAttribute = new GameAttributesRepository(connection);
         var Category = new CategoriesRepository(connection);
         var GameCategory = new GameCategoriesRepository(connection);
         repo.AddEnriched(new("Settings", "Id", "GameId", "Value", Type: EnrichmentPropertyType.Dictionary, DictionaryKey: "Name"), GameSetting);
+        repo.AddEnriched(new("Attributes", "Id", "GameId", "Value", Type: EnrichmentPropertyType.Dictionary, DictionaryKey: "Name"), GameAttribute);
         repo.AddEnriched(new("Categories", "Id", "Id", "Name", Type: EnrichmentPropertyType.List), Category);
         return repo;
     }

@@ -7,10 +7,10 @@ namespace Backend.Types.View;
 public class GameSummary
 {
     public long Id { get; set; }
-    public long TemplateId { get; set; }
     public string Name { get; set; } = "";
     public string Description { get; set; } = "";
     public string ParentName { get; set; } = "";
     public string ThumbnameLocation { get; set; } = "";
     public List<Category> Categories { get; set; } = [];
+    public List<Backend.Types.Datasource.GameAttribute> Attributes { get; set; } = [];
 }
