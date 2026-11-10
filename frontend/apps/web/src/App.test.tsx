@@ -1,12 +1,12 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
-import { CATEGORIES } from '@jiggy/shared'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import App from './App'
+import { stubFetch } from './views/stubApi'
 
 beforeEach(() => {
-  vi.stubGlobal('fetch', async () => new Response(JSON.stringify(CATEGORIES)))
+  vi.stubGlobal('fetch', stubFetch)
 })
 
 afterEach(() => {

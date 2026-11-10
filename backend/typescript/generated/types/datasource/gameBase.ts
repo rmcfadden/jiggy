@@ -10,7 +10,6 @@ export class GameBase {
   name: string = "";
   description: string = "";
   gameParentId!: number;
-  gameConfigId!: number;
   isDeleted: boolean = false;
   isEnabled: boolean = true;
 }

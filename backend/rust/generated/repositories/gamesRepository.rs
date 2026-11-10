@@ -34,14 +34,13 @@ impl GamesRepository {
             ("name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("description".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("game_parent_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
-            ("game_config_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
             ("is_deleted".into(), SchemaColumn { type_name: "boolean".into(), nullable: false, has_default: true, is_id: false }),
             ("is_enabled".into(), SchemaColumn { type_name: "boolean".into(), nullable: false, has_default: true, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "name".into(), "description".into(), "game_parent_id".into(), "game_config_id".into(), "is_deleted".into(), "is_enabled".into()];
-        options.create_properties = Some(vec!["name".into(), "description".into(), "game_parent_id".into(), "game_config_id".into(), "is_deleted".into(), "is_enabled".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "name".into(), "description".into(), "game_parent_id".into(), "game_config_id".into(), "is_deleted".into(), "is_enabled".into()]);
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "name".into(), "description".into(), "game_parent_id".into(), "is_deleted".into(), "is_enabled".into()];
+        options.create_properties = Some(vec!["name".into(), "description".into(), "game_parent_id".into(), "is_deleted".into(), "is_enabled".into()]);
+        options.update_properties = Some(vec!["uuid".into(), "name".into(), "description".into(), "game_parent_id".into(), "is_deleted".into(), "is_enabled".into()]);
         options
     })
     .add_for("sqlite", {
@@ -59,14 +58,13 @@ impl GamesRepository {
             ("name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("description".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("game_parent_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
-            ("game_config_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
             ("is_deleted".into(), SchemaColumn { type_name: "boolean".into(), nullable: false, has_default: true, is_id: false }),
             ("is_enabled".into(), SchemaColumn { type_name: "boolean".into(), nullable: false, has_default: true, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "name".into(), "description".into(), "game_parent_id".into(), "game_config_id".into(), "is_deleted".into(), "is_enabled".into()];
-        options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "name".into(), "description".into(), "game_parent_id".into(), "game_config_id".into(), "is_deleted".into(), "is_enabled".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "name".into(), "description".into(), "game_parent_id".into(), "game_config_id".into(), "is_deleted".into(), "is_enabled".into()]);
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "name".into(), "description".into(), "game_parent_id".into(), "is_deleted".into(), "is_enabled".into()];
+        options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "name".into(), "description".into(), "game_parent_id".into(), "is_deleted".into(), "is_enabled".into()]);
+        options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "name".into(), "description".into(), "game_parent_id".into(), "is_deleted".into(), "is_enabled".into()]);
         options
     })
     .for_connection(connection.as_ref())?;
@@ -95,11 +93,10 @@ impl GamesRepository {
             ("name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("description".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("game_parent_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
-            ("game_config_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
             ("is_deleted".into(), SchemaColumn { type_name: "boolean".into(), nullable: false, has_default: true, is_id: false }),
             ("is_enabled".into(), SchemaColumn { type_name: "boolean".into(), nullable: false, has_default: true, is_id: false }),
         ]));
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "name".into(), "description".into(), "game_parent_id".into(), "game_config_id".into(), "is_deleted".into(), "is_enabled".into()];
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "name".into(), "description".into(), "game_parent_id".into(), "is_deleted".into(), "is_enabled".into()];
         let game_setting = GameSettingsRepository::new(Arc::clone(&connection))?;
         let category = CategoriesRepository::new(Arc::clone(&connection))?;
         let mut repo = ReadonlyRepository::<Game>::new(connection, options)?;
@@ -223,14 +220,13 @@ pub fn games_row_repository(connection: Arc<dyn Connection>) -> Result<CRUDRepos
             ("name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("description".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("game_parent_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
-            ("game_config_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
             ("is_deleted".into(), SchemaColumn { type_name: "boolean".into(), nullable: false, has_default: true, is_id: false }),
             ("is_enabled".into(), SchemaColumn { type_name: "boolean".into(), nullable: false, has_default: true, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "name".into(), "description".into(), "game_parent_id".into(), "game_config_id".into(), "is_deleted".into(), "is_enabled".into()];
-        options.create_properties = Some(vec!["name".into(), "description".into(), "game_parent_id".into(), "game_config_id".into(), "is_deleted".into(), "is_enabled".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "name".into(), "description".into(), "game_parent_id".into(), "game_config_id".into(), "is_deleted".into(), "is_enabled".into()]);
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "name".into(), "description".into(), "game_parent_id".into(), "is_deleted".into(), "is_enabled".into()];
+        options.create_properties = Some(vec!["name".into(), "description".into(), "game_parent_id".into(), "is_deleted".into(), "is_enabled".into()]);
+        options.update_properties = Some(vec!["uuid".into(), "name".into(), "description".into(), "game_parent_id".into(), "is_deleted".into(), "is_enabled".into()]);
         options
     })
     .add_for("sqlite", {
@@ -248,14 +244,13 @@ pub fn games_row_repository(connection: Arc<dyn Connection>) -> Result<CRUDRepos
             ("name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("description".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("game_parent_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
-            ("game_config_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
             ("is_deleted".into(), SchemaColumn { type_name: "boolean".into(), nullable: false, has_default: true, is_id: false }),
             ("is_enabled".into(), SchemaColumn { type_name: "boolean".into(), nullable: false, has_default: true, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "name".into(), "description".into(), "game_parent_id".into(), "game_config_id".into(), "is_deleted".into(), "is_enabled".into()];
-        options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "name".into(), "description".into(), "game_parent_id".into(), "game_config_id".into(), "is_deleted".into(), "is_enabled".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "name".into(), "description".into(), "game_parent_id".into(), "game_config_id".into(), "is_deleted".into(), "is_enabled".into()]);
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "name".into(), "description".into(), "game_parent_id".into(), "is_deleted".into(), "is_enabled".into()];
+        options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "name".into(), "description".into(), "game_parent_id".into(), "is_deleted".into(), "is_enabled".into()]);
+        options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "name".into(), "description".into(), "game_parent_id".into(), "is_deleted".into(), "is_enabled".into()]);
         options
     })
     .for_connection(connection.as_ref())?;

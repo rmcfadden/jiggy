@@ -20,6 +20,17 @@ impl CategoriesService {
         Ok(children(&rows, None))
     }
 
+    /// Every enabled category with its database id and parent, in id order: `[{ id, parentId, name, description }]`.
+    pub async fn flat(&self) -> Result<Vec<Value>, datasources::DatasourceError> {
+        let mut rows: Vec<Category> = self.repo.read(None, None).try_collect().await?;
+        rows.retain(|c| c.is_enabled && !c.is_deleted);
+        rows.sort_by_key(|c| c.id);
+        Ok(rows
+            .iter()
+            .map(|c| json!({ "id": c.id, "parentId": c.category_id, "name": c.name, "description": c.description }))
+            .collect())
+    }
+
     /// Adds the categories in the JSON file at `path` that are not there yet, matching on name and parent
     /// (deleted rows count, so a removed category is not brought back); returns the names it added.
     pub async fn add_categories(&self, path: &std::path::Path) -> Result<Vec<String>, Box<dyn std::error::Error>> {

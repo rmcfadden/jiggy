@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import {
-  CATALOG,
+  DEFAULT_GAME_CONFIG,
   averageRating,
   findPuzzle,
   puzzlesInCategory,
@@ -10,6 +10,10 @@ import {
   type Category,
   type Puzzle,
 } from '@jiggy/shared'
+import { useGames, type SavedGameRow } from '../api/games'
+import { useImages } from '../api/images'
+import { useCategoryRows } from '../api/categories'
+import { useTemplates } from '../api/templates'
 import { TEMPLATE_SIZES } from '../designer/gameAssets'
 import {
   ICON_DIMENSIONS,
@@ -199,9 +203,9 @@ function NetflixView({
     const next = shown.includes(id) ? shown.filter((x) => x !== id) : [...shown, id]
     update({ rows: next.length === topLevel.length ? [] : next })
   }
-  const topRated = CATALOG.puzzles.filter((p) => p.reviews.length > 0).sort(byRating)
+  const topRated = catalog.puzzles.filter((p) => p.reviews.length > 0).sort(byRating)
   const featured = topRated[0]
-  const find = (id: string) => findPuzzle(CATALOG, id)
+  const find = (id: string) => findPuzzle(catalog, id)
   const mine = profile.list.map(find).filter((p): p is Puzzle => !!p)
   const recent = profile.recent.map(find).filter((p): p is Puzzle => !!p)
   return (
@@ -251,9 +255,17 @@ function NetflixView({
   )
 }
 
-/** The static puzzles with their categories loaded from the REST backend. */
+const categoryIdByName = (categories: Category[], map = new Map<string, string>()) => {
+  for (const c of categories) {
+    map.set(c.name, c.id)
+    categoryIdByName(c.children, map)
+  }
+  return map
+}
+
+/** The saved games from /api/games, shown with their thumbnails, filed under the categories from /api/categories. */
 function useCatalog() {
-  const { data, isError } = useQuery({
+  const categoriesQuery = useQuery({
     queryKey: ['categories'],
     queryFn: async (): Promise<Category[]> => {
       const res = await fetch('/api/categories')
@@ -261,8 +273,26 @@ function useCatalog() {
       return res.json()
     },
   })
-  const catalog: Catalog = { ...CATALOG, categories: data ?? [] }
-  return { catalog, isError }
+  const games = useGames()
+  const rows = useCategoryRows()
+  const images = useImages()
+  const templates = useTemplates<{ cols?: number; rows?: number }>()
+  const categories = categoriesQuery.data ?? []
+  const idByName = categoryIdByName(categories)
+  const nameById = new Map((rows.data ?? []).map((r) => [r.id, r.name]))
+  const pieces = new Map((templates.data ?? []).map((t) => [t.id, (t.content?.cols ?? 0) * (t.content?.rows ?? 0)]))
+  const imageUrl = new Map((images.data ?? []).map((i) => [i.id, i.url]))
+  const toPuzzle = (g: SavedGameRow): Puzzle => ({
+    id: String(g.id),
+    name: g.name,
+    categories: (g.categoryIds ?? []).flatMap((id) => idByName.get(nameById.get(id) ?? '') ?? []),
+    template: { size: String(pieces.get(g.templateId) ?? 0), style: 'subtle' },
+    settings: { ...DEFAULT_GAME_CONFIG, ...(g.config as { config?: object } | null)?.config },
+    image: { name: g.name, location: g.thumbnailUrl ?? imageUrl.get(g.imageId ?? -1) ?? '' },
+    reviews: [],
+  })
+  const catalog: Catalog = { categories, puzzles: (games.data ?? []).map(toPuzzle) }
+  return { catalog, isError: categoriesQuery.isError || games.isError }
 }
 
 export default function Explorer() {
@@ -281,7 +311,7 @@ export default function Explorer() {
           <Segmented label="Icons" options={ICON_SIZES} value={prefs.iconSize} onChange={(iconSize) => update({ iconSize })} />
         </div>
       </header>
-      {isError && <p className="px-4 py-2 text-sm text-red-600 md:px-6">Couldn't load categories from the server.</p>}
+      {isError && <p className="px-4 py-2 text-sm text-red-600 md:px-6">Couldn't load puzzles from the server.</p>}
       {prefs.layout === 'classic' ? (
         <ClassicView prefs={prefs} catalog={catalog} {...profile} />
       ) : (

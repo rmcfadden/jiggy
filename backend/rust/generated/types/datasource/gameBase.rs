@@ -11,7 +11,6 @@ pub struct GameBase {
     pub name: String,
     pub description: String,
     pub game_parent_id: i64,
-    pub game_config_id: i64,
     pub is_deleted: bool,
     pub is_enabled: bool,
 }
@@ -26,7 +25,6 @@ impl Default for GameBase {
             name: String::new(),
             description: String::new(),
             game_parent_id: 0,
-            game_config_id: 0,
             is_deleted: false,
             is_enabled: true,
         }

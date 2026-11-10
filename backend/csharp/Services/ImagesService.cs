@@ -42,6 +42,16 @@ public class ImagesService(ICRUDRepository<Resource> repo, ICRUDRepository<MimeT
         return all.OrderBy(i => i.Id).ToList();
     }
 
+    /// <summary>Image id to the URL of its generated thumbnail; images without a thumbnail (svg, tiff, avif) are left out.</summary>
+    public async Task<Dictionary<long, string>> ThumbnailUrls()
+    {
+        var rows = new List<Resource>();
+        await foreach (var row in repo.Read())
+            if (!row.IsDeleted) rows.Add(row);
+        var thumbs = rows.Where(r => r.ResourceName.EndsWith(Thumbnails.Suffix)).ToDictionary(r => r.ResourceName, r => r.Location);
+        return rows.Where(r => thumbs.ContainsKey(r.ResourceName + Thumbnails.Suffix)).ToDictionary(r => r.Id, r => thumbs[r.ResourceName + Thumbnails.Suffix]);
+    }
+
     /// <summary>Looks an image up by id, uuid or name (first one given wins); null when none matches.</summary>
     public async Task<ImageDto?> Find(long? id = null, Guid? guid = null, string? name = null)
     {

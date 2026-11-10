@@ -31,8 +31,6 @@ impl SchemaObject for Game {}
 
 impl SchemaObject for GameCategory {}
 
-impl SchemaObject for GameConfig {}
-
 impl SchemaObject for GameParent {}
 
 impl SchemaObject for GameParentCategory {}
@@ -62,6 +60,8 @@ impl SchemaObject for PhoneAttribute {}
 impl SchemaObject for PhoneLabel {}
 
 impl SchemaObject for PhoneType {}
+
+impl SchemaObject for PuzzleGame {}
 
 impl SchemaObject for Resource {}
 

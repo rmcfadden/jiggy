@@ -1,23 +1,23 @@
 use datasources::{Connection, CRUDRepository, CRUDRepositoryBuilder, CRUDRepositoryOptions, DictionaryMapper, EnrichmentVia, ICRUDRepository, IReadonlyRepository, IRepository, IWhere, ReadonlyRepository, ReadonlyRepositoryMappingOptions, Schema, SchemaColumn, Statement, Result, async_trait, CommandMiddleware, IdKey, Response, Stream};
-use super::super::GameConfig;
+use super::super::PuzzleGame;
 use std::any::TypeId;
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::pin::Pin;
 use std::sync::Arc;
 
-pub struct GameConfigsRepository {
-    pub(crate) inner: Arc<CRUDRepository<GameConfig>>,
+pub struct PuzzleGamesRepository {
+    pub(crate) inner: Arc<CRUDRepository<PuzzleGame>>,
 }
 
-impl GameConfigsRepository {
+impl PuzzleGamesRepository {
     pub fn new(connection: Arc<dyn Connection>) -> Result<Self> {
     let options = CRUDRepositoryBuilder::new()
     .add({
         let mut options = CRUDRepositoryOptions::default();
-        options.entity = "GameConfig".into();
+        options.entity = "PuzzleGame".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("GameConfig".into(), "game_configs".into()),
+            ("PuzzleGame".into(), "puzzle_games".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -25,20 +25,21 @@ impl GameConfigsRepository {
             ("created".into(), SchemaColumn { type_name: "datetime".into(), nullable: false, has_default: true, is_id: false }),
             ("updated".into(), SchemaColumn { type_name: "datetime".into(), nullable: false, has_default: true, is_id: false }),
             ("version".into(), SchemaColumn { type_name: "binary".into(), nullable: false, has_default: true, is_id: false }),
+            ("game_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
             ("template_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
             ("image_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: true, has_default: false, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "template_id".into(), "image_id".into()];
-        options.create_properties = Some(vec!["template_id".into(), "image_id".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "template_id".into(), "image_id".into()]);
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "game_id".into(), "template_id".into(), "image_id".into()];
+        options.create_properties = Some(vec!["game_id".into(), "template_id".into(), "image_id".into()]);
+        options.update_properties = Some(vec!["uuid".into(), "game_id".into(), "template_id".into(), "image_id".into()]);
         options
     })
     .add_for("sqlite", {
         let mut options = CRUDRepositoryOptions::default();
-        options.entity = "GameConfig".into();
+        options.entity = "PuzzleGame".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("GameConfig".into(), "game_configs".into()),
+            ("PuzzleGame".into(), "puzzle_games".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -46,26 +47,27 @@ impl GameConfigsRepository {
             ("created".into(), SchemaColumn { type_name: "datetime".into(), nullable: false, has_default: true, is_id: false }),
             ("updated".into(), SchemaColumn { type_name: "datetime".into(), nullable: false, has_default: true, is_id: false }),
             ("version".into(), SchemaColumn { type_name: "binary".into(), nullable: false, has_default: true, is_id: false }),
+            ("game_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
             ("template_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
             ("image_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: true, has_default: false, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "template_id".into(), "image_id".into()];
-        options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "template_id".into(), "image_id".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "template_id".into(), "image_id".into()]);
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "game_id".into(), "template_id".into(), "image_id".into()];
+        options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "game_id".into(), "template_id".into(), "image_id".into()]);
+        options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "game_id".into(), "template_id".into(), "image_id".into()]);
         options
     })
     .for_connection(connection.as_ref())?;
 
-        let repo = CRUDRepository::<GameConfig>::new(connection, options)?;
+        let repo = CRUDRepository::<PuzzleGame>::new(connection, options)?;
         Ok(Self { inner: Arc::new(repo) })
     }
 
-    pub fn create_readonly(connection: Arc<dyn Connection>) -> Result<ReadonlyRepository<GameConfig>> {
+    pub fn create_readonly(connection: Arc<dyn Connection>) -> Result<ReadonlyRepository<PuzzleGame>> {
         let mut options = ReadonlyRepositoryMappingOptions::default();
-        options.entity = "GameConfig".into();
+        options.entity = "PuzzleGame".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("GameConfig".into(), "game_configs".into()),
+            ("PuzzleGame".into(), "puzzle_games".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -73,37 +75,38 @@ impl GameConfigsRepository {
             ("created".into(), SchemaColumn { type_name: "datetime".into(), nullable: false, has_default: true, is_id: false }),
             ("updated".into(), SchemaColumn { type_name: "datetime".into(), nullable: false, has_default: true, is_id: false }),
             ("version".into(), SchemaColumn { type_name: "binary".into(), nullable: false, has_default: true, is_id: false }),
+            ("game_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
             ("template_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
             ("image_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: true, has_default: false, is_id: false }),
         ]));
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "template_id".into(), "image_id".into()];
-        let repo = ReadonlyRepository::<GameConfig>::new(connection, options)?;
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "game_id".into(), "template_id".into(), "image_id".into()];
+        let repo = ReadonlyRepository::<PuzzleGame>::new(connection, options)?;
         Ok(repo)
     }
 }
 
-impl Deref for GameConfigsRepository {
-    type Target = CRUDRepository<GameConfig>;
+impl Deref for PuzzleGamesRepository {
+    type Target = CRUDRepository<PuzzleGame>;
     fn deref(&self) -> &Self::Target {
         self.inner.as_ref()
     }
 }
 
-impl EnrichmentVia<GameConfig> for &GameConfigsRepository {
+impl EnrichmentVia<PuzzleGame> for &PuzzleGamesRepository {
     fn into_repos(
         self,
     ) -> (
-        Arc<dyn IReadonlyRepository<GameConfig>>,
-        Option<Arc<dyn ICRUDRepository<GameConfig>>>,
+        Arc<dyn IReadonlyRepository<PuzzleGame>>,
+        Option<Arc<dyn ICRUDRepository<PuzzleGame>>>,
     ) {
         (
-            Arc::clone(&self.inner) as Arc<dyn IReadonlyRepository<GameConfig>>,
-            Some(Arc::clone(&self.inner) as Arc<dyn ICRUDRepository<GameConfig>>),
+            Arc::clone(&self.inner) as Arc<dyn IReadonlyRepository<PuzzleGame>>,
+            Some(Arc::clone(&self.inner) as Arc<dyn ICRUDRepository<PuzzleGame>>),
         )
     }
 }
 
-impl IRepository for GameConfigsRepository {
+impl IRepository for PuzzleGamesRepository {
     fn entity_type(&self) -> TypeId {
         IRepository::entity_type(self.inner.as_ref())
     }
@@ -114,8 +117,8 @@ impl IRepository for GameConfigsRepository {
 }
 
 #[async_trait]
-impl IReadonlyRepository<GameConfig> for GameConfigsRepository {
-    fn to_crud(self: Arc<Self>) -> Option<Arc<dyn ICRUDRepository<GameConfig>>> {
+impl IReadonlyRepository<PuzzleGame> for PuzzleGamesRepository {
+    fn to_crud(self: Arc<Self>) -> Option<Arc<dyn ICRUDRepository<PuzzleGame>>> {
         Some(self)
     }
 
@@ -123,7 +126,7 @@ impl IReadonlyRepository<GameConfig> for GameConfigsRepository {
         &self,
         query: Option<&dyn Statement>,
         options: Option<&ReadonlyRepositoryMappingOptions>,
-    ) -> Result<Option<GameConfig>> {
+    ) -> Result<Option<PuzzleGame>> {
         self.inner.as_ref().read_single(query, options).await
     }
 
@@ -131,7 +134,7 @@ impl IReadonlyRepository<GameConfig> for GameConfigsRepository {
         &'a self,
         query: Option<&'a dyn Statement>,
         options: Option<&'a ReadonlyRepositoryMappingOptions>,
-    ) -> Pin<Box<dyn Stream<Item = Result<GameConfig>> + Send + 'a>> {
+    ) -> Pin<Box<dyn Stream<Item = Result<PuzzleGame>> + Send + 'a>> {
         IReadonlyRepository::read(self.inner.as_ref(), query, options)
     }
 
@@ -139,7 +142,7 @@ impl IReadonlyRepository<GameConfig> for GameConfigsRepository {
         &self,
         clause: &dyn IWhere,
         options: Option<&ReadonlyRepositoryMappingOptions>,
-    ) -> Result<Option<GameConfig>> {
+    ) -> Result<Option<PuzzleGame>> {
         self.inner.as_ref().read_single_where(clause, options).await
     }
 
@@ -147,26 +150,26 @@ impl IReadonlyRepository<GameConfig> for GameConfigsRepository {
         &'a self,
         clause: &'a dyn IWhere,
         options: Option<&'a ReadonlyRepositoryMappingOptions>,
-    ) -> Pin<Box<dyn Stream<Item = Result<GameConfig>> + Send + 'a>> {
+    ) -> Pin<Box<dyn Stream<Item = Result<PuzzleGame>> + Send + 'a>> {
         IReadonlyRepository::read_where(self.inner.as_ref(), clause, options)
     }
 }
 
 #[async_trait]
-impl ICRUDRepository<GameConfig> for GameConfigsRepository {
-    async fn create(&self, item: GameConfig) -> Result<GameConfig> {
+impl ICRUDRepository<PuzzleGame> for PuzzleGamesRepository {
+    async fn create(&self, item: PuzzleGame) -> Result<PuzzleGame> {
         self.inner.create(item).await
     }
 
-    async fn update(&self, item: GameConfig, by_where: Option<&dyn IWhere>) -> Result<Response> {
+    async fn update(&self, item: PuzzleGame, by_where: Option<&dyn IWhere>) -> Result<Response> {
         ICRUDRepository::update(self.inner.as_ref(), item, by_where).await
     }
 
-    async fn delete(&self, item: GameConfig, by_where: Option<&dyn IWhere>) -> Result<Response> {
+    async fn delete(&self, item: PuzzleGame, by_where: Option<&dyn IWhere>) -> Result<Response> {
         ICRUDRepository::delete(self.inner.as_ref(), item, by_where).await
     }
 
-    async fn read_single_by_id(&self, id: &dyn IdKey) -> Result<Option<GameConfig>> {
+    async fn read_single_by_id(&self, id: &dyn IdKey) -> Result<Option<PuzzleGame>> {
         self.inner.read_single_by_id(id).await
     }
 
@@ -179,13 +182,13 @@ impl ICRUDRepository<GameConfig> for GameConfigsRepository {
     }
 }
 
-pub fn game_configs_row_repository(connection: Arc<dyn Connection>) -> Result<CRUDRepository<datasources::Row>> {
+pub fn puzzle_games_row_repository(connection: Arc<dyn Connection>) -> Result<CRUDRepository<datasources::Row>> {
     let options = CRUDRepositoryBuilder::new()
     .add({
         let mut options = CRUDRepositoryOptions::default();
-        options.entity = "GameConfig".into();
+        options.entity = "PuzzleGame".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("GameConfig".into(), "game_configs".into()),
+            ("PuzzleGame".into(), "puzzle_games".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -193,20 +196,21 @@ pub fn game_configs_row_repository(connection: Arc<dyn Connection>) -> Result<CR
             ("created".into(), SchemaColumn { type_name: "datetime".into(), nullable: false, has_default: true, is_id: false }),
             ("updated".into(), SchemaColumn { type_name: "datetime".into(), nullable: false, has_default: true, is_id: false }),
             ("version".into(), SchemaColumn { type_name: "binary".into(), nullable: false, has_default: true, is_id: false }),
+            ("game_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
             ("template_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
             ("image_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: true, has_default: false, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "template_id".into(), "image_id".into()];
-        options.create_properties = Some(vec!["template_id".into(), "image_id".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "template_id".into(), "image_id".into()]);
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "game_id".into(), "template_id".into(), "image_id".into()];
+        options.create_properties = Some(vec!["game_id".into(), "template_id".into(), "image_id".into()]);
+        options.update_properties = Some(vec!["uuid".into(), "game_id".into(), "template_id".into(), "image_id".into()]);
         options
     })
     .add_for("sqlite", {
         let mut options = CRUDRepositoryOptions::default();
-        options.entity = "GameConfig".into();
+        options.entity = "PuzzleGame".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("GameConfig".into(), "game_configs".into()),
+            ("PuzzleGame".into(), "puzzle_games".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -214,13 +218,14 @@ pub fn game_configs_row_repository(connection: Arc<dyn Connection>) -> Result<CR
             ("created".into(), SchemaColumn { type_name: "datetime".into(), nullable: false, has_default: true, is_id: false }),
             ("updated".into(), SchemaColumn { type_name: "datetime".into(), nullable: false, has_default: true, is_id: false }),
             ("version".into(), SchemaColumn { type_name: "binary".into(), nullable: false, has_default: true, is_id: false }),
+            ("game_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
             ("template_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
             ("image_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: true, has_default: false, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "template_id".into(), "image_id".into()];
-        options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "template_id".into(), "image_id".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "template_id".into(), "image_id".into()]);
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "game_id".into(), "template_id".into(), "image_id".into()];
+        options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "game_id".into(), "template_id".into(), "image_id".into()]);
+        options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "game_id".into(), "template_id".into(), "image_id".into()]);
         options
     })
     .for_connection(connection.as_ref())?;

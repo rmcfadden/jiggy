@@ -4,10 +4,9 @@ import { UnknownReferenceError, type GamesService } from '../services/games.ts'
 export function gamesRouter(service: GamesService): Router {
   const router = Router()
 
-  router.get('/', async (req, res, next) => {
+  router.get('/', async (_req, res, next) => {
     try {
-      const parent = req.query.game_parent_id
-      res.json(await service.list(typeof parent === 'string' ? Number(parent) : undefined))
+      res.json(await service.list())
     } catch (err) {
       next(err)
     }

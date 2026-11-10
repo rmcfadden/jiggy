@@ -6,6 +6,9 @@ export type CategorySeed = { name: string; description?: string; children?: Cate
 
 export type CategoryNode = { id: string; name: string; description: string; children: CategoryNode[] }
 
+/** A category with its database ids (the tree uses lowercased names instead). */
+export type CategoryRow = { id: number; parentId: number | null; name: string; description: string }
+
 export class CategoriesService {
   constructor(private readonly repo: ICRUDRepository<Category>) {}
 
@@ -14,6 +17,15 @@ export class CategoriesService {
     const rows: Category[] = []
     for await (const row of this.repo.read()) rows.push(row)
     return children(rows.filter((c) => c.isEnabled && !c.isDeleted), null)
+  }
+
+  /** Every live category as a flat list with database ids; `parentId` is null for roots. */
+  async flat(): Promise<CategoryRow[]> {
+    const rows: CategoryRow[] = []
+    for await (const c of this.repo.read()) {
+      if (c.isEnabled && !c.isDeleted) rows.push({ id: Number(c.id), parentId: c.categoryId == null ? null : Number(c.categoryId), name: c.name, description: c.description })
+    }
+    return rows
   }
 
   /**

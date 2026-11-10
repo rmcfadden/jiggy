@@ -12,7 +12,6 @@ export class Game {
   name: string = "";
   description: string = "";
   gameParentId!: number;
-  gameConfigId!: number;
   isDeleted: boolean = false;
   isEnabled: boolean = true;
   settings: Dictionary<string, string> = {};
