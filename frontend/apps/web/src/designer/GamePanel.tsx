@@ -7,6 +7,8 @@ import { SavedItems, type SavedItemsProps } from './SavedItems'
 import { ImageFormatter } from './ImageFormatter'
 import type { ImageEdits } from './imageFilters'
 import { useGameParents } from '../api/gameParents'
+import { CategoriesDialog } from './CategoriesDialog'
+import { useCategoryRows } from '../api/categories'
 import { NumberField, Panel, field, input, primaryButton, type PieceBorders } from './controls'
 
 type Props = {
@@ -31,6 +33,11 @@ type Props = {
   onRenamePhoto: (id: string, name: string) => void
   onDeletePhoto: (id: string) => void
   games: SavedItemsProps
+  /** Ids of the categories the game belongs to. */
+  categoryIds: number[]
+  onCategoryIds: (ids: number[]) => void
+  /** No saved game is selected: everything but the Games list (and its New button) is disabled. */
+  disabled?: boolean
   libraryError: string | null
   config: GameConfig
   onConfig: (config: GameConfig) => void
@@ -140,6 +147,9 @@ export function GamePanel(p: Props) {
   const [query, setQuery] = useState('')
   const [formatting, setFormatting] = useState(false)
   const [editing, setEditing] = useState(false)
+  const [categorizing, setCategorizing] = useState(false)
+  const { data: categoryRows = [] } = useCategoryRows()
+  const chosenCategories = categoryRows.filter((c) => p.categoryIds.includes(c.id))
   const needle = query.trim().toLowerCase()
   // The chosen photo stays in the strip while searching, so it never disappears from view.
   const matches = needle ? p.photos.filter((ph) => ph.name.toLowerCase().includes(needle)) : p.photos
@@ -158,6 +168,7 @@ export function GamePanel(p: Props) {
         <SavedItems noun="game" {...p.games} />
       </section>
 
+      <fieldset disabled={p.disabled} className={`m-0 flex min-w-0 flex-col gap-3 border-0 p-0 ${p.disabled ? 'opacity-50' : ''}`}>
       <section className="flex flex-col gap-1.5" aria-label="Parent game">
         <h3 className={heading}>1. Parent Game</h3>
         {gameTypes.map((t) => (
@@ -230,8 +241,18 @@ export function GamePanel(p: Props) {
         </label>
       </section>
 
+      <section className="flex flex-col gap-1.5" aria-label="Game categories">
+        <h3 className={heading}>4. Categories</h3>
+        <button className="rounded border border-slate-300 bg-white px-3 py-2 text-left text-sm font-medium hover:bg-slate-100" onClick={() => setCategorizing(true)}>
+          Categories…
+          <span className="block text-xs font-normal text-slate-500">
+            {chosenCategories.length ? chosenCategories.map((c) => c.name).join(', ') : 'None chosen'}
+          </span>
+        </button>
+      </section>
+
       <section className="flex flex-col gap-1.5" aria-label="Game settings">
-        <h3 className={heading}>4. Configure</h3>
+        <h3 className={heading}>5. Configure</h3>
         <button className="rounded border border-slate-300 bg-white px-3 py-2 text-left text-sm font-medium hover:bg-slate-100" onClick={() => setOpen(true)}>
           {type.name} settings…
         </button>
@@ -242,6 +263,19 @@ export function GamePanel(p: Props) {
           Restart
         </button>
       </section>
+      </fieldset>
+
+      {categorizing && (
+        <CategoriesDialog
+          categories={categoryRows}
+          selected={p.categoryIds}
+          onApply={(ids) => {
+            p.onCategoryIds(ids)
+            setCategorizing(false)
+          }}
+          onClose={() => setCategorizing(false)}
+        />
+      )}
 
       {editing && chosenPhoto && (
         <ImageEditor

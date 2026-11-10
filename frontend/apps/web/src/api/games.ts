@@ -14,11 +14,13 @@ export type SavedGameRow<C = unknown> = {
   templateId: number
   imageId: number | null
   config: C
+  /** Ids of the categories the game belongs to. */
+  categoryIds: number[]
   created: string
   updated: string
 }
 
-export type GameInput<C = unknown> = Partial<Pick<SavedGameRow<C>, 'name' | 'description' | 'parent' | 'templateId' | 'imageId' | 'config'>>
+export type GameInput<C = unknown> = Partial<Pick<SavedGameRow<C>, 'name' | 'description' | 'parent' | 'templateId' | 'imageId' | 'config' | 'categoryIds'>>
 
 const URL = '/api/games'
 

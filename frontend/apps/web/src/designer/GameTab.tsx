@@ -24,6 +24,8 @@ import { useCreateGame, useDeleteGame, useGames, useUpdateGame } from '../api/ga
 import { useTemplates } from '../api/templates'
 import { addItem, newId, normalizeSetup, updateItem, removeItem, useLibrary, type GameSetup, type SavedImage } from './library'
 
+const sameIds = (a: number[], b: number[]) => a.length === b.length && [...a].sort().join() === [...b].sort().join()
+
 const serverPhotoId = (id: number) => `server-${id}`
 
 export function GameTab() {
@@ -35,6 +37,7 @@ export function GameTab() {
   const [borders, setBorders] = useState<PieceBorders>(DEFAULT_PIECE_BORDERS)
   const [effects, setEffects] = useState<PieceEffects>(DEFAULT_EFFECTS)
   const [selected, setSelected] = useState<number | null>(null)
+  const [categoryIds, setCategoryIds] = useState<number[]>([])
 
   // A game is built on a jigsaw template saved on the server; the first one is used until another is picked.
   const { data: templates = [] } = useTemplates<Partial<JigsawTemplateParams>>('jigsaw')
@@ -111,16 +114,20 @@ export function GameTab() {
   const updateSaved = useUpdateGame<GameSetup>()
   const deleteSaved = useDeleteGame()
   const saved = gameRows.data ?? []
+  const [selectedGameId, setSelectedGameId] = useState('')
+  const noGameSelected = !saved.some((g) => String(g.id) === selectedGameId)
   const games = {
     items: saved.map((g) => ({ id: String(g.id), name: g.name })),
     loading: gameRows.isLoading,
     promptWhenEmpty: true,
+    onSelectedChange: setSelectedGameId,
     error: [gameRows.error, createSaved.error, updateSaved.error, deleteSaved.error].find(Boolean)?.message ?? null,
     onLoad: (id: string) => {
       const g = saved.find((x) => String(x.id) === id)
       if (!g) return
       const loaded = normalizeSetup(g.config)
       setTemplateId(g.templateId)
+      setCategoryIds(g.categoryIds ?? [])
       if (g.imageId !== null) setPhotoId(serverPhotoId(g.imageId))
       setConfig({ ...loaded.config, type: g.parent as GameConfig['type'] })
       setShowGuide(loaded.showGuide)
@@ -130,15 +137,15 @@ export function GameTab() {
     // The new game takes whatever the panel shows now: its template, background photo and configuration.
     onAdd: async (name: string) => {
       if (templateId === null) throw new Error('Create a jigsaw template first')
-      const created = await createSaved.mutateAsync({ name, parent: config.type, templateId, imageId: imageId ?? null, config: setup() })
+      const created = await createSaved.mutateAsync({ name, parent: config.type, templateId, imageId: imageId ?? null, config: setup(), categoryIds })
       return String(created.id)
     },
     isChanged: (id: string) => {
       const g = saved.find((x) => String(x.id) === id)
-      return !g || g.templateId !== templateId || g.imageId !== (imageId ?? null) || g.parent !== config.type || JSON.stringify(normalizeSetup(g.config)) !== JSON.stringify(setup())
+      return !g || g.templateId !== templateId || g.imageId !== (imageId ?? null) || g.parent !== config.type || !sameIds(g.categoryIds ?? [], categoryIds) || JSON.stringify(normalizeSetup(g.config)) !== JSON.stringify(setup())
     },
     onSave: (id: string) => {
-      if (templateId !== null) updateSaved.mutate({ id: Number(id), parent: config.type, templateId, imageId: imageId ?? null, config: setup() })
+      if (templateId !== null) updateSaved.mutate({ id: Number(id), parent: config.type, templateId, imageId: imageId ?? null, config: setup(), categoryIds })
     },
     onRename: (id: string, name: string) => updateSaved.mutate({ id: Number(id), name }),
     onDelete: (id: string) => deleteSaved.mutate(Number(id)),
@@ -147,7 +154,14 @@ export function GameTab() {
   return (
     <div className="flex flex-col md:flex-row min-h-0 min-w-0 flex-1">
       <main className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-hidden bg-white p-4">
-        {config.type === 'scrambled' ? (
+        {noGameSelected ? (
+          <div role="img" aria-label="No game selected" className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 rounded border-2 border-dashed border-slate-200 text-slate-400">
+            <svg viewBox="0 0 24 24" className="h-24 w-24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" aria-hidden="true">
+              <path d="M4 4h5.5a2 2 0 1 1 4 0H19v5.5a2 2 0 1 0 0 4V19h-5.5a2 2 0 1 0-4 0H4v-5.5a2 2 0 1 1 0-4z" />
+            </svg>
+            <p className="text-sm">Choose or create a game to start</p>
+          </div>
+        ) : config.type === 'scrambled' ? (
           // Scrambled pieces is the Puzzle view: loose pieces scattered around the board.
           <div className="min-h-0 flex-1 overflow-hidden rounded border border-slate-200">
             <ScrambledGame
@@ -217,6 +231,9 @@ export function GameTab() {
         onDescribePhoto={describeImage}
         onDeletePhoto={deleteImage}
         games={games}
+        categoryIds={categoryIds}
+        onCategoryIds={setCategoryIds}
+        disabled={noGameSelected}
         libraryError={libraryError ?? imageError}
         config={config}
         onConfig={setConfig}
