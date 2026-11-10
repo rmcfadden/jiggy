@@ -10,13 +10,12 @@ import {
   type PuzzleSpec,
 } from '@jiggy/shared'
 import { GameBoard } from '../designer/GameBoard'
-import { GAME_PHOTOS } from '../designer/gameAssets'
 
 /** The "Next pieces in panel" game: the panel only offers the next few pieces. */
 export function NextPiecesGame({
   spec,
   jigsaw: customJigsaw,
-  photo = GAME_PHOTOS[0].location,
+  photo = '',
   config: initialConfig,
 }: {
   spec: PuzzleSpec

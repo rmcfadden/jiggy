@@ -21,7 +21,6 @@ public static class RepositoryRegistry
         factory.Register("EmailType", "EmailTypes", connection => new EmailTypesRepository(connection), connection => EmailTypesRepository.CreateReadonly(connection));
         factory.Register("Game", "Games", connection => new GamesRepository(connection), connection => GamesRepository.CreateReadonly(connection));
         factory.Register("GameCategory", "GameCategories", connection => new GameCategoriesRepository(connection), connection => GameCategoriesRepository.CreateReadonly(connection));
-        factory.Register("GameConfig", "GameConfigs", connection => new GameConfigsRepository(connection), connection => GameConfigsRepository.CreateReadonly(connection));
         factory.Register("GameParent", "GameParents", connection => new GameParentsRepository(connection), connection => GameParentsRepository.CreateReadonly(connection));
         factory.Register("GameParentCategory", "GameParentCategories", connection => new GameParentCategoriesRepository(connection), connection => GameParentCategoriesRepository.CreateReadonly(connection));
         factory.Register("GameParentConfig", "GameParentConfigs", connection => new GameParentConfigsRepository(connection), connection => GameParentConfigsRepository.CreateReadonly(connection));
@@ -39,6 +38,7 @@ public static class RepositoryRegistry
         factory.Register("PhoneAttribute", "PhoneAttributes", connection => new PhoneAttributesRepository(connection), connection => PhoneAttributesRepository.CreateReadonly(connection));
         factory.Register("PhoneLabel", "PhoneLabels", connection => new PhoneLabelsRepository(connection), connection => PhoneLabelsRepository.CreateReadonly(connection));
         factory.Register("PhoneType", "PhoneTypes", connection => new PhoneTypesRepository(connection), connection => PhoneTypesRepository.CreateReadonly(connection));
+        factory.Register("PuzzleGame", "PuzzleGames", connection => new PuzzleGamesRepository(connection), connection => PuzzleGamesRepository.CreateReadonly(connection));
         factory.Register("Resource", "Resources", connection => new ResourcesRepository(connection), connection => ResourcesRepository.CreateReadonly(connection));
         factory.Register("Review", "Reviews", connection => new ReviewsRepository(connection), connection => ReviewsRepository.CreateReadonly(connection));
         factory.Register("Role", "Roles", connection => new RolesRepository(connection), connection => RolesRepository.CreateReadonly(connection));

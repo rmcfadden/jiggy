@@ -8,21 +8,27 @@ import {
   isGameSolved,
   placePiece,
   type GameConfig,
+  type JigsawTemplateParams,
 } from '@jiggy/shared'
 import { Game as ScrambledGame } from '../views/Player'
 import { GameBoard } from './GameBoard'
 import { GamePanel } from './GamePanel'
 import { DEFAULT_EFFECTS, type PieceEffects } from './effects'
 import { DEFAULT_PIECE_BORDERS, borderScale, type PieceBorders } from './controls'
-import { DEFAULT_TEMPLATE, GAME_PHOTOS, type GameImage, TEMPLATE_SIZES, TEMPLATE_STYLES, templateParams as buildTemplateParams } from './gameAssets'
+import type { GameImage } from './gameAssets'
 import { useEditedUrls } from './renderImage'
 import type { ImageEdits } from './imageFilters'
-import { addItem, newId, readImage, removeItem, updateItem, useLibrary, type SavedGame } from './library'
+import { useQueryClient } from '@tanstack/react-query'
+import { IMAGES_KEY, imagesApi, useImages } from '../api/images'
+import { useCreateGame, useDeleteGame, useGames, useUpdateGame } from '../api/games'
+import { useTemplates } from '../api/templates'
+import { addItem, newId, normalizeSetup, updateItem, removeItem, useLibrary, type GameSetup, type SavedImage } from './library'
+
+const serverPhotoId = (id: number) => `server-${id}`
 
 export function GameTab() {
-  const [templateSize, setTemplateSize] = useState(DEFAULT_TEMPLATE.size)
-  const [templateStyle, setTemplateStyle] = useState(DEFAULT_TEMPLATE.style)
-  const [photoId, setPhotoId] = useState(GAME_PHOTOS[0].id)
+  const [chosenTemplateId, setTemplateId] = useState<number | null>(null)
+  const [photoId, setPhotoId] = useState('')
   const { library, setLibrary, error: libraryError } = useLibrary()
   const [config, setConfig] = useState<GameConfig>(DEFAULT_GAME_CONFIG)
   const [showGuide, setShowGuide] = useState(true)
@@ -30,17 +36,25 @@ export function GameTab() {
   const [effects, setEffects] = useState<PieceEffects>(DEFAULT_EFFECTS)
   const [selected, setSelected] = useState<number | null>(null)
 
-  const templateId = `${templateSize}-${templateStyle}`
-  const template = useMemo(() => buildTemplateParams(templateSize, templateStyle), [templateSize, templateStyle])
-  const jigsaw = useMemo(() => new JigsawVectorizer().vectorize(new JigsawTemplateGenerator(template).generate()), [template])
-  const templateParams = { ...DEFAULT_JIGSAW_PARAMS, ...template }
+  // A game is built on a jigsaw template saved on the server; the first one is used until another is picked.
+  const { data: templates = [] } = useTemplates<Partial<JigsawTemplateParams>>('jigsaw')
+  const chosenTemplate = templates.find((t) => t.id === chosenTemplateId) ?? templates[0]
+  const templateId = chosenTemplate?.id ?? null
+  const templateParams = useMemo(() => ({ ...DEFAULT_JIGSAW_PARAMS, ...chosenTemplate?.content }), [chosenTemplate])
+  const jigsaw = useMemo(() => new JigsawVectorizer().vectorize(new JigsawTemplateGenerator(templateParams).generate()), [templateParams])
   const total = jigsaw.pieces.length
-  const photos: GameImage[] = [...GAME_PHOTOS, ...library.images.map((i): GameImage => ({ ...i, source: 'user' }))]
+  const { data: serverImages } = useImages()
+  const photos: GameImage[] = [
+    ...(serverImages ?? []).map((i): GameImage => ({ id: serverPhotoId(i.id), name: i.name, location: i.url, description: i.description, serverId: i.id, source: 'server' })),
+    ...library.images.map((i): GameImage => ({ ...i, source: 'user' })),
+  ]
   const photoUrls = useEditedUrls(photos)
   const chosen = photos.find((p) => p.id === photoId) ?? photos[0]
-  const photo = photoUrls[chosen.id] ?? chosen.location
+  const photo = chosen ? (photoUrls[chosen.id] ?? chosen.location) : ''
 
-  const [game, setGame] = useState(() => createGame(config, total))
+  const [state, setGame] = useState(() => createGame(config, total))
+  // Until the effect below resets it, a game made for another piece count must not reach the board.
+  const game = state.total === total ? state : createGame(config, total)
   const restart = () => {
     setGame(createGame(config, total))
     setSelected(null)
@@ -52,69 +66,82 @@ export function GameTab() {
 
   const solved = isGameSolved(game)
 
-  const snapshot = (): Omit<SavedGame, 'id' | 'name'> => ({ templateSize, templateStyle, photoId, config, showGuide, borders, effects })
   const imageName = (file: File) => file.name.replace(/\.[^.]+$/, '') || 'Image'
-  const addImage = (file: File, replaceId?: string) =>
-    readImage(file).then((location) => {
-      if (replaceId) {
-        setLibrary((l) => ({ ...l, images: updateItem(l.images, replaceId, { location }) }))
-        return
-      }
-      const id = newId()
-      setLibrary((l) => ({ ...l, images: addItem(l.images, { id, name: imageName(file), location }) }))
-      setPhotoId(id)
-    })
+  const [imageError, setImageError] = useState<string | null>(null)
+  const fail = (what: string) => (e: unknown) => setImageError(`Could not ${what}: ${e instanceof Error ? e.message : e}`)
+  const client = useQueryClient()
+  const refreshImages = () => client.invalidateQueries({ queryKey: IMAGES_KEY })
+  const imageOf = (id: string) => photos.find((p) => p.id === id)
+  const localUpdate = (id: string, patch: Partial<Omit<SavedImage, 'id'>>) => setLibrary((l) => ({ ...l, images: updateItem(l.images, id, patch) }))
 
-  const games = {
-    items: library.games,
-    promptWhenEmpty: true,
-    onLoad: (id: string) => {
-      const g = library.games.find((x) => x.id === id)
-      if (!g) return
-      setTemplateSize(g.templateSize)
-      setTemplateStyle(g.templateStyle)
-      setPhotoId(g.photoId)
-      setConfig(g.config)
-      setShowGuide(g.showGuide)
-      setBorders(g.borders)
-      setEffects(g.effects)
-    },
-    onAdd: (name: string) => {
-      const id = newId()
-      setLibrary((l) => ({ ...l, games: addItem(l.games, { id, name, ...snapshot() }) }))
-      return id
-    },
-    isChanged: (id: string) => {
-      const g = library.games.find((x) => x.id === id)
-      const now = snapshot()
-      return !g || (Object.keys(now) as (keyof typeof now)[]).some((k) => JSON.stringify(g[k]) !== JSON.stringify(now[k]))
-    },
-    onSave: (id: string) => setLibrary((l) => ({ ...l, games: updateItem(l.games, id, snapshot()) })),
-    onRename: (id: string, name: string) => setLibrary((l) => ({ ...l, games: updateItem(l.games, id, { name }) })),
-    onDelete: (id: string) => setLibrary((l) => ({ ...l, games: removeItem(l.games, id) })),
+  const addImage = (file: File, replaceId?: string) => {
+    setImageError(null)
+    const existing = replaceId ? imageOf(replaceId) : undefined
+    if (existing?.serverId !== undefined) {
+      return imagesApi.update(existing.serverId, { file }).then(refreshImages).catch(fail('replace the image'))
+    }
+    // Pictures kept in this browser have no server copy to swap, so the new file is uploaded and the entry points at it.
+    return imagesApi.upload(file, existing ? existing.name : imageName(file)).then((saved) => {
+      if (existing) localUpdate(existing.id, { location: saved.url })
+      else setPhotoId(serverPhotoId(saved.id))
+      return refreshImages()
+    }).catch(fail('upload the image'))
+  }
+  const renameImage = (id: string, name: string) => {
+    const serverId = imageOf(id)?.serverId
+    if (serverId === undefined) return localUpdate(id, { name })
+    imagesApi.update(serverId, { name }).then(refreshImages).catch(fail('rename the image'))
+  }
+  const describeImage = (id: string, description: string) => {
+    const serverId = imageOf(id)?.serverId
+    if (serverId === undefined) return localUpdate(id, { description })
+    imagesApi.update(serverId, { description }).then(refreshImages).catch(fail('save the description'))
+  }
+  const deleteImage = (id: string) => {
+    const serverId = imageOf(id)?.serverId
+    setPhotoId('')
+    if (serverId === undefined) return setLibrary((l) => ({ ...l, images: removeItem(l.images, id) }))
+    imagesApi.delete(serverId).then(refreshImages).catch(fail('delete the image'))
   }
 
-  const templates = {
-    items: library.templates,
+  const imageId = chosen?.serverId ?? serverImages?.find((i) => i.url === chosen?.location)?.id
+  const setup = (): GameSetup => ({ config, showGuide, borders, effects })
+  const gameRows = useGames<Partial<GameSetup>>()
+  const createSaved = useCreateGame<GameSetup>()
+  const updateSaved = useUpdateGame<GameSetup>()
+  const deleteSaved = useDeleteGame()
+  const saved = gameRows.data ?? []
+  const games = {
+    items: saved.map((g) => ({ id: String(g.id), name: g.name })),
+    loading: gameRows.isLoading,
+    promptWhenEmpty: true,
+    error: [gameRows.error, createSaved.error, updateSaved.error, deleteSaved.error].find(Boolean)?.message ?? null,
     onLoad: (id: string) => {
-      const t = library.templates.find((x) => x.id === id)
-      if (!t) return
-      // A template saved with a size or style that no longer exists falls back to the defaults.
-      setTemplateSize(TEMPLATE_SIZES.some((s) => s.id === t.size) ? t.size : DEFAULT_TEMPLATE.size)
-      setTemplateStyle(TEMPLATE_STYLES.some((s) => s.id === t.style) ? t.style : DEFAULT_TEMPLATE.style)
+      const g = saved.find((x) => String(x.id) === id)
+      if (!g) return
+      const loaded = normalizeSetup(g.config)
+      setTemplateId(g.templateId)
+      if (g.imageId !== null) setPhotoId(serverPhotoId(g.imageId))
+      setConfig({ ...loaded.config, type: g.parent as GameConfig['type'] })
+      setShowGuide(loaded.showGuide)
+      setBorders(loaded.borders)
+      setEffects(loaded.effects)
     },
-    onAdd: (name: string) => {
-      const id = newId()
-      setLibrary((l) => ({ ...l, templates: addItem(l.templates, { id, name, size: templateSize, style: templateStyle }) }))
-      return id
+    // The new game takes whatever the panel shows now: its template, background photo and configuration.
+    onAdd: async (name: string) => {
+      if (templateId === null) throw new Error('Create a jigsaw template first')
+      const created = await createSaved.mutateAsync({ name, parent: config.type, templateId, imageId: imageId ?? null, config: setup() })
+      return String(created.id)
     },
     isChanged: (id: string) => {
-      const t = library.templates.find((x) => x.id === id)
-      return !t || t.size !== templateSize || t.style !== templateStyle
+      const g = saved.find((x) => String(x.id) === id)
+      return !g || g.templateId !== templateId || g.imageId !== (imageId ?? null) || g.parent !== config.type || JSON.stringify(normalizeSetup(g.config)) !== JSON.stringify(setup())
     },
-    onSave: (id: string) => setLibrary((l) => ({ ...l, templates: updateItem(l.templates, id, { size: templateSize, style: templateStyle }) })),
-    onRename: (id: string, name: string) => setLibrary((l) => ({ ...l, templates: updateItem(l.templates, id, { name }) })),
-    onDelete: (id: string) => setLibrary((l) => ({ ...l, templates: removeItem(l.templates, id) })),
+    onSave: (id: string) => {
+      if (templateId !== null) updateSaved.mutate({ id: Number(id), parent: config.type, templateId, imageId: imageId ?? null, config: setup() })
+    },
+    onRename: (id: string, name: string) => updateSaved.mutate({ id: Number(id), name }),
+    onDelete: (id: string) => deleteSaved.mutate(Number(id)),
   }
 
   return (
@@ -170,11 +197,10 @@ export function GameTab() {
         )}
       </main>
       <GamePanel
-        templateSize={templateSize}
-        templateStyle={templateStyle}
-        onTemplateSize={setTemplateSize}
-        onTemplateStyle={setTemplateStyle}
-        photoId={photoId}
+        templateOptions={templates.map((t) => ({ id: t.id, name: t.name }))}
+        templateId={templateId}
+        onTemplate={setTemplateId}
+        photoId={chosen?.id ?? ''}
         photos={photos}
         photoUrls={photoUrls}
         onEditPhoto={(id, edits: ImageEdits | undefined) => setLibrary((l) => ({ ...l, images: updateItem(l.images, id, { edits }) }))}
@@ -187,14 +213,11 @@ export function GameTab() {
         onPhoto={setPhotoId}
         onUpload={(file) => void addImage(file)}
         onReplacePhoto={(id, file) => void addImage(file, id)}
-        onRenamePhoto={(id, name) => setLibrary((l) => ({ ...l, images: updateItem(l.images, id, { name }) }))}
-        onDeletePhoto={(id) => {
-          setLibrary((l) => ({ ...l, images: removeItem(l.images, id) }))
-          setPhotoId(GAME_PHOTOS[0].id)
-        }}
+        onRenamePhoto={renameImage}
+        onDescribePhoto={describeImage}
+        onDeletePhoto={deleteImage}
         games={games}
-        templates={templates}
-        libraryError={libraryError}
+        libraryError={libraryError ?? imageError}
         config={config}
         onConfig={setConfig}
         showGuide={showGuide}

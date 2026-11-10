@@ -33,6 +33,15 @@ public class ImagesService(ICRUDRepository<Resource> repo, ICRUDRepository<MimeT
         return image;
     }
 
+    /// <summary>Every image, oldest first, without the generated thumbnail rows.</summary>
+    public async Task<List<ImageDto>> List()
+    {
+        var all = new List<ImageDto>();
+        await foreach (var row in repo.Read())
+            if (!row.IsDeleted && !row.ResourceName.EndsWith(Thumbnails.Suffix)) all.Add(ToDto(row));
+        return all.OrderBy(i => i.Id).ToList();
+    }
+
     /// <summary>Looks an image up by id, uuid or name (first one given wins); null when none matches.</summary>
     public async Task<ImageDto?> Find(long? id = null, Guid? guid = null, string? name = null)
     {

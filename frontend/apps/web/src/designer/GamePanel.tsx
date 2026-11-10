@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { START_SIDES, type GameConfig, type GameType, type JigsawVector } from '@jiggy/shared'
 import type { PieceEffects } from './effects'
 import { PieceSettings } from './PieceSettings'
-import { TEMPLATE_SIZES, TEMPLATE_STYLES, type GameImage } from './gameAssets'
+import type { GameImage } from './gameAssets'
 import { SavedItems, type SavedItemsProps } from './SavedItems'
 import { ImageFormatter } from './ImageFormatter'
 import type { ImageEdits } from './imageFilters'
@@ -10,10 +10,10 @@ import { useGameParents } from '../api/gameParents'
 import { NumberField, Panel, field, input, primaryButton, type PieceBorders } from './controls'
 
 type Props = {
-  templateSize: string
-  templateStyle: string
-  onTemplateSize: (id: string) => void
-  onTemplateStyle: (id: string) => void
+  /** The jigsaw templates saved on the server. */
+  templateOptions: { id: number; name: string }[]
+  templateId: number | null
+  onTemplate: (id: number) => void
   photoId: string
   /** Built-in photos first, then the user's saved images. */
   photos: GameImage[]
@@ -22,6 +22,7 @@ type Props = {
   /** Stores edits on a user image (or clears them with undefined). */
   onEditPhoto: (id: string, edits: ImageEdits | undefined) => void
   /** Adds a new image that points at `base`'s original and carries the edits. */
+  onDescribePhoto: (id: string, description: string) => void
   onCopyPhoto: (base: GameImage, name: string, edits: ImageEdits) => void
   onPhoto: (id: string) => void
   /** Adds an image file to the library. */
@@ -30,7 +31,6 @@ type Props = {
   onRenamePhoto: (id: string, name: string) => void
   onDeletePhoto: (id: string) => void
   games: SavedItemsProps
-  templates: SavedItemsProps
   libraryError: string | null
   config: GameConfig
   onConfig: (config: GameConfig) => void
@@ -72,17 +72,33 @@ function choice(active: boolean) {
   }`
 }
 
-function ImageEditor(props: { name: string; onRename: (name: string) => void; onReplace: (file: File) => void; onDelete: () => void }) {
+function ImageEditor(props: { title: string; onClose: () => void; name: string; description: string; onRename: (name: string) => void; onDescribe: (description: string) => void; onReplace: (file: File) => void; onDelete: () => void }) {
   const [name, setName] = useState(props.name)
+  const [description, setDescription] = useState(props.description)
   const [confirming, setConfirming] = useState(false)
   const trimmed = name.trim()
   const small = 'rounded border border-slate-300 bg-white px-2 py-1 text-sm hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-white'
   return (
-    <div className="flex flex-col gap-1.5 rounded border border-slate-200 bg-white p-2">
+    <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/40" onClick={props.onClose}>
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Image settings"
+      className="flex w-96 max-w-[90vw] flex-col gap-3 rounded-lg bg-white p-5 shadow-xl"
+      onClick={(e) => e.stopPropagation()}
+      onKeyDown={(e) => e.key === 'Escape' && props.onClose()}
+    >
+      <h3 className="text-lg font-semibold">{props.title}</h3>
       <div className="flex gap-1.5">
         <input className={`${input} min-w-0 flex-1`} aria-label="Image name" value={name} onChange={(e) => setName(e.target.value)} />
         <button className={small} disabled={!trimmed || trimmed === props.name} onClick={() => props.onRename(trimmed)}>
           Rename
+        </button>
+      </div>
+      <div className="flex gap-1.5">
+        <textarea className={`${input} min-w-0 flex-1`} rows={2} aria-label="Image description" placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
+        <button className={small} disabled={description.trim() === props.description} onClick={() => props.onDescribe(description.trim())}>
+          Save description
         </button>
       </div>
       <label className={field}>
@@ -102,6 +118,12 @@ function ImageEditor(props: { name: string; onRename: (name: string) => void; on
           Delete image
         </button>
       )}
+      <div className="flex justify-end">
+        <button className={small} onClick={props.onClose} autoFocus>
+          Close
+        </button>
+      </div>
+    </div>
     </div>
   )
 }
@@ -117,6 +139,7 @@ export function GamePanel(p: Props) {
   const chosenPhoto = p.photos.find((ph) => ph.id === p.photoId)
   const [query, setQuery] = useState('')
   const [formatting, setFormatting] = useState(false)
+  const [editing, setEditing] = useState(false)
   const needle = query.trim().toLowerCase()
   // The chosen photo stays in the strip while searching, so it never disappears from view.
   const matches = needle ? p.photos.filter((ph) => ph.name.toLowerCase().includes(needle)) : p.photos
@@ -148,26 +171,15 @@ export function GamePanel(p: Props) {
       <section className="flex flex-col gap-1.5" aria-label="Template">
         <h3 className={heading}>2. Template</h3>
         <label className={field}>
-          Number of pieces
-          <select className={input} value={p.templateSize} onChange={(e) => p.onTemplateSize(e.target.value)}>
-            {TEMPLATE_SIZES.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.id} pieces ({t.cols}×{t.rows})
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className={field}>
-          Piece style
-          <select className={input} value={p.templateStyle} onChange={(e) => p.onTemplateStyle(e.target.value)}>
-            {TEMPLATE_STYLES.map((t) => (
+          Template name
+          <select className={input} value={p.templateId ?? ''} onChange={(e) => p.onTemplate(Number(e.target.value))}>
+            {p.templateOptions.map((t) => (
               <option key={t.id} value={t.id}>
                 {t.name}
               </option>
             ))}
           </select>
         </label>
-        <SavedItems noun="template" {...p.templates} />
       </section>
 
       <section className="flex flex-col gap-1.5" aria-label="Background photo">
@@ -189,7 +201,8 @@ export function GamePanel(p: Props) {
               aria-pressed={ph.id === p.photoId}
               title={ph.name}
               className={`w-20 shrink-0 overflow-hidden rounded border-2 text-left ${ph.id === p.photoId ? 'border-amber-500 ring-2 ring-amber-300' : 'border-transparent hover:border-slate-300'}`}
-              onClick={() => p.onPhoto(ph.id)}
+              // Picking a photo selects it; clicking the selected one opens its settings.
+              onClick={() => (ph.id === p.photoId ? setEditing(true) : p.onPhoto(ph.id))}
             >
               <img src={p.photoUrls[ph.id] ?? ph.location} alt="" className="aspect-[4/3] w-full object-cover" />
               <span className={`block truncate px-1 py-0.5 text-xs ${ph.id === p.photoId ? 'bg-amber-50 font-medium text-amber-800' : 'text-slate-600'}`}>{ph.name}</span>
@@ -198,18 +211,14 @@ export function GamePanel(p: Props) {
           {matches.length === 0 && <p className="py-2 text-sm text-slate-500">No images match “{query}”.</p>}
         </div>
         {chosenPhoto && (
-          <button className="rounded border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium hover:bg-slate-100" onClick={() => setFormatting(true)}>
-            Format image…{chosenPhoto.edits && ' (edited)'}
-          </button>
-        )}
-        {chosenPhoto && chosenPhoto.source === 'user' && (
-          <ImageEditor
-            key={chosenPhoto.id}
-            name={chosenPhoto.name}
-            onRename={(name) => p.onRenamePhoto(chosenPhoto.id, name)}
-            onReplace={(file) => p.onReplacePhoto(chosenPhoto.id, file)}
-            onDelete={() => p.onDeletePhoto(chosenPhoto.id)}
-          />
+          <div className="flex gap-1.5">
+            <button className="flex-1 rounded border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium hover:bg-slate-100" onClick={() => setFormatting(true)}>
+              Format image…{chosenPhoto.edits && ' (edited)'}
+            </button>
+            <button className="flex-1 rounded border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium hover:bg-slate-100" onClick={() => setEditing(true)}>
+              Edit image…
+            </button>
+          </div>
         )}
         <label className={field}>
           Add an image
@@ -233,6 +242,23 @@ export function GamePanel(p: Props) {
           Restart
         </button>
       </section>
+
+      {editing && chosenPhoto && (
+        <ImageEditor
+          key={chosenPhoto.id}
+          title={chosenPhoto.name}
+          onClose={() => setEditing(false)}
+          name={chosenPhoto.name}
+          description={chosenPhoto.description ?? ''}
+          onRename={(name) => p.onRenamePhoto(chosenPhoto.id, name)}
+          onDescribe={(description) => p.onDescribePhoto(chosenPhoto.id, description)}
+          onReplace={(file) => p.onReplacePhoto(chosenPhoto.id, file)}
+          onDelete={() => {
+            setEditing(false)
+            p.onDeletePhoto(chosenPhoto.id)
+          }}
+        />
+      )}
 
       {formatting && chosenPhoto && (
         <ImageFormatter
