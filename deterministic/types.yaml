@@ -1,3 +1,30 @@
 version: 1.0.0
 includes:
   - file: games.yaml
+
+types:
+  - game_summary:
+      tags: [view_type, readonly]
+      fields:
+        - id:
+            # the game's id
+            type: biginteger
+            is_id: true
+        - template_id:
+            # the template the game plays; the client reads its piece count
+            type: biginteger
+        - name:
+            type: string
+            size: 128
+        - description:
+            type: string
+            size: unlimited
+        - parent_name:
+            type: string
+            size: 128
+        - thumbname_location:
+            type: string
+            size: 128
+        - categories:
+            type: category[]
+            references: game_category.game_id

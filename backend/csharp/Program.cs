@@ -40,6 +40,7 @@ builder.Services.AddSingleton(sp =>
         sp.GetRequiredService<TemplatesService>(),
         sp.GetRequiredService<ImagesService>());
 });
+builder.Services.AddSingleton(sp => new GameSummariesService(sp.GetRequiredService<IDatasource>().CreateConnection().GetAwaiter().GetResult(), sp.GetRequiredService<ImagesService>()));
 builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = builder.Configuration.GetValue("Images:MaxBytes", 10L * 1024 * 1024));
 var app = builder.Build();
 
@@ -66,6 +67,7 @@ app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 app.MapCategories();
 app.MapGameParents();
 app.MapGames();
+app.MapGameSummaries();
 app.MapTemplates();
 app.MapImages();
 

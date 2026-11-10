@@ -19,6 +19,8 @@ import { imagesRouter } from './routes/images.ts'
 import { ImagesService } from './services/images.ts'
 import { gamesRouter } from './routes/games.ts'
 import { GamesService } from './services/games.ts'
+import { gameSummariesRouter } from './routes/gameSummaries.ts'
+import { GameSummariesService } from './services/gameSummaries.ts'
 import { templatesRouter } from './routes/templates.ts'
 import { TemplatesService } from './services/templates.ts'
 
@@ -39,6 +41,8 @@ const templates = new TemplatesService(ds.templates, ds.templateTypes)
 const images = new ImagesService(ds.resources, ds.mimeTypes)
 const games = new GamesService(ds.games, ds.puzzleGames, ds.gameCategories, categories, gameParents, templates, images)
 
+const summaries = new GameSummariesService(await ds.createConnection(), images)
+
 const app = express()
 app.use(express.json())
 
@@ -49,6 +53,7 @@ app.get('/health', (_req, res) => {
 app.use('/api/categories', categoriesRouter(categories))
 app.use('/api/games_parents', gameParentsRouter(gameParents))
 app.use('/api/games', gamesRouter(games))
+app.use('/api/games_summaries', gameSummariesRouter(summaries))
 app.use('/api/templates', templatesRouter(templates))
 app.use('/api/images', imagesRouter(images))
 

@@ -99,6 +99,8 @@ pub mod template;
 pub mod game;
 #[path = "types/view/gameParent.rs"]
 pub mod gameParent;
+#[path = "types/view/gameSummary.rs"]
+pub mod gameSummary;
 pub use userBase::*;
 pub use role::*;
 pub use group::*;
@@ -149,6 +151,7 @@ pub use resource::*;
 pub use template::*;
 pub use game::*;
 pub use gameParent::*;
+pub use gameSummary::*;
 mod schema_objects;
 pub mod repositories;
 pub use repositories::repositoryRegistry::Repositories;

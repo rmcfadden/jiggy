@@ -7,6 +7,11 @@ const all = flat(CATEGORIES)
 export const stubApi = (url: string): unknown => {
   if (url.startsWith('/api/categories/flat')) return all.map((c, i) => ({ id: i + 1, parentId: null, name: c.name, description: c.description }))
   if (url.startsWith('/api/categories')) return CATEGORIES
+  if (url.startsWith('/api/games_summaries'))
+    return CATALOG.puzzles.map((p, i) => ({
+      id: i + 1, templateId: 1, name: p.name, description: '', parentName: p.settings.type, thumbnameLocation: p.image.location,
+      categories: p.categories.map((id) => ({ id: all.findIndex((c) => c.id === id) + 1, name: all.find((c) => c.id === id)!.name })),
+    }))
   if (url.startsWith('/api/games'))
     return CATALOG.puzzles.map((p, i) => ({
       id: i + 1, uuid: String(i), name: p.name, description: '', parent: p.settings.type, templateId: 1, imageId: null,

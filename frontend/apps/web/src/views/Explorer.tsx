@@ -10,9 +10,7 @@ import {
   type Category,
   type Puzzle,
 } from '@jiggy/shared'
-import { useGames, type SavedGameRow } from '../api/games'
-import { useImages } from '../api/images'
-import { useCategoryRows } from '../api/categories'
+import { useGameSummaries, type GameSummaryRow } from '../api/gameSummaries'
 import { useTemplates } from '../api/templates'
 import { TEMPLATE_SIZES } from '../designer/gameAssets'
 import {
@@ -263,7 +261,7 @@ const categoryIdByName = (categories: Category[], map = new Map<string, string>(
   return map
 }
 
-/** The saved games from /api/games, shown with their thumbnails, filed under the categories from /api/categories. */
+/** The saved games from /api/games_summaries, shown with their thumbnails, filed under the categories from /api/categories. */
 function useCatalog() {
   const categoriesQuery = useQuery({
     queryKey: ['categories'],
@@ -273,22 +271,18 @@ function useCatalog() {
       return res.json()
     },
   })
-  const games = useGames()
-  const rows = useCategoryRows()
-  const images = useImages()
+  const games = useGameSummaries()
   const templates = useTemplates<{ cols?: number; rows?: number }>()
   const categories = categoriesQuery.data ?? []
   const idByName = categoryIdByName(categories)
-  const nameById = new Map((rows.data ?? []).map((r) => [r.id, r.name]))
   const pieces = new Map((templates.data ?? []).map((t) => [t.id, (t.content?.cols ?? 0) * (t.content?.rows ?? 0)]))
-  const imageUrl = new Map((images.data ?? []).map((i) => [i.id, i.url]))
-  const toPuzzle = (g: SavedGameRow): Puzzle => ({
+  const toPuzzle = (g: GameSummaryRow): Puzzle => ({
     id: String(g.id),
     name: g.name,
-    categories: (g.categoryIds ?? []).flatMap((id) => idByName.get(nameById.get(id) ?? '') ?? []),
+    categories: g.categories.flatMap((c) => idByName.get(c.name) ?? []),
     template: { size: String(pieces.get(g.templateId) ?? 0), style: 'subtle' },
-    settings: { ...DEFAULT_GAME_CONFIG, ...(g.config as { config?: object } | null)?.config },
-    image: { name: g.name, location: g.thumbnailUrl ?? imageUrl.get(g.imageId ?? -1) ?? '' },
+    settings: DEFAULT_GAME_CONFIG,
+    image: { name: g.name, location: g.thumbnameLocation },
     reviews: [],
   })
   const catalog: Catalog = { categories, puzzles: (games.data ?? []).map(toPuzzle) }

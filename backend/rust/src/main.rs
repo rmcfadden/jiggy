@@ -10,6 +10,7 @@ use generated::repositories::templatesRepository::TemplatesRepository;
 use generated::Repositories;
 use services::categories::CategoriesService;
 use services::game_parents::GameParentsService;
+use services::game_summaries::GameSummariesService;
 use services::games::GamesService;
 use services::images::ImagesService;
 use services::templates::TemplatesService;
@@ -36,6 +37,7 @@ async fn main() {
         templates.clone(),
         images.clone(),
     ));
+    let summaries = Arc::new(GameSummariesService::new(ds.bind_connection(None), images.clone()).expect("game summaries"));
     if std::env::args().nth(1).as_deref() == Some("setup") {
         setup(&game_parents, &categories, &templates, &images, &games).await;
         return;
@@ -47,7 +49,8 @@ async fn main() {
         .merge(routes::game_parents::router(game_parents))
         .merge(routes::templates::router(templates))
         .merge(routes::images::router(images))
-        .merge(routes::games::router(games));
+        .merge(routes::games::router(games))
+        .merge(routes::game_summaries::router(summaries));
     let port = std::env::var("PORT").unwrap_or_else(|_| "3000".into());
     let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{port}")).await.unwrap();
     println!("listening on :{port}");
