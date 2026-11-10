@@ -7,5 +7,6 @@ namespace Backend.Types.View;
 public class Game : Backend.Types.Datasource.GameBase
 {
     public Dictionary<string, string> Settings { get; set; } = [];
+    public Dictionary<string, string> Attributes { get; set; } = [];
     public List<Category> Categories { get; set; } = [];
 }

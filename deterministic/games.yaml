@@ -165,6 +165,31 @@ types:
         - value:
             type: string
             size: unlimited
+  - game_attribute:
+      # derived facts about a game (e.g. pieceCount), stored as rows so lists need not recompute them
+      tags: [datasource_type]
+      inherits: base
+      fields:
+        - game_id:
+            references: game_base.id
+        - name:
+            type: string
+            size: 128
+        - value:
+            type: string
+            size: unlimited
+  - game_attribute_map:
+      tags: [view_type]
+      inherits: dictionary
+      fields:
+        - key:
+            type: string
+            size: 128
+            references: game_attribute.name
+        - value:
+            type: string
+            size: unlimited
+            references: game_attribute.value
   - game_setting_map:
       tags: [view_type]
       inherits: dictionary
@@ -201,6 +226,9 @@ types:
         - settings:
             type: game_setting_map{}
             references: game_setting.game_id
+        - attributes:
+            type: game_attribute_map{}
+            references: game_attribute.game_id
         - categories:
             type: category[]
             references: game_category.game_id

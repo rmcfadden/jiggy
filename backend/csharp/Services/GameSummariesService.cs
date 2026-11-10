@@ -4,7 +4,9 @@ using Datasources;
 namespace Backend.Services;
 
 /// <summary>What the list API returns: no uuid or dates, categories trimmed to id and name.</summary>
-public record GameSummaryDto(long Id, long TemplateId, string Name, string Description, string ParentName, string ThumbnameLocation, List<CategorySummaryDto> Categories);
+public record GameSummaryDto(long Id, string Name, string Description, string ParentName, string ThumbnameLocation, List<CategorySummaryDto> Categories, List<AttributeSummaryDto> Attributes);
+
+public record AttributeSummaryDto(string Name, string Value);
 
 public record CategorySummaryDto(long Id, string Name);
 
@@ -30,7 +32,6 @@ public class GameSummariesService
         ["GameParentId"] = "game_parent_id",
         ["GameId"] = "game_id",
         ["ImageId"] = "image_id",
-        ["TemplateId"] = "template_id",
         ["CategoryId"] = "category_id",
         ["IsDeleted"] = "is_deleted",
         ["IsEnabled"] = "is_enabled",
@@ -44,14 +45,15 @@ public class GameSummariesService
         ["Resource"] = "resources",
         ["GameCategory"] = "game_categories",
         ["Category"] = "categories",
+        ["GameAttribute"] = "game_attributes",
     };
 
     // Fields are paths; each alias is the result-column name the nested mapper reads.
     static readonly SelectStatement Joined = new(new()
     {
         Table = "Game",
-        Fields = ["Game.Id", "Game.Name", "Game.Description", "Game.IsDeleted", "Game.IsEnabled", "GameParent.Name", "PuzzleGame.TemplateId", "PuzzleGame.ImageId", "Resource.Location", "GameCategory.CategoryId", "Category.Name"],
-        Aliases = ["Id", "Name", "Description", "GameDeleted", "GameEnabled", "ParentName", "TemplateId", "ImageId", "ImageLocation", "CategoryId", "CategoryName"],
+        Fields = ["Game.Id", "Game.Name", "Game.Description", "Game.IsDeleted", "Game.IsEnabled", "GameParent.Name", "PuzzleGame.ImageId", "Resource.Location", "GameCategory.CategoryId", "Category.Name", "GameAttribute.Name", "GameAttribute.Value"],
+        Aliases = ["Id", "Name", "Description", "GameDeleted", "GameEnabled", "ParentName", "ImageId", "ImageLocation", "CategoryId", "CategoryName", "AttributeName", "AttributeValue"],
         Joins =
         [
             new Join(JoinKind.Inner, "GameParent", "GameParent.Id", "Game.GameParentId"),
@@ -59,8 +61,9 @@ public class GameSummariesService
             new Join(JoinKind.Left, "Resource", "Resource.Id", "PuzzleGame.ImageId"),
             new Join(JoinKind.Left, "GameCategory", "GameCategory.GameId", "Game.Id"),
             new Join(JoinKind.Left, "Category", "Category.Id", "GameCategory.CategoryId"),
+            new Join(JoinKind.Left, "GameAttribute", "GameAttribute.GameId", "Game.Id"),
         ],
-        OrderBy = [OrderBy.Asc("Game.Id"), OrderBy.Asc("GameCategory.CategoryId")],
+        OrderBy = [OrderBy.Asc("Game.Id"), OrderBy.Asc("GameCategory.CategoryId"), OrderBy.Asc("GameAttribute.Name")],
     });
 
     readonly ReadonlyRepository<GameSummaryRow> rows;
@@ -87,7 +90,6 @@ public class GameSummariesService
                     ["Name"] = "Name",
                     ["Description"] = "Description",
                     ["ParentName"] = "ParentName",
-                    ["TemplateId"] = "TemplateId",
                     ["GameDeleted"] = "GameDeleted",
                     ["GameEnabled"] = "GameEnabled",
                     ["ImageId"] = "ImageId",
@@ -96,6 +98,11 @@ public class GameSummariesService
                     {
                         Key = "CategoryId",
                         Fields = new Dictionary<string, TypeMapField> { ["Id"] = "CategoryId", ["Name"] = "CategoryName" },
+                    },
+                    ["Attributes"] = new TypeMapGroup
+                    {
+                        Key = "AttributeName",
+                        Fields = new Dictionary<string, TypeMapField> { ["Name"] = "AttributeName", ["Value"] = "AttributeValue" },
                     },
                 },
             }));
@@ -118,7 +125,7 @@ public class GameSummariesService
     {
         var list = new List<GameSummaryDto>();
         await foreach (var s in Read())
-            list.Add(new GameSummaryDto(s.Id, s.TemplateId, s.Name, s.Description, s.ParentName, s.ThumbnameLocation, s.Categories.Select(c => new CategorySummaryDto(c.Id, c.Name)).ToList()));
+            list.Add(new GameSummaryDto(s.Id, s.Name, s.Description, s.ParentName, s.ThumbnameLocation, s.Categories.Select(c => new CategorySummaryDto(c.Id, c.Name)).ToList(), s.Attributes.Select(a => new AttributeSummaryDto(a.Name, a.Value)).ToList()));
         return list;
     }
 }

@@ -1,6 +1,7 @@
 use datasources::{Connection, CRUDRepository, CRUDRepositoryBuilder, CRUDRepositoryOptions, DictionaryMapper, Enrichment, EnrichmentPropertyType, Association, EnrichmentVia, ICRUDRepository, IReadonlyRepository, IRepository, IWhere, ReadonlyRepository, ReadonlyRepositoryMappingOptions, Schema, SchemaColumn, Statement, Result, async_trait, CommandMiddleware, IdKey, Response, Stream};
 use super::super::Game;
 use super::gameSettingsRepository::GameSettingsRepository;
+use super::gameAttributesRepository::GameAttributesRepository;
 use super::categoriesRepository::CategoriesRepository;
 use super::gameCategoriesRepository::GameCategoriesRepository;
 use std::any::TypeId;
@@ -12,6 +13,7 @@ use std::sync::Arc;
 pub struct GamesRepository {
     pub(crate) inner: Arc<CRUDRepository<Game>>,
     pub game_setting: GameSettingsRepository,
+    pub game_attribute: GameAttributesRepository,
     pub category: CategoriesRepository,
     pub game_category: GameCategoriesRepository,
 }
@@ -70,12 +72,14 @@ impl GamesRepository {
     .for_connection(connection.as_ref())?;
 
         let game_setting = GameSettingsRepository::new(Arc::clone(&connection))?;
+        let game_attribute = GameAttributesRepository::new(Arc::clone(&connection))?;
         let category = CategoriesRepository::new(Arc::clone(&connection))?;
         let game_category = GameCategoriesRepository::new(Arc::clone(&connection))?;
         let mut repo = CRUDRepository::<Game>::new(Arc::clone(&connection), options)?;
         repo.add_enriched(Enrichment::new("settings", "id", "game_id", Some("value".into()), EnrichmentPropertyType::Dictionary).with_dictionary_key("name"), &game_setting, None);
+        repo.add_enriched(Enrichment::new("attributes", "id", "game_id", Some("value".into()), EnrichmentPropertyType::Dictionary).with_dictionary_key("name"), &game_attribute, None);
         repo.add_linked(Enrichment::new("categories", "id", "id", Some("name".into()), EnrichmentPropertyType::List).linked(Association::new("game_id", "category_id")), &category, Arc::clone(&game_category.inner) as Arc<dyn ICRUDRepository<_>>, None);
-        Ok(Self { inner: Arc::new(repo), game_setting, category, game_category })
+        Ok(Self { inner: Arc::new(repo), game_setting, game_attribute, category, game_category })
     }
 
     pub fn create_readonly(connection: Arc<dyn Connection>) -> Result<ReadonlyRepository<Game>> {
@@ -98,9 +102,11 @@ impl GamesRepository {
         ]));
         options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "name".into(), "description".into(), "game_parent_id".into(), "is_deleted".into(), "is_enabled".into()];
         let game_setting = GameSettingsRepository::new(Arc::clone(&connection))?;
+        let game_attribute = GameAttributesRepository::new(Arc::clone(&connection))?;
         let category = CategoriesRepository::new(Arc::clone(&connection))?;
         let mut repo = ReadonlyRepository::<Game>::new(connection, options)?;
         repo.add_enriched(Enrichment::new("settings", "id", "game_id", Some("value".into()), EnrichmentPropertyType::Dictionary).with_dictionary_key("name"), &game_setting, None);
+        repo.add_enriched(Enrichment::new("attributes", "id", "game_id", Some("value".into()), EnrichmentPropertyType::Dictionary).with_dictionary_key("name"), &game_attribute, None);
         repo.add_enriched(Enrichment::new("categories", "id", "id", Some("name".into()), EnrichmentPropertyType::List), &category, None);
         Ok(repo)
     }
@@ -256,10 +262,12 @@ pub fn games_row_repository(connection: Arc<dyn Connection>) -> Result<CRUDRepos
     .for_connection(connection.as_ref())?;
 
         let game_setting = Arc::new(super::gameSettingsRepository::game_settings_row_repository(Arc::clone(&connection))?);
+        let game_attribute = Arc::new(super::gameAttributesRepository::game_attributes_row_repository(Arc::clone(&connection))?);
         let category = Arc::new(super::categoriesRepository::categories_row_repository(Arc::clone(&connection))?);
         let game_category = Arc::new(super::gameCategoriesRepository::game_categories_row_repository(Arc::clone(&connection))?);
         let mut repo = CRUDRepository::<datasources::Row>::new(Arc::clone(&connection), options)?;
         repo.add_enriched(Enrichment::new("settings", "id", "game_id", Some("value".into()), EnrichmentPropertyType::Dictionary).with_dictionary_key("name"), Arc::clone(&game_setting), None);
+        repo.add_enriched(Enrichment::new("attributes", "id", "game_id", Some("value".into()), EnrichmentPropertyType::Dictionary).with_dictionary_key("name"), Arc::clone(&game_attribute), None);
         repo.add_linked(Enrichment::new("categories", "id", "id", Some("name".into()), EnrichmentPropertyType::List).linked(Association::new("game_id", "category_id")), Arc::clone(&category), Arc::clone(&game_category) as Arc<dyn ICRUDRepository<_>>, None);
         Ok(repo)
 }

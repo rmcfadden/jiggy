@@ -1,7 +1,12 @@
+import { TEMPLATE_SIZES } from '../designer/gameAssets'
 import { CATALOG, CATEGORIES, type Category } from '@jiggy/shared'
 
 const flat = (cs: Category[]): Category[] => cs.flatMap((c) => [c, ...flat(c.children)])
 const all = flat(CATEGORIES)
+const pieces = (size: string) => {
+  const t = TEMPLATE_SIZES.find((s) => s.id === size)
+  return t ? t.cols * t.rows : 0
+}
 
 /** Server responses for the Explorer: the sample catalog served as saved games with thumbnails. */
 export const stubApi = (url: string): unknown => {
@@ -9,7 +14,7 @@ export const stubApi = (url: string): unknown => {
   if (url.startsWith('/api/categories')) return CATEGORIES
   if (url.startsWith('/api/games_summaries'))
     return CATALOG.puzzles.map((p, i) => ({
-      id: i + 1, templateId: 1, name: p.name, description: '', parentName: p.settings.type, thumbnameLocation: p.image.location,
+      id: i + 1, attributes: [{ name: 'pieceCount', value: String(pieces(p.template.size)) }], name: p.name, description: '', parentName: p.settings.type, thumbnameLocation: p.image.location,
       categories: p.categories.map((id) => ({ id: all.findIndex((c) => c.id === id) + 1, name: all.find((c) => c.id === id)!.name })),
     }))
   if (url.startsWith('/api/games'))

@@ -66,4 +66,6 @@ export async function setup(): Promise<void> {
   const games = new GamesService(ds.games, ds.puzzleGames, ds.gameCategories, categoriesService, gameParents, templates, images)
   const puzzles = await games.addPuzzles(seedFile(process.env.PUZZLES_SEED_PATH, '../../../data/puzzles.json'))
   console.log(puzzles.length ? `added ${puzzles.length} puzzles` : 'puzzles already present')
+  const attributes = await games.addAttributes()
+  console.log(attributes.length ? `added attributes to ${attributes.length} games` : 'game attributes already present')
 }

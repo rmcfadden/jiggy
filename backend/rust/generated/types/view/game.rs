@@ -17,6 +17,7 @@ pub struct Game {
     pub is_deleted: bool,
     pub is_enabled: bool,
     pub settings: HashMap<String, String>,
+    pub attributes: HashMap<String, String>,
     pub categories: Vec<Category>,
 }
 impl Default for Game {
@@ -33,6 +34,7 @@ impl Default for Game {
             is_deleted: false,
             is_enabled: true,
             settings: HashMap::new(),
+            attributes: HashMap::new(),
             categories: vec![],
         }
     }

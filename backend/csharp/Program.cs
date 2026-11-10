@@ -60,6 +60,8 @@ if (args.FirstOrDefault() == "setup")
     var puzzlesPath = Path.GetFullPath(app.Configuration["Puzzles:SeedPath"] ?? "../data/puzzles.json", app.Environment.ContentRootPath);
     var puzzles = await app.Services.GetRequiredService<GamesService>().AddPuzzles(puzzlesPath);
     Console.WriteLine(puzzles.Count > 0 ? $"added {puzzles.Count} puzzles" : "puzzles already present");
+    var attributes = await app.Services.GetRequiredService<GamesService>().AddAttributes();
+    Console.WriteLine(attributes.Count > 0 ? $"added attributes to {attributes.Count} games" : "game attributes already present");
     return;
 }
 

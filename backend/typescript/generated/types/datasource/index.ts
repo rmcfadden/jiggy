@@ -37,4 +37,5 @@ export { gameParentCategory, GameParentCategory } from "./gameParentCategory";
 export { gameState, GameState } from "./gameState";
 export { gameParentSetting, GameParentSetting } from "./gameParentSetting";
 export { gameSetting, GameSetting } from "./gameSetting";
+export { gameAttribute, GameAttribute } from "./gameAttribute";
 export { review, Review } from "./review";

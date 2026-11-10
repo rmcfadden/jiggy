@@ -12,6 +12,8 @@ use std::collections::{BTreeSet, HashMap};
 use std::sync::Arc;
 
 const CONFIG_KEY: &str = "config";
+/// Attribute holding the pieces in the game's template (`cols * rows`).
+pub const PIECE_COUNT: &str = "pieceCount";
 
 #[derive(Debug)]
 pub enum GameError {
@@ -103,6 +105,7 @@ impl GamesService {
             description: input["description"].as_str().unwrap_or_default().into(),
             game_parent_id: parent_id,
             settings: settings(&input["config"]),
+            attributes: self.attributes_of(template_id).await?,
             ..Game::default()
         };
         let created = self.repo.create(item).await?;
@@ -120,6 +123,7 @@ impl GamesService {
         if let Some(template_id) = input["templateId"].as_i64() {
             self.check_template(template_id).await?;
             puzzle.template_id = template_id;
+            game.attributes.extend(self.attributes_of(template_id).await?);
         }
         if input.get("imageId").is_some_and(|v| !v.is_null()) {
             let image_id = input["imageId"].as_i64();
@@ -142,6 +146,37 @@ impl GamesService {
             self.set_categories(id, ids).await?;
         }
         self.get(id).await
+    }
+
+    /// Gives every game its attributes where they are missing or its template changed behind its back (run by
+    /// `setup`); returns the names of the games it updated.
+    pub async fn add_attributes(&self) -> Result<Vec<String>> {
+        let puzzles = self.puzzles_by_game().await?;
+        let games: Vec<Game> = self.repo.read(None, None).try_collect().await?;
+        let mut updated = vec![];
+        for mut game in games {
+            let Some(puzzle) = puzzles.get(&game.id) else { continue };
+            if game.is_deleted {
+                continue;
+            }
+            let wanted = self.attributes_of(puzzle.template_id).await?;
+            if wanted.iter().all(|(k, v)| game.attributes.get(k) == Some(v)) {
+                continue;
+            }
+            game.attributes.extend(wanted);
+            let name = game.name.clone();
+            self.repo.update(game, None).await?;
+            updated.push(name);
+        }
+        Ok(updated)
+    }
+
+    /// The attributes a game gets from its template: `pieceCount` is `cols * rows` of the template's JSON.
+    async fn attributes_of(&self, template_id: i64) -> Result<HashMap<String, String>> {
+        let template = self.templates.get(template_id).await.map_err(|_| GameError::Invalid("could not read template".into()))?;
+        let content = template.as_ref().map(|t| &t["content"]).unwrap_or(&Value::Null);
+        let pieces = content["cols"].as_i64().unwrap_or(0) * content["rows"].as_i64().unwrap_or(0);
+        Ok(HashMap::from([(PIECE_COUNT.to_string(), pieces.to_string())]))
     }
 
     pub async fn delete(&self, id: i64) -> Result<bool> {

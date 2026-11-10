@@ -46,6 +46,8 @@ export type PuzzleSeed = { slug: string; name: string; description?: string; par
 export class UnknownReferenceError extends Error {}
 
 const CONFIG_KEY = 'config'
+/** Attribute holding the pieces in the game's template (`cols * rows`). */
+export const PIECE_COUNT = 'pieceCount'
 
 export class GamesService {
   constructor(
@@ -92,6 +94,7 @@ export class GamesService {
         description: input.description ?? '',
         gameParentId: Number(parent.id),
         settings: settings(input.config),
+        attributes: await this.attributesOf(templateId),
         categories: [],
       }),
     )
@@ -110,6 +113,7 @@ export class GamesService {
     if (input.templateId !== undefined) {
       await this.checkTemplate(input.templateId)
       puzzle.templateId = input.templateId
+      row.attributes = { ...row.attributes, ...(await this.attributesOf(input.templateId)) }
     }
     if (input.imageId !== undefined) {
       await this.checkImage(input.imageId)
@@ -161,6 +165,31 @@ export class GamesService {
       added.push(seed.name)
     }
     return added
+  }
+
+  /**
+   * Gives every game its attributes where they are missing or the template changed behind its back (run by
+   * `setup`); returns the names of the games it updated.
+   */
+  async addAttributes(): Promise<string[]> {
+    const puzzleOf = await this.puzzlesByGame()
+    const updated: string[] = []
+    for await (const row of this.repo.read()) {
+      const puzzle = puzzleOf.get(Number(row.id))
+      if (!puzzle || row.isDeleted) continue
+      const wanted = await this.attributesOf(Number(puzzle.templateId))
+      if (Object.entries(wanted).every(([k, v]) => row.attributes[k] === v)) continue
+      row.attributes = { ...row.attributes, ...wanted }
+      await this.repo.update(row)
+      updated.push(row.name)
+    }
+    return updated
+  }
+
+  /** The attributes a game gets from its template: `pieceCount` is `cols * rows` of the template's JSON. */
+  private async attributesOf(templateId: number): Promise<Record<string, string>> {
+    const content = (await this.templates.get(templateId))?.content as { cols?: number; rows?: number } | undefined
+    return { [PIECE_COUNT]: String((content?.cols ?? 0) * (content?.rows ?? 0)) }
   }
 
   private async find(id: number): Promise<Game | undefined> {

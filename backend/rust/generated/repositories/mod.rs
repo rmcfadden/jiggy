@@ -11,6 +11,7 @@ pub mod emailAttributesRepository;
 pub mod emailLabelsRepository;
 pub mod emailTypesRepository;
 pub mod gamesRepository;
+pub mod gameAttributesRepository;
 pub mod gameCategoriesRepository;
 pub mod gameParentsRepository;
 pub mod gameParentCategoriesRepository;

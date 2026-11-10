@@ -38,6 +38,11 @@ types:
             is_unique: true
   - game_base:
       mapping: games
+  - game_attribute:
+      indexes:
+        - game_attribute_game_id_name:
+            fields: [game_id, name]
+            is_unique: true
   - game_parent_base:
       mapping: game_parent
   - localized_string_base:

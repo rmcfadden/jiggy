@@ -1,6 +1,7 @@
 import { Game } from "../types/view/game";
 import { CRUDRepository, CRUDRepositoryBuilder, DictionaryMapper, ReadonlyRepository, Schema, type IConnection } from "@deterministic-code/datasources";
 import { GameSettingsRepository } from "./gameSettingsRepository";
+import { GameAttributesRepository } from "./gameAttributesRepository";
 import { CategoriesRepository } from "./categoriesRepository";
 import { GameCategoriesRepository } from "./gameCategoriesRepository";
 const options = (connection: IConnection) =>
@@ -17,22 +18,27 @@ const readonlyOptions = (connection: IConnection) =>
 
 export class GamesRepository extends CRUDRepository<Game> {
   readonly gameSetting: GameSettingsRepository;
+  readonly gameAttribute: GameAttributesRepository;
   readonly category: CategoriesRepository;
   readonly gameCategory: GameCategoriesRepository;
   constructor(connection: IConnection) {
     super(connection, options(connection));
     this.gameSetting = new GameSettingsRepository(connection);
+    this.gameAttribute = new GameAttributesRepository(connection);
     this.category = new CategoriesRepository(connection);
     this.gameCategory = new GameCategoriesRepository(connection);
     this.addEnriched({ destinationProperty: "settings", sourceProperty: "id", relatedKey: "gameId", relatedProperty: "value", dictionaryKey: "name", type: "dictionary" }, this.gameSetting);
+    this.addEnriched({ destinationProperty: "attributes", sourceProperty: "id", relatedKey: "gameId", relatedProperty: "value", dictionaryKey: "name", type: "dictionary" }, this.gameAttribute);
     this.addLinked({ destinationProperty: "categories", sourceProperty: "id", relatedKey: "id", relatedProperty: "name", association: { parent: "gameId", related: "categoryId" }, type: "list" }, this.category, this.gameCategory);
   }
   static createReadonly(connection: IConnection) {
     const repo = new ReadonlyRepository<Game>(connection, readonlyOptions(connection));
     const gameSetting = new GameSettingsRepository(connection);
+    const gameAttribute = new GameAttributesRepository(connection);
     const category = new CategoriesRepository(connection);
     const gameCategory = new GameCategoriesRepository(connection);
     repo.addEnriched({ destinationProperty: "settings", sourceProperty: "id", relatedKey: "gameId", relatedProperty: "value", dictionaryKey: "name", type: "dictionary" }, gameSetting);
+    repo.addEnriched({ destinationProperty: "attributes", sourceProperty: "id", relatedKey: "gameId", relatedProperty: "value", dictionaryKey: "name", type: "dictionary" }, gameAttribute);
     repo.addEnriched({ destinationProperty: "categories", sourceProperty: "id", relatedKey: "id", relatedProperty: "name", type: "list" }, category);
     return repo;
   }

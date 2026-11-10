@@ -737,6 +737,25 @@ GO
 CREATE TRIGGER trg_game_settings_updated_at BEFORE UPDATE ON game_settings
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
+CREATE TABLE game_attributes (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    game_id BIGINT NOT NULL,
+    name VARCHAR(128) NOT NULL,
+    value TEXT NOT NULL,
+    CONSTRAINT game_attributes_primary_key PRIMARY KEY (id),
+    CONSTRAINT game_attributes_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT game_attributes_game_id_foreign_key FOREIGN KEY (game_id) REFERENCES games (id)
+);
+GO
+CREATE UNIQUE INDEX game_attributes_game_attribute_game_id_name_index ON game_attributes (game_id, name);
+GO
+CREATE TRIGGER trg_game_attributes_updated_at BEFORE UPDATE ON game_attributes
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
 CREATE TABLE reviews (
     id BIGINT AUTO_INCREMENT NOT NULL,
     uuid CHAR(36) DEFAULT (UUID()) NOT NULL,

@@ -10,9 +10,6 @@ types:
             # the game's id
             type: biginteger
             is_id: true
-        - template_id:
-            # the template the game plays; the client reads its piece count
-            type: biginteger
         - name:
             type: string
             size: 128
@@ -28,3 +25,6 @@ types:
         - categories:
             type: category[]
             references: game_category.game_id
+        - attributes:
+            type: game_attribute[]
+            references: game_attribute.game_id
