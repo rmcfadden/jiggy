@@ -20,7 +20,7 @@ public sealed class ContactsRepository : CRUDRepository<Backend.Types.View.Conta
         AddEnriched(new("Addresses", "Id", "ContactId", Type: EnrichmentPropertyType.List), Address);
         AddEnriched(new("Emails", "Id", "ContactId", Type: EnrichmentPropertyType.List), Email);
         AddEnriched(new("Phones", "Id", "ContactId", Type: EnrichmentPropertyType.List), Phone);
-        AddEnriched(new("Attributes", "Id", "ContactId", "Value", Type: EnrichmentPropertyType.Dictionary), ContactAttribute);
+        AddEnriched(new("Attributes", "Id", "ContactId", "Value", Type: EnrichmentPropertyType.Dictionary, DictionaryKey: "Name"), ContactAttribute);
         AddLinked(new("Labels", "Id", "Id", "Name", Association: new("ContactId", "LabelId")), Label, ContactLabel);
     }
 
@@ -36,7 +36,7 @@ public sealed class ContactsRepository : CRUDRepository<Backend.Types.View.Conta
         repo.AddEnriched(new("Addresses", "Id", "ContactId", Type: EnrichmentPropertyType.List), Address);
         repo.AddEnriched(new("Emails", "Id", "ContactId", Type: EnrichmentPropertyType.List), Email);
         repo.AddEnriched(new("Phones", "Id", "ContactId", Type: EnrichmentPropertyType.List), Phone);
-        repo.AddEnriched(new("Attributes", "Id", "ContactId", "Value", Type: EnrichmentPropertyType.Dictionary), ContactAttribute);
+        repo.AddEnriched(new("Attributes", "Id", "ContactId", "Value", Type: EnrichmentPropertyType.Dictionary, DictionaryKey: "Name"), ContactAttribute);
         repo.AddEnriched(new("Labels", "Id", "Id", "Name", Type: EnrichmentPropertyType.List), Label);
         return repo;
     }
@@ -97,7 +97,7 @@ public sealed class ContactsRepository : CRUDRepository<Backend.Types.View.Conta
             .Add("sqlite", new()
             {
                 Entity = "Contact",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["Contact"] = "contact_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["Contact"] = "contacts" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",

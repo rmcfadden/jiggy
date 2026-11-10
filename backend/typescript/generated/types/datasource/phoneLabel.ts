@@ -1,6 +1,6 @@
 // schema-version: 1.0
 /** Type PhoneLabel. */
-export const phoneLabel = (init: Partial<PhoneLabel>): PhoneLabel => ({ ...init } as PhoneLabel);
+export const phoneLabel = (init: Partial<PhoneLabel>): PhoneLabel => Object.assign(new PhoneLabel(), init);
 export class PhoneLabel {
   id!: number;
   uuid: string = crypto.randomUUID();

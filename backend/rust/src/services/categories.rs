@@ -1,21 +1,21 @@
 use crate::generated::Category;
-use datasources::CRUDRepository;
+use crate::generated::repositories::categoriesRepository::CategoriesRepository;
 use futures_util::TryStreamExt;
 use serde_json::{json, Value};
 use std::sync::Arc;
 
 pub struct CategoriesService {
-    repo: Arc<CRUDRepository<Category>>,
+    repo: Arc<CategoriesRepository>,
 }
 
 impl CategoriesService {
-    pub fn new(repo: Arc<CRUDRepository<Category>>) -> Self {
+    pub fn new(repo: Arc<CategoriesRepository>) -> Self {
         Self { repo }
     }
 
     /// Categories as a tree: `[{ id, name, description, children }]`, where `id` is the lowercased name.
     pub async fn tree(&self) -> Result<Vec<Value>, datasources::DatasourceError> {
-        let rows: Vec<Category> = self.repo.read(&(), None).try_collect().await?;
+        let rows: Vec<Category> = self.repo.read(None, None).try_collect().await?;
         let rows: Vec<Category> = rows.into_iter().filter(|c| c.is_enabled && !c.is_deleted).collect();
         Ok(children(&rows, None))
     }

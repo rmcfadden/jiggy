@@ -265,22 +265,6 @@ seeds:
       - id5:
           name: "Other"
           description: "Other"
-  - address_type:
-      - id1:
-          name: "Home"
-          description: "Home"
-      - id2:
-          name: "Work"
-          description: "Work"
-      - id3:
-          name: "Billing"
-          description: "Billing"
-      - id4:
-          name: "Shipping"
-          description: "Shipping"
-      - id5:
-          name: "Other"
-          description: "Other"
   - label:
       - id1:
           name: "Family"

@@ -53,20 +53,31 @@ types:
             fields: [game_parent_id, category_id]
             is_unique: true
   - email_base:
+      mapping: email
       indexes:
         - email_base_contact_id_index:
             fields: [contact_id]
             is_unique: false
   - phone_base:
+      mapping: phone
       indexes:
         - phone_base_contact_id_index:
             fields: [contact_id]
             is_unique: false
   - address_base:
+      mapping: address
       indexes:
         - address_base_contact_id_index:
             fields: [contact_id]
             is_unique: false
+  - contact_base:
+      mapping: contact
+  - template_base:
+      mapping: templates
+      indexes:
+        - template_template_type_id_name:
+            fields: [template_type_id, name]
+            is_unique: true
   - contact_attribute:
       indexes:
         - contact_attribute_contact_id_index:

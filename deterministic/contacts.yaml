@@ -130,19 +130,6 @@ types:
         - is_verified:
             type: boolean
             default_value: false
-  - address_type:
-      tags:
-        - datasource_type
-        - readonly_lookup
-      inherits: base
-      fields:
-        - name:
-            type: string
-            size: 128
-        - description:
-            type: string
-            size: unlimited
-            default_value: ""
   - address_base:
       tags:
         - datasource_type
@@ -150,8 +137,6 @@ types:
       fields:
         - contact_id:
             references: contact_base.id
-        - address_type_id:
-            references: address_type.id
         - display_name:
             type: string
             size: 255
@@ -374,13 +359,6 @@ types:
       tags:
         - view_type
       inherits: address_base
-      union:
-        - address_type
-      extract:
-        - address_type.name
-        - address_type.description
-      mapping:
-        name: address_type_name
       fields:
         - attributes:
             type: address_attribute_map{}

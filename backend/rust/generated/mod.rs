@@ -23,8 +23,6 @@ pub mod emailBase;
 pub mod phoneType;
 #[path = "types/datasource/phoneBase.rs"]
 pub mod phoneBase;
-#[path = "types/datasource/addressType.rs"]
-pub mod addressType;
 #[path = "types/datasource/addressBase.rs"]
 pub mod addressBase;
 #[path = "types/datasource/contactAttribute.rs"]
@@ -55,16 +53,18 @@ pub mod localizedStringBase;
 pub mod mimeType;
 #[path = "types/datasource/resourceBase.rs"]
 pub mod resourceBase;
-#[path = "types/datasource/category.rs"]
-pub mod category;
 #[path = "types/datasource/templateType.rs"]
 pub mod templateType;
-#[path = "types/datasource/template.rs"]
-pub mod template;
+#[path = "types/datasource/templateBase.rs"]
+pub mod templateBase;
+#[path = "types/datasource/category.rs"]
+pub mod category;
 #[path = "types/datasource/gameParentBase.rs"]
 pub mod gameParentBase;
 #[path = "types/datasource/gameParentConfig.rs"]
 pub mod gameParentConfig;
+#[path = "types/datasource/gameConfig.rs"]
+pub mod gameConfig;
 #[path = "types/datasource/gameBase.rs"]
 pub mod gameBase;
 #[path = "types/datasource/gameCategory.rs"]
@@ -93,6 +93,8 @@ pub mod contact;
 pub mod localizedString;
 #[path = "types/view/resource.rs"]
 pub mod resource;
+#[path = "types/view/template.rs"]
+pub mod template;
 #[path = "types/view/game.rs"]
 pub mod game;
 #[path = "types/view/gameParent.rs"]
@@ -109,7 +111,6 @@ pub use emailType::*;
 pub use emailBase::*;
 pub use phoneType::*;
 pub use phoneBase::*;
-pub use addressType::*;
 pub use addressBase::*;
 pub use contactAttribute::*;
 pub use addressAttribute::*;
@@ -125,11 +126,12 @@ pub use localizedStringName::*;
 pub use localizedStringBase::*;
 pub use mimeType::*;
 pub use resourceBase::*;
-pub use category::*;
 pub use templateType::*;
-pub use template::*;
+pub use templateBase::*;
+pub use category::*;
 pub use gameParentBase::*;
 pub use gameParentConfig::*;
+pub use gameConfig::*;
 pub use gameBase::*;
 pub use gameCategory::*;
 pub use gameParentCategory::*;
@@ -144,6 +146,7 @@ pub use phone::*;
 pub use contact::*;
 pub use localizedString::*;
 pub use resource::*;
+pub use template::*;
 pub use game::*;
 pub use gameParent::*;
 mod schema_objects;

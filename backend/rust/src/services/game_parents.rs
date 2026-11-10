@@ -1,5 +1,5 @@
 use crate::generated::GameParent;
-use datasources::CRUDRepository;
+use crate::generated::repositories::gameParentsRepository::GameParentsRepository;
 use futures_util::TryStreamExt;
 use serde_json::{json, Value};
 use std::sync::Arc;
@@ -14,16 +14,16 @@ const GAME_PARENTS: [(&str, &str, &str); 3] = [
 ];
 
 pub struct GameParentsService {
-    repo: Arc<CRUDRepository<GameParent>>,
+    repo: Arc<GameParentsRepository>,
 }
 
 impl GameParentsService {
-    pub fn new(repo: Arc<CRUDRepository<GameParent>>) -> Self {
+    pub fn new(repo: Arc<GameParentsRepository>) -> Self {
         Self { repo }
     }
 
     pub async fn list(&self) -> Result<Vec<Value>> {
-        let rows: Vec<GameParent> = self.repo.read(&(), None).try_collect().await?;
+        let rows: Vec<GameParent> = self.repo.read(None, None).try_collect().await?;
         Ok(rows.iter().filter(|g| !g.is_deleted).map(to_json).collect())
     }
 
@@ -89,7 +89,7 @@ fn apply(item: &mut GameParent, input: &Value) {
 fn to_json(g: &GameParent) -> Value {
     json!({
         "id": g.id,
-        "uuid": g.uuid,
+        "uuid": g.uuid.to_string(),
         "created": g.created.to_rfc3339(),
         "updated": g.updated.to_rfc3339(),
         "name": g.name,

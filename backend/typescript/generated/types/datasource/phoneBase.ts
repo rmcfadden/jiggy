@@ -1,6 +1,6 @@
 // schema-version: 1.0
 /** Type PhoneBase. */
-export const phoneBase = (init: Partial<PhoneBase>): PhoneBase => ({ ...init } as PhoneBase);
+export const phoneBase = (init: Partial<PhoneBase>): PhoneBase => Object.assign(new PhoneBase(), init);
 export class PhoneBase {
   id!: number;
   uuid: string = crypto.randomUUID();
@@ -9,9 +9,9 @@ export class PhoneBase {
   version: string = Buffer.from([0]).toString("base64");
   phoneTypeId!: number;
   contactId!: number;
-  number!: string;
-  displayName!: string;
-  extention!: string;
-  isPrimary!: boolean;
-  isVerified!: boolean;
+  number: string = "";
+  displayName: string = "";
+  extention: string = "";
+  isPrimary: boolean = false;
+  isVerified: boolean = false;
 }

@@ -1,10 +1,20 @@
 // schema-version: 1.0
 import type { Category } from "../datasource/category";
-import type { GameBase } from "../datasource/gameBase";
 /** View Game. */
 type Dictionary<K extends PropertyKey, V> = Record<K, V>;
-export const game = (init: Partial<Game>): Game => ({ ...init } as Game);
-export interface Game extends GameBase {
-  settings: Dictionary<string, string>;
-  categories: Category[];
+export const game = (init: Partial<Game>): Game => Object.assign(new Game(), init);
+export class Game {
+  id!: number;
+  uuid: string = crypto.randomUUID();
+  created: Date = new Date();
+  updated: Date = new Date();
+  version: string = Buffer.from([0]).toString("base64");
+  name: string = "";
+  description: string = "";
+  gameParentId!: number;
+  gameConfigId!: number;
+  isDeleted: boolean = false;
+  isEnabled: boolean = true;
+  settings: Dictionary<string, string> = {};
+  categories: Category[] = [];
 }

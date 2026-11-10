@@ -1,6 +1,6 @@
 // schema-version: 1.0
 /** Type GameParentSetting. */
-export const gameParentSetting = (init: Partial<GameParentSetting>): GameParentSetting => ({ ...init } as GameParentSetting);
+export const gameParentSetting = (init: Partial<GameParentSetting>): GameParentSetting => Object.assign(new GameParentSetting(), init);
 export class GameParentSetting {
   id!: number;
   uuid: string = crypto.randomUUID();
@@ -8,6 +8,6 @@ export class GameParentSetting {
   updated: Date = new Date();
   version: string = Buffer.from([0]).toString("base64");
   gameParentId!: number;
-  name!: string;
-  value!: string;
+  name: string = "";
+  value: string = "";
 }

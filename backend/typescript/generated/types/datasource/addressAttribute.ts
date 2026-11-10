@@ -1,6 +1,6 @@
 // schema-version: 1.0
 /** Type AddressAttribute. */
-export const addressAttribute = (init: Partial<AddressAttribute>): AddressAttribute => ({ ...init } as AddressAttribute);
+export const addressAttribute = (init: Partial<AddressAttribute>): AddressAttribute => Object.assign(new AddressAttribute(), init);
 export class AddressAttribute {
   id!: number;
   uuid: string = crypto.randomUUID();
@@ -8,6 +8,6 @@ export class AddressAttribute {
   updated: Date = new Date();
   version: string = Buffer.from([0]).toString("base64");
   addressId!: number;
-  name!: string;
-  value!: string;
+  name: string = "";
+  value: string = "";
 }

@@ -1,6 +1,6 @@
 // schema-version: 1.0
 /** Type GameParentCategory. */
-export const gameParentCategory = (init: Partial<GameParentCategory>): GameParentCategory => ({ ...init } as GameParentCategory);
+export const gameParentCategory = (init: Partial<GameParentCategory>): GameParentCategory => Object.assign(new GameParentCategory(), init);
 export class GameParentCategory {
   id!: number;
   uuid: string = crypto.randomUUID();

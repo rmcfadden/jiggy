@@ -1,0 +1,11 @@
+{
+  "name": "jiggy-root",
+  "private": true,
+  "scripts": {
+    "start": "npm --prefix frontend start",
+    "backend:ts": "npm --prefix frontend run backend:ts",
+    "backend:rust": "npm --prefix frontend run backend:rust",
+    "backend:csharp": "npm --prefix frontend run backend:csharp",
+    "dev": "npm --prefix frontend run dev"
+  }
+}

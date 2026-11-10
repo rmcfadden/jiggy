@@ -11,9 +11,14 @@
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "lint": "turbo run lint"
+    "lint": "turbo run lint",
+    "backend:ts": "npm --prefix ../backend/typescript run dev",
+    "backend:rust": "npm --prefix ../backend/rust start",
+    "backend:csharp": "dotnet run --project ../backend/csharp --urls http://localhost:3000",
+    "start": "concurrently -k -n api,web -c blue,green \"npm run backend:rust\" \"npm run dev\""
   },
   "devDependencies": {
+    "concurrently": "^10.0.7",
     "turbo": "^2",
     "typescript": "~6.0.3"
   }

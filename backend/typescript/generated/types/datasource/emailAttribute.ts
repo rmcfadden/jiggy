@@ -1,6 +1,6 @@
 // schema-version: 1.0
 /** Type EmailAttribute. */
-export const emailAttribute = (init: Partial<EmailAttribute>): EmailAttribute => ({ ...init } as EmailAttribute);
+export const emailAttribute = (init: Partial<EmailAttribute>): EmailAttribute => Object.assign(new EmailAttribute(), init);
 export class EmailAttribute {
   id!: number;
   uuid: string = crypto.randomUUID();
@@ -8,6 +8,6 @@ export class EmailAttribute {
   updated: Date = new Date();
   version: string = Buffer.from([0]).toString("base64");
   emailId!: number;
-  name!: string;
-  value!: string;
+  name: string = "";
+  value: string = "";
 }

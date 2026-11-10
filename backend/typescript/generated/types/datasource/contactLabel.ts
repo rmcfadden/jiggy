@@ -1,6 +1,6 @@
 // schema-version: 1.0
 /** Type ContactLabel. */
-export const contactLabel = (init: Partial<ContactLabel>): ContactLabel => ({ ...init } as ContactLabel);
+export const contactLabel = (init: Partial<ContactLabel>): ContactLabel => Object.assign(new ContactLabel(), init);
 export class ContactLabel {
   id!: number;
   uuid: string = crypto.randomUUID();

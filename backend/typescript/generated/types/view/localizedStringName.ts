@@ -1,5 +1,12 @@
 // schema-version: 1.0
-import type { LocalizedStringName as LocalizedStringNameBase } from "../datasource/localizedStringName";
 /** View LocalizedStringName. */
-export const localizedStringName = (init: Partial<LocalizedStringName>): LocalizedStringName => ({ ...init } as LocalizedStringName);
-export interface LocalizedStringName extends LocalizedStringNameBase {}
+export const localizedStringName = (init: Partial<LocalizedStringName>): LocalizedStringName => Object.assign(new LocalizedStringName(), init);
+export class LocalizedStringName {
+  id!: number;
+  uuid: string = crypto.randomUUID();
+  created: Date = new Date();
+  updated: Date = new Date();
+  version: string = Buffer.from([0]).toString("base64");
+  name: string = "";
+  description: string = "";
+}

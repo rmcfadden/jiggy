@@ -110,5 +110,42 @@ types:
       mapping:
         name: mime_type_name
 
+  - template_type:
+      tags: [datasource_type, readonly_lookup]
+      inherits: base
+      fields:
+        - name:
+            # e.g. jigsaw
+            type: string
+            size: 128
+        - description:
+            type: string
+            size: unlimited
+            default_value: ""
+  - template_base:
+      tags: [datasource_type]
+      inherits: base
+      fields:
+        - template_type_id:
+            references: template_type.id
+        - name:
+            type: string
+            size: 128
+        - content:
+            # the template's settings as JSON
+            type: string
+            size: unlimited
+  - template:
+      tags: [view_type]
+      inherits: template_base
+      remove_fields:
+        - template_type_id
+      union:
+        - template_type
+      extract:
+        - template_type.name
+      mapping:
+        template_type.name: template_type_name
+
 
 

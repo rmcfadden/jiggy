@@ -20,10 +20,6 @@ pub fn router(service: Arc<TemplatesService>) -> Router {
 
 fn fail(err: TemplateError) -> StatusCode {
     match err {
-        TemplateError::UnknownType(kind) => {
-            eprintln!("unknown template type: {kind}");
-            StatusCode::BAD_REQUEST
-        }
         TemplateError::Datasource(err) => {
             eprintln!("templates: {err:?}");
             StatusCode::INTERNAL_SERVER_ERROR

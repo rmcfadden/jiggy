@@ -13,9 +13,10 @@ public sealed class PhonesRepository : CRUDRepository<Backend.Types.View.Phone>
         Label = new LabelsRepository(connection);
         PhoneLabel = new PhoneLabelsRepository(connection);
         PhoneType = new PhoneTypesRepository(connection);
-        AddEnriched(new("Attributes", "Id", "PhoneId", "Value", Type: EnrichmentPropertyType.Dictionary), PhoneAttribute);
+        AddEnriched(new("Attributes", "Id", "PhoneId", "Value", Type: EnrichmentPropertyType.Dictionary, DictionaryKey: "Name"), PhoneAttribute);
         AddLinked(new("Labels", "Id", "Id", "Name", Association: new("PhoneId", "LabelId")), Label, PhoneLabel);
         AddEnriched(new("PhoneTypeName", "PhoneTypeId", "Id", "Name"), PhoneType);
+        AddEnriched(new("Description", "PhoneTypeId", "Id", "Description"), PhoneType);
     }
 
     public static IReadonlyRepository<Backend.Types.View.Phone> CreateReadonly(IConnection connection)
@@ -25,9 +26,10 @@ public sealed class PhonesRepository : CRUDRepository<Backend.Types.View.Phone>
         var Label = new LabelsRepository(connection);
         var PhoneLabel = new PhoneLabelsRepository(connection);
         var PhoneType = new PhoneTypesRepository(connection);
-        repo.AddEnriched(new("Attributes", "Id", "PhoneId", "Value", Type: EnrichmentPropertyType.Dictionary), PhoneAttribute);
+        repo.AddEnriched(new("Attributes", "Id", "PhoneId", "Value", Type: EnrichmentPropertyType.Dictionary, DictionaryKey: "Name"), PhoneAttribute);
         repo.AddEnriched(new("Labels", "Id", "Id", "Name", Type: EnrichmentPropertyType.List), Label);
         repo.AddEnriched(new("PhoneTypeName", "PhoneTypeId", "Id", "Name"), PhoneType);
+        repo.AddEnriched(new("Description", "PhoneTypeId", "Id", "Description"), PhoneType);
         return repo;
     }
 
@@ -70,12 +72,14 @@ public sealed class PhonesRepository : CRUDRepository<Backend.Types.View.Phone>
                     ["Extention"] = new("string", false, false),
                     ["IsPrimary"] = new("boolean", false, false),
                     ["IsVerified"] = new("boolean", false, true),
+                    ["PhoneTypeName"] = new("string", false, false),
+                    ["Description"] = new("string", false, true),
                 }),
             })
             .Add("sqlite", new()
             {
                 Entity = "Phone",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["Phone"] = "phone_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["Phone"] = "phones" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",
@@ -109,6 +113,8 @@ public sealed class PhonesRepository : CRUDRepository<Backend.Types.View.Phone>
                     ["Extention"] = new("string", false, false),
                     ["IsPrimary"] = new("boolean", false, false),
                     ["IsVerified"] = new("boolean", false, true),
+                    ["PhoneTypeName"] = new("string", false, false),
+                    ["Description"] = new("string", false, true),
                 }),
             })
             .For(connection);

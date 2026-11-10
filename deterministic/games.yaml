@@ -1,0 +1,214 @@
+version: 1.0.0
+includes:
+  - file: base.yaml
+  - file: user-roles.yaml
+    combine_options:
+      source:
+        remove_types: [base]
+  - file: contacts.yaml
+    combine_options:
+      source:
+        remove_types: [base]
+        add_fields:
+          - type: contact_base
+            add_field:
+              user_id:
+                references: user_base.id
+  - file: cms.yaml
+    combine_options:
+      source:
+        remove_types: [base]
+types:
+  - category:
+      tags: [datasource_type, view_type]
+      inherits: base
+      fields:
+        - category_id:
+            # null is a root category
+            references: category.id
+            is_nullable: true
+        - name:
+            type: string
+            size: 128
+        - description:
+            type: string
+            size: unlimited
+        - is_enabled:
+            type: boolean
+            default_value: true
+        - is_deleted:
+            type: boolean
+            default_value: false
+  - game_parent_base:
+      tags: [datasource_type]
+      inherits: base
+      fields:
+        - name:
+            type: string
+            size: 128
+        - description:
+            type: string
+            size: unlimited
+        - location:
+            type: string
+            size: 256
+        - is_enabled:
+            type: boolean
+            default_value: true
+        - is_deleted:
+            type: boolean
+            default_value: false
+  - game_parent_config:
+      tags: [datasource_type]
+      inherits: base
+      fields:
+        - game_parent_id:
+            references: game_parent_base.id
+        - name:
+            type: string
+            size: 128
+        - value:
+            type: string
+            size: unlimited
+  - game_config:
+      tags: [datasource_type]
+      inherits: base
+      fields:
+        - template_id:
+            references: template_base.id
+        - image_id:
+            # the game's image, a cms resource
+            references: resource_base.id
+            is_nullable: true
+  - game_base:
+      tags: [datasource_type]
+      inherits: base
+      fields:
+        - name:
+            type: string
+            size: 128
+        - description:
+            type: string
+            size: unlimited
+        - game_parent_id:
+            references: game_parent_base.id
+        - game_config_id:
+            references: game_config.id
+        - is_deleted:
+            type: boolean
+            default_value: false
+        - is_enabled:
+            type: boolean
+            default_value: true
+  - game_category:
+      tags: [datasource_type, many_to_many]
+      inherits: base
+      fields:
+        - game_id:
+            references: game_base.id
+        - category_id:
+            references: category.id
+  - game_parent_category:
+      tags: [datasource_type, many_to_many]
+      inherits: base
+      fields:
+        - game_parent_id:
+            references: game_parent_base.id
+        - category_id:
+            references: category.id
+  - game_state:
+      tags: [datasource_type]
+      inherits: base
+      fields:
+        - game_id:
+            references: game_base.id
+        - user_id:
+            references: user_base.id
+        - state:
+            type: string
+            size: 256
+  - game_parent_setting:
+      tags: [datasource_type]
+      inherits: base
+      fields:
+        - game_parent_id:
+            references: game_parent_base.id
+        - name:
+            type: string
+            size: 128
+        - value:
+            type: string
+            size: unlimited
+  - game_parent_setting_map:
+      tags: [view_type]
+      inherits: dictionary
+      fields:
+        - key:
+            type: string
+            size: 128
+            references: game_parent_setting.name
+        - value:
+            type: string
+            size: unlimited
+            references: game_parent_setting.value
+  - game_setting:
+      tags: [datasource_type]
+      inherits: base
+      fields:
+        - game_id:
+            references: game_base.id
+        - name:
+            type: string
+            size: 128
+        - value:
+            type: string
+            size: unlimited
+  - game_setting_map:
+      tags: [view_type]
+      inherits: dictionary
+      fields:
+        - key:
+            type: string
+            size: 128
+            references: game_setting.name
+        - value:
+            type: string
+            size: unlimited
+            references: game_setting.value
+  - review:
+      tags: [datasource_type]
+      inherits: base
+      fields:
+        - game_id:
+            references: game_base.id
+        - user_id:
+            references: user_base.id
+        - description:
+            type: string
+            size: unlimited
+        - rating:
+            type: decimal
+            size: [10, 2]
+        - is_approved:
+            type: boolean
+            default_value: false
+  - game:
+      tags: [view_type]
+      inherits: game_base
+      fields:
+        - settings:
+            type: game_setting_map{}
+            references: game_setting.game_id
+        - categories:
+            type: category[]
+            references: game_category.game_id
+  - game_parent:
+      tags: [view_type]
+      inherits: game_parent_base
+      fields:
+        - settings:
+            type: game_parent_setting_map{}
+            references: game_parent_setting.game_parent_id
+        - categories:
+            type: category[]
+            references: game_parent_category.game_parent_id

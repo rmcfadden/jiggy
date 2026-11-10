@@ -11,7 +11,7 @@ public sealed class GameParentsRepository : CRUDRepository<Backend.Types.View.Ga
         GameParentSetting = new GameParentSettingsRepository(connection);
         Category = new CategoriesRepository(connection);
         GameParentCategory = new GameParentCategoriesRepository(connection);
-        AddEnriched(new("Settings", "Id", "GameParentId", "Value", Type: EnrichmentPropertyType.Dictionary), GameParentSetting);
+        AddEnriched(new("Settings", "Id", "GameParentId", "Value", Type: EnrichmentPropertyType.Dictionary, DictionaryKey: "Name"), GameParentSetting);
         AddLinked(new("Categories", "Id", "Id", "Name", Association: new("GameParentId", "CategoryId")), Category, GameParentCategory);
     }
 
@@ -21,7 +21,7 @@ public sealed class GameParentsRepository : CRUDRepository<Backend.Types.View.Ga
         var GameParentSetting = new GameParentSettingsRepository(connection);
         var Category = new CategoriesRepository(connection);
         var GameParentCategory = new GameParentCategoriesRepository(connection);
-        repo.AddEnriched(new("Settings", "Id", "GameParentId", "Value", Type: EnrichmentPropertyType.Dictionary), GameParentSetting);
+        repo.AddEnriched(new("Settings", "Id", "GameParentId", "Value", Type: EnrichmentPropertyType.Dictionary, DictionaryKey: "Name"), GameParentSetting);
         repo.AddEnriched(new("Categories", "Id", "Id", "Name", Type: EnrichmentPropertyType.List), Category);
         return repo;
     }
@@ -31,7 +31,7 @@ public sealed class GameParentsRepository : CRUDRepository<Backend.Types.View.Ga
             .Add(new()
             {
                 Entity = "GameParent",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["GameParent"] = "game_parent_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["GameParent"] = "game_parents" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",
@@ -66,7 +66,7 @@ public sealed class GameParentsRepository : CRUDRepository<Backend.Types.View.Ga
             .Add("sqlite", new()
             {
                 Entity = "GameParent",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["GameParent"] = "game_parent_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["GameParent"] = "game_parents" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",
