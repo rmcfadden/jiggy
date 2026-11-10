@@ -47,6 +47,9 @@ if (args.FirstOrDefault() == "setup")
 {
     var added = await app.Services.GetRequiredService<GameParentsService>().AddParentGames();
     Console.WriteLine(added.Count > 0 ? $"added parent games: {string.Join(", ", added)}" : "parent games already present");
+    var seedPath = Path.GetFullPath(app.Configuration["Categories:SeedPath"] ?? "../data/categories.json", app.Environment.ContentRootPath);
+    var categories = await app.Services.GetRequiredService<CategoriesService>().AddCategories(seedPath);
+    Console.WriteLine(categories.Count > 0 ? $"added {categories.Count} categories" : "categories already present");
     var samples = Path.GetFullPath(app.Configuration["Images:SamplesPath"] ?? "../../frontend/apps/web/public/catalog", app.Environment.ContentRootPath);
     var images = await app.Services.GetRequiredService<ImagesService>().AddSamples(samples);
     Console.WriteLine(images.Count > 0 ? $"added sample images: {string.Join(", ", images)}" : "sample images already present");

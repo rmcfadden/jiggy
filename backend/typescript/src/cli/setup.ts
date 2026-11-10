@@ -1,5 +1,9 @@
+import { readFile } from 'node:fs/promises'
+import { fileURLToPath } from 'node:url'
 import { Datasource, type ICRUDRepository } from '@deterministic-code/datasources'
+import type { Category } from '../../generated/types/view/category.ts'
 import type { GameParent } from '../../generated/types/view/gameParent.ts'
+import { CategoriesService, type CategorySeed } from '../services/categories.ts'
 import { GameParentsService } from '../services/gameParents.ts'
 
 /** The game types the designer ships with; `location` is the id the frontend matches on. */
@@ -22,7 +26,11 @@ export async function addParentGames(service: GameParentsService): Promise<strin
 }
 
 export async function setup(): Promise<void> {
-  const ds = Datasource.default as Datasource & { gameParents: ICRUDRepository<GameParent> }
+  const ds = Datasource.default as Datasource & { gameParents: ICRUDRepository<GameParent>; categories: ICRUDRepository<Category> }
   const added = await addParentGames(new GameParentsService(ds.gameParents))
   console.log(added.length ? `added parent games: ${added.join(', ')}` : 'parent games already present')
+  const seedPath = process.env.CATEGORIES_SEED_PATH ?? fileURLToPath(new URL('../../../data/categories.json', import.meta.url))
+  const seeds = JSON.parse(await readFile(seedPath, 'utf8')) as CategorySeed[]
+  const categories = await new CategoriesService(ds.categories).addCategories(seeds)
+  console.log(categories.length ? `added ${categories.length} categories` : 'categories already present')
 }
