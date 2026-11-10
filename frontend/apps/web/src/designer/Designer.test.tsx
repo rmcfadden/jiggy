@@ -1,11 +1,18 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { Designer, JIGSAW_TEMPLATES, STOCK_IMAGES } from './test-utils'
+import { Designer, JIGSAW_TEMPLATES, SAVED_GAME, STOCK_IMAGES } from './test-utils'
 import DesignerView from './Designer'
 
 // With no saved games the Game tab opens a New game dialog by itself.
 const dismissNewGame = () => fireEvent.click(within(screen.getByRole('dialog', { name: 'New game' })).getByRole('button', { name: 'Cancel' }))
+
+// Everything but the Games list stays disabled until a saved game is chosen.
+const renderGame = () => {
+  const view = render(<Designer games={[SAVED_GAME]} />)
+  fireEvent.change(screen.getByLabelText('Saved games'), { target: { value: '9' } })
+  return view
+}
 
 beforeEach(() => localStorage.clear())
 afterEach(cleanup)
@@ -80,13 +87,13 @@ it('full screen disables the width and height inputs', () => {
 })
 
 it('shows the scattered-pieces Puzzle view for scrambled', () => {
-  render(<Designer />)
+  renderGame()
   expect(screen.getByLabelText('Puzzle board')).toBeTruthy()
   expect(screen.queryByText(/placed/)).toBeNull()
 })
 
 it('plays a next-pieces game: pick a piece, place it in its slot', () => {
-  const { container } = render(<Designer />)
+  const { container } = renderGame()
   fireEvent.click(screen.getByRole('button', { name: /Next pieces in panel/ }))
   expect(container.querySelectorAll('[data-testid="slot"]')).toHaveLength(12)
   fireEvent.click(screen.getAllByRole('button', { name: /^Piece \d+$/ })[0])
@@ -95,8 +102,7 @@ it('plays a next-pieces game: pick a piece, place it in its slot', () => {
 })
 
 it('last-x starts with all but x pieces placed, and next-pieces limits the panel', () => {
-  const { container } = render(<Designer />)
-  dismissNewGame()
+  const { container } = renderGame()
   fireEvent.click(screen.getByRole('button', { name: /Solve last X pieces/ }))
   expect(container.querySelectorAll('[data-testid="slot"]')).toHaveLength(5)
   fireEvent.click(screen.getByRole('button', { name: /Next pieces in panel/ }))
@@ -110,7 +116,7 @@ it('last-x starts with all but x pieces placed, and next-pieces limits the panel
 })
 
 it('zooms the board in and resets', () => {
-  render(<Designer />)
+  renderGame()
   const zoomIn = screen.getByRole('button', { name: 'Zoom in' })
   expect(screen.getByRole('button', { name: 'Reset zoom' })).toHaveProperty('disabled', true)
   fireEvent.click(zoomIn)
@@ -132,8 +138,7 @@ const pick = (label: string, value: string) => fireEvent.change(screen.getByLabe
 
 
 it('builds the puzzle from the template picked by name', () => {
-  const { container } = render(<Designer />)
-  dismissNewGame()
+  const { container } = renderGame()
   click(/Next pieces in panel/, 'Parent game')
   const picker = screen.getByLabelText('Template name')
   expect(within(picker).getAllByRole('option').map((o) => o.textContent)).toEqual(JIGSAW_TEMPLATES.map((t) => t.name))
@@ -394,7 +399,7 @@ it('asks for a first game when none are saved, and not again once one exists', (
   const { unmount } = render(<Designer />)
   expect(screen.getByRole('dialog', { name: 'New game' })).toBeTruthy()
   unmount()
-  render(<Designer games={[{ id: 5, uuid: 'g5', name: 'First', description: '', parent: 'scrambled', templateId: 1, imageId: null, config: {}, created: '', updated: '' }]} />)
+  render(<Designer games={[{ id: 5, uuid: 'g5', name: 'First', description: '', parent: 'scrambled', templateId: 1, imageId: null, config: {}, categoryIds: [], created: '', updated: '' }]} />)
   expect(screen.queryByRole('dialog')).toBeNull()
 })
 
@@ -405,4 +410,40 @@ it('disables the Game tab and opens the Jigsaw Template tab while there are no t
   expect(screen.getByRole('tab', { name: 'Jigsaw Template' }).getAttribute('aria-selected')).toBe('true')
   expect(screen.queryByLabelText('Games')).toBeNull()
   vi.unstubAllGlobals()
+})
+
+it('chooses categories for a game in a dialog and saves them with the game', async () => {
+  const puts: { url: string; body: { categoryIds?: number[] } }[] = []
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (url: string, init?: RequestInit) => {
+      if (init?.method === 'PUT') puts.push({ url, body: JSON.parse(String(init.body)) })
+      const game = { ...SAVED_GAME, categoryIds: [1, 3] }
+      return new Response(JSON.stringify(init?.method === 'PUT' ? game : [game]), { status: 200 })
+    }),
+  )
+  renderGame()
+  expect(screen.getByText('None chosen')).toBeTruthy()
+
+  fireEvent.click(screen.getByRole('button', { name: /Categories…/ }))
+  const dialog = screen.getByRole('dialog', { name: 'Categories' })
+  fireEvent.click(within(dialog).getByRole('checkbox', { name: 'Nature' }))
+  fireEvent.click(within(dialog).getByRole('checkbox', { name: 'Animals' }))
+  expect(within(dialog).getByText('2 selected')).toBeTruthy()
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Apply' }))
+  expect(screen.queryByRole('dialog', { name: 'Categories' })).toBeNull()
+  expect(screen.getByText('Nature, Animals')).toBeTruthy()
+
+  fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+  await waitFor(() => expect(puts).toHaveLength(1))
+  expect(puts[0]).toMatchObject({ url: '/api/games/9', body: { categoryIds: [1, 3] } })
+  vi.unstubAllGlobals()
+})
+
+it('leaves the categories alone when the dialog is cancelled', () => {
+  renderGame()
+  fireEvent.click(screen.getByRole('button', { name: /Categories…/ }))
+  fireEvent.click(screen.getByRole('checkbox', { name: 'Mountains' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+  expect(screen.getByText('None chosen')).toBeTruthy()
 })

@@ -34,6 +34,8 @@ builder.Services.AddSingleton(sp =>
     return new GamesService(
         ds.CreateRepository<Backend.Types.View.Game>("Games"),
         ds.CreateRepository<Backend.Types.Datasource.PuzzleGame>("PuzzleGames"),
+        ds.CreateRepository<Backend.Types.Datasource.GameCategory>("GameCategories"),
+        sp.GetRequiredService<CategoriesService>(),
         sp.GetRequiredService<GameParentsService>(),
         sp.GetRequiredService<TemplatesService>(),
         sp.GetRequiredService<ImagesService>());

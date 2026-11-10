@@ -23,10 +23,12 @@ export type SavedItemsProps = {
   required?: boolean
   /** Ask for a first item when none exist, without also selecting one. */
   promptWhenEmpty?: boolean
+  /** Reports which item is selected ('' when none), so the caller can disable what depends on a selection. */
+  onSelectedChange?: (id: string) => void
 }
 
 /** Pick a saved item to load it, then overwrite, rename or delete it — or save the current setup as a new one. */
-export function SavedItems({ noun, items, onLoad, onAdd, onSave, isChanged, onRename, onDelete, error, loading, required, promptWhenEmpty }: SavedItemsProps & {
+export function SavedItems({ noun, items, onLoad, onAdd, onSave, isChanged, onRename, onDelete, error, loading, required, promptWhenEmpty, onSelectedChange }: SavedItemsProps & {
   /** Singular, lowercase: "game", "template". */
   noun: string
 }) {
@@ -58,6 +60,7 @@ export function SavedItems({ noun, items, onLoad, onAdd, onSave, isChanged, onRe
   const select = (id: string) => {
     setSelectedId(id)
     setConfirming(false)
+    onSelectedChange?.(id)
   }
   const open = (kind: 'new' | 'rename') => {
     setName(kind === 'rename' ? (selected?.name ?? '') : '')

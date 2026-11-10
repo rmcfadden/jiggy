@@ -28,6 +28,16 @@ const stock = (id: number, name: string) => ({ id, uuid: `image-${id}`, name, mi
 /** The stock photos on the server once `setup` has run. */
 export const STOCK_IMAGES = [stock(1, 'Sunset'), stock(2, 'Forest'), stock(3, 'Great wave')]
 
+/** The server's categories: Nature (with a Mountains child) and Animals. */
+export const CATEGORY_ROWS = [
+  { id: 1, parentId: null, name: 'Nature', description: '' },
+  { id: 2, parentId: 1, name: 'Mountains', description: '' },
+  { id: 3, parentId: null, name: 'Animals', description: '' },
+]
+
+/** A saved game on the default template with default settings; load it with `pick('Saved games', '9')` to enable the panel. */
+export const SAVED_GAME = { id: 9, uuid: 'g9', name: 'Saved', description: '', parent: 'scrambled', templateId: 1, imageId: null, config: {}, categoryIds: [], created: '', updated: '' }
+
 /** The designer inside a query client that already holds the parent games, templates, images and the given saved games, so no request is made for them. */
 export const Designer = ({ games = [] }: { games?: unknown[] }) => {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity } } })
@@ -35,6 +45,7 @@ export const Designer = ({ games = [] }: { games?: unknown[] }) => {
   client.setQueryData(['images'], STOCK_IMAGES)
   client.setQueryData(['templates', 'jigsaw'], JIGSAW_TEMPLATES)
   client.setQueryData(['games'], games)
+  client.setQueryData(['categories', 'flat'], CATEGORY_ROWS)
   return (
     <QueryClientProvider client={client}>
       <DesignerView />
