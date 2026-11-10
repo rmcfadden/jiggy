@@ -6,26 +6,22 @@ import { normalizeBorders, type PieceBorders } from './controls'
 
 type Named = { id: string; name: string }
 
-/** A named piece count and piece style. */
-export type SavedTemplate = Named & { size: string; style: string }
-
 /** A named background photo the user added. */
-export type SavedImage = Named & { location: string; edits?: ImageEdits }
+/** An image kept in this browser: an edited copy of a server picture (`location` is its URL) or an older upload (a data URL). */
+export type SavedImage = Named & { location: string; description?: string; edits?: ImageEdits }
 
-/** Everything the Game tab can set, under a name. */
-export type SavedGame = Named & {
-  templateSize: string
-  templateStyle: string
-  photoId: string
+/** The "Configure" part of a game: every setting of the designer panel except its template and photo. */
+export type GameSetup = {
   config: GameConfig
   showGuide: boolean
   borders: PieceBorders
   effects: PieceEffects
 }
 
-export type Library = { templates: SavedTemplate[]; images: SavedImage[]; games: SavedGame[] }
+/** Images kept in this browser. */
+export type Library = { images: SavedImage[] }
 
-export const EMPTY_LIBRARY: Library = { templates: [], images: [], games: [] }
+export const EMPTY_LIBRARY: Library = { images: [] }
 
 const STORAGE_KEY = 'jiggy.designer.library'
 
@@ -38,15 +34,15 @@ export const updateItem = <T extends Named>(items: T[], id: string, patch: Parti
   items.map((i) => (i.id === id ? { ...i, ...patch } : i))
 export const removeItem = <T extends Named>(items: T[], id: string): T[] => items.filter((i) => i.id !== id)
 
-/** Games saved by an older build may lack newer settings, so fill them from the defaults. */
-function normalizeGame(g: SavedGame): SavedGame {
+/** A game saved by an older build may lack newer settings, so fill them from the defaults. */
+export function normalizeSetup(g: Partial<GameSetup> | null | undefined): GameSetup {
   return {
-    ...g,
-    config: { ...DEFAULT_GAME_CONFIG, ...g.config },
-    borders: normalizeBorders(g.borders),
+    config: { ...DEFAULT_GAME_CONFIG, ...g?.config },
+    showGuide: g?.showGuide ?? true,
+    borders: normalizeBorders(g?.borders),
     effects: {
-      near: { ...DEFAULT_EFFECTS.near, ...g.effects?.near },
-      placed: { ...DEFAULT_EFFECTS.placed, ...g.effects?.placed },
+      near: { ...DEFAULT_EFFECTS.near, ...g?.effects?.near },
+      placed: { ...DEFAULT_EFFECTS.placed, ...g?.effects?.placed },
     },
   }
 }
@@ -60,10 +56,8 @@ export function parseLibrary(text: string | null): Library {
     const raw = JSON.parse(text) as Partial<Record<keyof Library, unknown>>
     const list = (v: unknown) => (Array.isArray(v) ? v.filter(isNamed) : [])
     return {
-      templates: list(raw.templates) as SavedTemplate[],
       // Images saved by an older build kept their data URL in `src`.
       images: (list(raw.images) as (SavedImage & { src?: string })[]).map(({ src, ...i }) => ({ ...i, location: i.location ?? src ?? '' })),
-      games: (list(raw.games) as SavedGame[]).map(normalizeGame),
     }
   } catch {
     return EMPTY_LIBRARY
@@ -78,7 +72,7 @@ function load(): Library {
   }
 }
 
-/** The saved games, templates and images, kept in this browser's local storage. */
+/** The images kept in this browser's local storage. */
 export function useLibrary() {
   const [library, setLibraryState] = useState<Library>(load)
   const [error, setError] = useState<string | null>(null)
@@ -99,14 +93,4 @@ export function useLibrary() {
 
   const setLibrary = useCallback((update: (l: Library) => Library) => setLibraryState(update), [])
   return { library, setLibrary, error }
-}
-
-/** Reads an image file as a data URL, exactly as the file is. */
-export function readImage(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onerror = () => reject(reader.error)
-    reader.onload = () => resolve(String(reader.result))
-    reader.readAsDataURL(file)
-  })
 }

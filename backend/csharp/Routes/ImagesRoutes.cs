@@ -8,10 +8,10 @@ public static class ImagesRoutes
     {
         var group = app.MapGroup("/api/images").DisableAntiforgery();
 
-        // Look an image up by id, guid or name; the result carries the image url.
+        // With id, guid or name, looks one image up (the result carries the image url); with none, lists every image.
         group.MapGet("/", async (long? id, Guid? guid, string? name, ImagesService service) =>
         {
-            if (id is null && guid is null && name is null) return Results.BadRequest(new { error = "give id, guid or name" });
+            if (id is null && guid is null && name is null) return Results.Ok(await service.List());
             return await service.Find(id, guid, name) is { } image ? Results.Ok(image) : Results.NotFound();
         });
         group.MapGet("/{id:long}", async (long id, ImagesService service) =>

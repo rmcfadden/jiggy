@@ -1,18 +1,18 @@
 using Datasources;
 
-public sealed class GameConfigsRepository : CRUDRepository<Backend.Types.Datasource.GameConfig>
+public sealed class PuzzleGamesRepository : CRUDRepository<Backend.Types.Datasource.PuzzleGame>
 {
-    public GameConfigsRepository(IConnection connection) : base(connection, Options(connection)) { }
+    public PuzzleGamesRepository(IConnection connection) : base(connection, Options(connection)) { }
 
-    public static IReadonlyRepository<Backend.Types.Datasource.GameConfig> CreateReadonly(IConnection connection) =>
-        new ReadonlyRepository<Backend.Types.Datasource.GameConfig>(connection, Options(connection));
+    public static IReadonlyRepository<Backend.Types.Datasource.PuzzleGame> CreateReadonly(IConnection connection) =>
+        new ReadonlyRepository<Backend.Types.Datasource.PuzzleGame>(connection, Options(connection));
 
-    static CRUDRepositoryOptions<Backend.Types.Datasource.GameConfig> Options(IConnection connection) =>
-        new CRUDRepositoryBuilder<Backend.Types.Datasource.GameConfig>()
+    static CRUDRepositoryOptions<Backend.Types.Datasource.PuzzleGame> Options(IConnection connection) =>
+        new CRUDRepositoryBuilder<Backend.Types.Datasource.PuzzleGame>()
             .Add(new()
             {
-                Entity = "GameConfig",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["GameConfig"] = "game_configs" }),
+                Entity = "PuzzleGame",
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["PuzzleGame"] = "puzzle_games" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",
@@ -20,13 +20,14 @@ public sealed class GameConfigsRepository : CRUDRepository<Backend.Types.Datasou
                     ["Created"] = "created",
                     ["Updated"] = "updated",
                     ["Version"] = "version",
+                    ["GameId"] = "game_id",
                     ["TemplateId"] = "template_id",
                     ["ImageId"] = "image_id",
                 }),
                 Ids = ["Id"],
-                ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "TemplateId", "ImageId"],
-                CreateProperties = ["TemplateId", "ImageId"],
-                UpdateProperties = ["Uuid", "TemplateId", "ImageId"],
+                ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "GameId", "TemplateId", "ImageId"],
+                CreateProperties = ["GameId", "TemplateId", "ImageId"],
+                UpdateProperties = ["Uuid", "GameId", "TemplateId", "ImageId"],
                 Schema = new(new Dictionary<string, SchemaColumn>
                 {
                     ["Id"] = new("biginteger", false, false, true),
@@ -34,14 +35,15 @@ public sealed class GameConfigsRepository : CRUDRepository<Backend.Types.Datasou
                     ["Created"] = new("datetime", false, true),
                     ["Updated"] = new("datetime", false, true),
                     ["Version"] = new("binary", false, true),
+                    ["GameId"] = new("biginteger", false, false),
                     ["TemplateId"] = new("biginteger", false, false),
                     ["ImageId"] = new("biginteger", true, false),
                 }),
             })
             .Add("sqlite", new()
             {
-                Entity = "GameConfig",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["GameConfig"] = "game_configs" }),
+                Entity = "PuzzleGame",
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["PuzzleGame"] = "puzzle_games" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",
@@ -49,13 +51,14 @@ public sealed class GameConfigsRepository : CRUDRepository<Backend.Types.Datasou
                     ["Created"] = "created",
                     ["Updated"] = "updated",
                     ["Version"] = "version",
+                    ["GameId"] = "game_id",
                     ["TemplateId"] = "template_id",
                     ["ImageId"] = "image_id",
                 }),
                 Ids = ["Id"],
-                ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "TemplateId", "ImageId"],
-                CreateProperties = ["Uuid", "Created", "Version", "TemplateId", "ImageId"],
-                UpdateProperties = ["Uuid", "Created", "Version", "TemplateId", "ImageId"],
+                ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "GameId", "TemplateId", "ImageId"],
+                CreateProperties = ["Uuid", "Created", "Version", "GameId", "TemplateId", "ImageId"],
+                UpdateProperties = ["Uuid", "Created", "Version", "GameId", "TemplateId", "ImageId"],
                 Schema = new(new Dictionary<string, SchemaColumn>
                 {
                     ["Id"] = new("biginteger", false, false, true),
@@ -63,6 +66,7 @@ public sealed class GameConfigsRepository : CRUDRepository<Backend.Types.Datasou
                     ["Created"] = new("datetime", false, true),
                     ["Updated"] = new("datetime", false, true),
                     ["Version"] = new("binary", false, true),
+                    ["GameId"] = new("biginteger", false, false),
                     ["TemplateId"] = new("biginteger", false, false),
                     ["ImageId"] = new("biginteger", true, false),
                 }),

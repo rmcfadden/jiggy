@@ -603,23 +603,6 @@ GO
 CREATE TRIGGER trg_game_parent_configs_updated_at BEFORE UPDATE ON game_parent_configs
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
-CREATE TABLE game_configs (
-    id BIGINT AUTO_INCREMENT NOT NULL,
-    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
-    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
-    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
-    version BLOB DEFAULT (X'00') NOT NULL,
-    template_id BIGINT NOT NULL,
-    image_id BIGINT,
-    CONSTRAINT game_configs_primary_key PRIMARY KEY (id),
-    CONSTRAINT game_configs_uuid_unique_constraint UNIQUE (uuid),
-    CONSTRAINT game_configs_template_id_foreign_key FOREIGN KEY (template_id) REFERENCES templates (id),
-    CONSTRAINT game_configs_image_id_foreign_key FOREIGN KEY (image_id) REFERENCES resources (id)
-);
-GO
-CREATE TRIGGER trg_game_configs_updated_at BEFORE UPDATE ON game_configs
-FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
-GO
 CREATE TABLE games (
     id BIGINT AUTO_INCREMENT NOT NULL,
     uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
@@ -629,16 +612,35 @@ CREATE TABLE games (
     name VARCHAR(128) NOT NULL,
     description TEXT NOT NULL,
     game_parent_id BIGINT NOT NULL,
-    game_config_id BIGINT NOT NULL,
     is_deleted TINYINT(1) DEFAULT 0 NOT NULL,
     is_enabled TINYINT(1) DEFAULT 1 NOT NULL,
     CONSTRAINT games_primary_key PRIMARY KEY (id),
     CONSTRAINT games_uuid_unique_constraint UNIQUE (uuid),
-    CONSTRAINT games_game_parent_id_foreign_key FOREIGN KEY (game_parent_id) REFERENCES game_parents (id),
-    CONSTRAINT games_game_config_id_foreign_key FOREIGN KEY (game_config_id) REFERENCES game_configs (id)
+    CONSTRAINT games_game_parent_id_foreign_key FOREIGN KEY (game_parent_id) REFERENCES game_parents (id)
 );
 GO
 CREATE TRIGGER trg_games_updated_at BEFORE UPDATE ON games
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE puzzle_games (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    game_id BIGINT NOT NULL,
+    template_id BIGINT NOT NULL,
+    image_id BIGINT,
+    CONSTRAINT puzzle_games_primary_key PRIMARY KEY (id),
+    CONSTRAINT puzzle_games_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT puzzle_games_game_id_foreign_key FOREIGN KEY (game_id) REFERENCES games (id),
+    CONSTRAINT puzzle_games_template_id_foreign_key FOREIGN KEY (template_id) REFERENCES templates (id),
+    CONSTRAINT puzzle_games_image_id_foreign_key FOREIGN KEY (image_id) REFERENCES resources (id)
+);
+GO
+CREATE UNIQUE INDEX puzzle_games_puzzle_game_game_id_index ON puzzle_games (game_id);
+GO
+CREATE TRIGGER trg_puzzle_games_updated_at BEFORE UPDATE ON puzzle_games
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
 CREATE TABLE game_categories (

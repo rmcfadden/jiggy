@@ -12,8 +12,9 @@ const parent = (id: number, name: string, description: string, location: string)
   isDeleted: false,
 })
 
-/** A saved jigsaw template, so the Game tab is enabled. */
-const JIGSAW_TEMPLATE = { id: 1, uuid: 'template-1', type: 'jigsaw', name: 'Default', content: {}, created: '', updated: '' }
+/** Saved jigsaw templates, so the Game tab is enabled. */
+const template = (id: number, name: string, content: object) => ({ id, uuid: `template-${id}`, type: 'jigsaw', name, content, created: '', updated: '' })
+export const JIGSAW_TEMPLATES = [template(1, 'Default', {}), template(2, 'Small', { cols: 3, rows: 2, width: 600, height: 400 })]
 
 /** What the server's parent-game list holds once `setup` has run. */
 export const PARENT_GAMES = [
@@ -22,11 +23,18 @@ export const PARENT_GAMES = [
   parent(3, 'Solve last X pieces', 'The puzzle starts nearly done; finish the last few.', 'last-x'),
 ]
 
-/** The designer inside a query client that already holds the parent games, so no request is made for them. */
-export const Designer = () => {
+const stock = (id: number, name: string) => ({ id, uuid: `image-${id}`, name, mimeType: 'image/jpeg', description: '', url: `/api/images/files/${name}.jpg`, created: '', updated: '' })
+
+/** The stock photos on the server once `setup` has run. */
+export const STOCK_IMAGES = [stock(1, 'Sunset'), stock(2, 'Forest'), stock(3, 'Great wave')]
+
+/** The designer inside a query client that already holds the parent games, templates, images and the given saved games, so no request is made for them. */
+export const Designer = ({ games = [] }: { games?: unknown[] }) => {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity } } })
   client.setQueryData(['game-parents'], PARENT_GAMES)
-  client.setQueryData(['templates', 'jigsaw'], [JIGSAW_TEMPLATE])
+  client.setQueryData(['images'], STOCK_IMAGES)
+  client.setQueryData(['templates', 'jigsaw'], JIGSAW_TEMPLATES)
+  client.setQueryData(['games'], games)
   return (
     <QueryClientProvider client={client}>
       <DesignerView />
