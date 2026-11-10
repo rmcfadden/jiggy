@@ -9,9 +9,12 @@ namespace Backend.Services;
 /// What the API exchanges. A game is a puzzle described by three things: its <c>TemplateId</c>, its background
 /// <c>ImageId</c> and its <c>Config</c> (every setting of the designer panel, as JSON).
 /// </summary>
-public record GameDto(long Id, string Uuid, string Name, string Description, string Parent, long TemplateId, long? ImageId, JsonElement Config, List<long> CategoryIds, DateTime Created, DateTime Updated);
+public record GameDto(long Id, string Uuid, string Name, string Description, string Parent, long TemplateId, long? ImageId, JsonElement Config, List<long> CategoryIds, string? ThumbnailUrl, DateTime Created, DateTime Updated);
 
 public record GameInput(string? Name, string? Description, string? Parent, long? TemplateId, long? ImageId, JsonElement? Config, List<long>? CategoryIds);
+
+/// <summary>One entry of the puzzles seed file (<c>backend/data/puzzles.json</c>); <c>Slug</c> is the image resource name, <c>Setup</c> the full default config.</summary>
+public record PuzzleSeed(string Slug, string Name, string? Description, string Parent, string Template, List<string>? Categories, JsonElement Setup);
 
 public class InvalidGameException(string message) : Exception(message);
 
@@ -30,9 +33,10 @@ public class GamesService(
     {
         var puzzleOf = await PuzzlesByGame();
         var categoryOf = await CategoriesByGame();
+        var thumbs = await images.ThumbnailUrls();
         var list = new List<GameDto>();
         foreach (var game in await Games())
-            if (puzzleOf.TryGetValue(game.Id, out var puzzle)) list.Add(ToDto(game, puzzle, await ParentOf(game), categoryOf.GetValueOrDefault(game.Id) ?? []));
+            if (puzzleOf.TryGetValue(game.Id, out var puzzle)) list.Add(ToDto(game, puzzle, await ParentOf(game), categoryOf.GetValueOrDefault(game.Id) ?? [], thumbs));
         return list;
     }
 
@@ -40,7 +44,7 @@ public class GamesService(
     {
         var game = await repo.ReadSingleById(id);
         if (game is null || game.IsDeleted) return null;
-        return await PuzzleOf(id) is { } puzzle ? ToDto(game, puzzle, await ParentOf(game), await CategoryIdsOf(id)) : null;
+        return await PuzzleOf(id) is { } puzzle ? ToDto(game, puzzle, await ParentOf(game), await CategoryIdsOf(id), await images.ThumbnailUrls()) : null;
     }
 
     /// <summary>Creates the game and its puzzle; the template, image and parent must exist.</summary>
@@ -62,7 +66,7 @@ public class GamesService(
         var created = await repo.Create(game);
         var puzzle = await puzzles.Create(new PuzzleGame { GameId = created.Id, TemplateId = templateId, ImageId = input.ImageId });
         await SetCategories(created.Id, input.CategoryIds ?? []);
-        return ToDto(await repo.ReadSingleById(created.Id) ?? created, puzzle, parent.Location, await CategoryIdsOf(created.Id));
+        return ToDto(await repo.ReadSingleById(created.Id) ?? created, puzzle, parent.Location, await CategoryIdsOf(created.Id), await images.ThumbnailUrls());
     }
 
     /// <summary>Merges the fields present in <paramref name="input"/>; null when the game does not exist.</summary>
@@ -89,7 +93,7 @@ public class GamesService(
         await repo.Update(game);
         await puzzles.Update(puzzle);
         if (input.CategoryIds is not null) await SetCategories(id, input.CategoryIds);
-        return ToDto(await repo.ReadSingleById(id) ?? game, puzzle, await ParentOf(game), await CategoryIdsOf(id));
+        return ToDto(await repo.ReadSingleById(id) ?? game, puzzle, await ParentOf(game), await CategoryIdsOf(id), await images.ThumbnailUrls());
     }
 
     public async Task<bool> Delete(long id)
@@ -100,6 +104,38 @@ public class GamesService(
         await SetCategories(id, []);
         await repo.Delete(game);
         return true;
+    }
+
+    /// <summary>
+    /// Creates the sample puzzles in the seed file at <paramref name="path"/> whose game name is missing; existing games are
+    /// never changed. The parent, template, image and categories of each entry must already exist (run the earlier setup
+    /// steps first), otherwise it throws naming the entry. Returns the names added.
+    /// </summary>
+    public async Task<List<string>> AddPuzzles(string path)
+    {
+        var seeds = JsonSerializer.Deserialize<List<PuzzleSeed>>(await File.ReadAllTextAsync(path), new JsonSerializerOptions(JsonSerializerDefaults.Web)) ?? [];
+        var present = new HashSet<string>();
+        await foreach (var row in repo.Read()) present.Add(row.Name);
+        var templateIds = (await templates.List("jigsaw")).ToDictionary(t => t.Name, t => t.Id);
+        var categoryIds = (await categories.Flat()).Where(c => c.ParentId is not null).ToDictionary(c => c.Name, c => c.Id, StringComparer.OrdinalIgnoreCase);
+        var added = new List<string>();
+        foreach (var seed in seeds)
+        {
+            if (present.Contains(seed.Name)) continue;
+            try
+            {
+                var templateId = templateIds.TryGetValue(seed.Template, out var t) ? t : throw new InvalidGameException($"unknown template: {seed.Template}");
+                var image = await images.Find(name: seed.Slug) ?? throw new InvalidGameException($"unknown image: {seed.Slug}");
+                var ids = (seed.Categories ?? []).Select(c => categoryIds.TryGetValue(c, out var id) ? id : throw new InvalidGameException($"unknown category: {c}")).ToList();
+                await Create(new(seed.Name, seed.Description, seed.Parent, templateId, image.Id, seed.Setup, ids));
+            }
+            catch (InvalidGameException e)
+            {
+                throw new InvalidGameException($"puzzle '{seed.Slug}': {e.Message}");
+            }
+            added.Add(seed.Name);
+        }
+        return added;
     }
 
     async Task<List<GameView>> Games()
@@ -173,9 +209,9 @@ public class GamesService(
     static Dictionary<string, string> Settings(JsonElement? config) =>
         config is { } c ? new() { [ConfigKey] = c.GetRawText() } : [];
 
-    static GameDto ToDto(GameView game, PuzzleGame puzzle, string parent, List<long> categoryIds)
+    static GameDto ToDto(GameView game, PuzzleGame puzzle, string parent, List<long> categoryIds, Dictionary<long, string> thumbs)
     {
         var config = game.Settings.TryGetValue(ConfigKey, out var json) ? JsonDocument.Parse(json).RootElement.Clone() : JsonDocument.Parse("{}").RootElement.Clone();
-        return new(game.Id, game.Uuid.ToString(), game.Name, game.Description, parent, puzzle.TemplateId, puzzle.ImageId, config, categoryIds, game.Created, game.Updated);
+        return new(game.Id, game.Uuid.ToString(), game.Name, game.Description, parent, puzzle.TemplateId, puzzle.ImageId, config, categoryIds, puzzle.ImageId is { } image ? thumbs.GetValueOrDefault(image) : null, game.Created, game.Updated);
     }
 }

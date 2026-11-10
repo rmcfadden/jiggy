@@ -40,6 +40,7 @@ builder.Services.AddSingleton(sp =>
         sp.GetRequiredService<TemplatesService>(),
         sp.GetRequiredService<ImagesService>());
 });
+builder.Services.AddSingleton(sp => new GameSummariesService(sp.GetRequiredService<IDatasource>().CreateConnection().GetAwaiter().GetResult(), sp.GetRequiredService<ImagesService>()));
 builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = builder.Configuration.GetValue("Images:MaxBytes", 10L * 1024 * 1024));
 var app = builder.Build();
 
@@ -50,9 +51,15 @@ if (args.FirstOrDefault() == "setup")
     var seedPath = Path.GetFullPath(app.Configuration["Categories:SeedPath"] ?? "../data/categories.json", app.Environment.ContentRootPath);
     var categories = await app.Services.GetRequiredService<CategoriesService>().AddCategories(seedPath);
     Console.WriteLine(categories.Count > 0 ? $"added {categories.Count} categories" : "categories already present");
+    var templatesPath = Path.GetFullPath(app.Configuration["Templates:SeedPath"] ?? "../data/templates.json", app.Environment.ContentRootPath);
+    var templates = await app.Services.GetRequiredService<TemplatesService>().AddTemplates(templatesPath);
+    Console.WriteLine(templates.Count > 0 ? $"added templates: {string.Join(", ", templates)}" : "templates already present");
     var samples = Path.GetFullPath(app.Configuration["Images:SamplesPath"] ?? "../../frontend/apps/web/public/catalog", app.Environment.ContentRootPath);
     var images = await app.Services.GetRequiredService<ImagesService>().AddSamples(samples);
     Console.WriteLine(images.Count > 0 ? $"added sample images: {string.Join(", ", images)}" : "sample images already present");
+    var puzzlesPath = Path.GetFullPath(app.Configuration["Puzzles:SeedPath"] ?? "../data/puzzles.json", app.Environment.ContentRootPath);
+    var puzzles = await app.Services.GetRequiredService<GamesService>().AddPuzzles(puzzlesPath);
+    Console.WriteLine(puzzles.Count > 0 ? $"added {puzzles.Count} puzzles" : "puzzles already present");
     return;
 }
 
@@ -60,6 +67,7 @@ app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 app.MapCategories();
 app.MapGameParents();
 app.MapGames();
+app.MapGameSummaries();
 app.MapTemplates();
 app.MapImages();
 

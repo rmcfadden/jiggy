@@ -63,10 +63,10 @@ pub mod category;
 pub mod gameParentBase;
 #[path = "types/datasource/gameParentConfig.rs"]
 pub mod gameParentConfig;
-#[path = "types/datasource/gameConfig.rs"]
-pub mod gameConfig;
 #[path = "types/datasource/gameBase.rs"]
 pub mod gameBase;
+#[path = "types/datasource/puzzleGame.rs"]
+pub mod puzzleGame;
 #[path = "types/datasource/gameCategory.rs"]
 pub mod gameCategory;
 #[path = "types/datasource/gameParentCategory.rs"]
@@ -99,6 +99,8 @@ pub mod template;
 pub mod game;
 #[path = "types/view/gameParent.rs"]
 pub mod gameParent;
+#[path = "types/view/gameSummary.rs"]
+pub mod gameSummary;
 pub use userBase::*;
 pub use role::*;
 pub use group::*;
@@ -131,8 +133,8 @@ pub use templateBase::*;
 pub use category::*;
 pub use gameParentBase::*;
 pub use gameParentConfig::*;
-pub use gameConfig::*;
 pub use gameBase::*;
+pub use puzzleGame::*;
 pub use gameCategory::*;
 pub use gameParentCategory::*;
 pub use gameState::*;
@@ -149,6 +151,7 @@ pub use resource::*;
 pub use template::*;
 pub use game::*;
 pub use gameParent::*;
+pub use gameSummary::*;
 mod schema_objects;
 pub mod repositories;
 pub use repositories::repositoryRegistry::Repositories;

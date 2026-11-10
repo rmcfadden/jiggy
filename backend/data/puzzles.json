@@ -1,0 +1,1414 @@
+[
+  {
+    "slug": "matterhorn",
+    "name": "Matterhorn at Sunset",
+    "description": "",
+    "parent": "scrambled",
+    "template": "48 pieces (subtle)",
+    "categories": [
+      "Mountains"
+    ],
+    "setup": {
+      "config": {
+        "type": "scrambled",
+        "seed": 1,
+        "panelSize": 3,
+        "order": "sequential",
+        "panelDock": "bottom",
+        "remaining": 5,
+        "viewPercent": 40,
+        "startSide": "random",
+        "looseCount": 0,
+        "spread": 30,
+        "freeBuild": true,
+        "zoomOrientation": "vertical"
+      },
+      "showGuide": true,
+      "borders": {
+        "selector": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "moving": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "set": {
+          "width": "thin",
+          "line": "solid",
+          "look": "flat",
+          "color": "#ffffff",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "template": {
+          "width": "medium",
+          "line": "solid",
+          "color": "#92400e"
+        }
+      },
+      "effects": {
+        "near": {
+          "glow": false,
+          "glowNeighbors": false,
+          "border": false,
+          "highlightTemplate": false
+        },
+        "placed": {
+          "pulse": false,
+          "pulseNeighbors": false,
+          "glow": false,
+          "glowNeighbors": false,
+          "sparkle": false,
+          "sparkleNeighbors": false
+        }
+      }
+    }
+  },
+  {
+    "slug": "mount-rainier",
+    "name": "Over Mount Rainier",
+    "description": "",
+    "parent": "scrambled",
+    "template": "100 pieces (varied)",
+    "categories": [
+      "Mountains"
+    ],
+    "setup": {
+      "config": {
+        "type": "scrambled",
+        "seed": 1,
+        "panelSize": 3,
+        "order": "sequential",
+        "panelDock": "bottom",
+        "remaining": 5,
+        "viewPercent": 60,
+        "startSide": "random",
+        "looseCount": 0,
+        "spread": 50,
+        "freeBuild": true,
+        "zoomOrientation": "vertical"
+      },
+      "showGuide": true,
+      "borders": {
+        "selector": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "moving": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "set": {
+          "width": "thin",
+          "line": "solid",
+          "look": "flat",
+          "color": "#ffffff",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "template": {
+          "width": "medium",
+          "line": "solid",
+          "color": "#92400e"
+        }
+      },
+      "effects": {
+        "near": {
+          "glow": false,
+          "glowNeighbors": false,
+          "border": false,
+          "highlightTemplate": false
+        },
+        "placed": {
+          "pulse": false,
+          "pulseNeighbors": false,
+          "glow": false,
+          "glowNeighbors": false,
+          "sparkle": false,
+          "sparkleNeighbors": false
+        }
+      }
+    }
+  },
+  {
+    "slug": "misty-forest",
+    "name": "Forest Path",
+    "description": "",
+    "parent": "next-pieces",
+    "template": "20 pieces (subtle)",
+    "categories": [
+      "Forests",
+      "Autumn"
+    ],
+    "setup": {
+      "config": {
+        "type": "next-pieces",
+        "seed": 1,
+        "panelSize": 4,
+        "order": "sequential",
+        "panelDock": "bottom",
+        "remaining": 5,
+        "viewPercent": 40,
+        "startSide": "random",
+        "looseCount": 0,
+        "spread": 30,
+        "freeBuild": true,
+        "zoomOrientation": "vertical"
+      },
+      "showGuide": true,
+      "borders": {
+        "selector": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "moving": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "set": {
+          "width": "thin",
+          "line": "solid",
+          "look": "flat",
+          "color": "#ffffff",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "template": {
+          "width": "medium",
+          "line": "solid",
+          "color": "#92400e"
+        }
+      },
+      "effects": {
+        "near": {
+          "glow": false,
+          "glowNeighbors": false,
+          "border": false,
+          "highlightTemplate": false
+        },
+        "placed": {
+          "pulse": false,
+          "pulseNeighbors": false,
+          "glow": false,
+          "glowNeighbors": false,
+          "sparkle": false,
+          "sparkleNeighbors": false
+        }
+      }
+    }
+  },
+  {
+    "slug": "tropical-beach",
+    "name": "Tropical Beach Scene",
+    "description": "",
+    "parent": "scrambled",
+    "template": "48 pieces (subtle)",
+    "categories": [
+      "Beaches & Oceans"
+    ],
+    "setup": {
+      "config": {
+        "type": "scrambled",
+        "seed": 1,
+        "panelSize": 3,
+        "order": "sequential",
+        "panelDock": "bottom",
+        "remaining": 5,
+        "viewPercent": 40,
+        "startSide": "random",
+        "looseCount": 0,
+        "spread": 30,
+        "freeBuild": true,
+        "zoomOrientation": "vertical"
+      },
+      "showGuide": true,
+      "borders": {
+        "selector": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "moving": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "set": {
+          "width": "thin",
+          "line": "solid",
+          "look": "flat",
+          "color": "#ffffff",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "template": {
+          "width": "medium",
+          "line": "solid",
+          "color": "#92400e"
+        }
+      },
+      "effects": {
+        "near": {
+          "glow": false,
+          "glowNeighbors": false,
+          "border": false,
+          "highlightTemplate": false
+        },
+        "placed": {
+          "pulse": false,
+          "pulseNeighbors": false,
+          "glow": false,
+          "glowNeighbors": false,
+          "sparkle": false,
+          "sparkleNeighbors": false
+        }
+      }
+    }
+  },
+  {
+    "slug": "iguazu-falls",
+    "name": "Iguazu Falls",
+    "description": "",
+    "parent": "scrambled",
+    "template": "100 pieces (varied)",
+    "categories": [
+      "Waterfalls",
+      "Forests"
+    ],
+    "setup": {
+      "config": {
+        "type": "scrambled",
+        "seed": 1,
+        "panelSize": 3,
+        "order": "sequential",
+        "panelDock": "bottom",
+        "remaining": 5,
+        "viewPercent": 40,
+        "startSide": "random",
+        "looseCount": 0,
+        "spread": 30,
+        "freeBuild": true,
+        "zoomOrientation": "vertical"
+      },
+      "showGuide": true,
+      "borders": {
+        "selector": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "moving": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "set": {
+          "width": "thin",
+          "line": "solid",
+          "look": "flat",
+          "color": "#ffffff",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "template": {
+          "width": "medium",
+          "line": "solid",
+          "color": "#92400e"
+        }
+      },
+      "effects": {
+        "near": {
+          "glow": false,
+          "glowNeighbors": false,
+          "border": false,
+          "highlightTemplate": false
+        },
+        "placed": {
+          "pulse": false,
+          "pulseNeighbors": false,
+          "glow": false,
+          "glowNeighbors": false,
+          "sparkle": false,
+          "sparkleNeighbors": false
+        }
+      }
+    }
+  },
+  {
+    "slug": "puffin",
+    "name": "Atlantic Puffin",
+    "description": "",
+    "parent": "next-pieces",
+    "template": "20 pieces (subtle)",
+    "categories": [
+      "Birds"
+    ],
+    "setup": {
+      "config": {
+        "type": "next-pieces",
+        "seed": 1,
+        "panelSize": 3,
+        "order": "sequential",
+        "panelDock": "bottom",
+        "remaining": 5,
+        "viewPercent": 40,
+        "startSide": "random",
+        "looseCount": 0,
+        "spread": 30,
+        "freeBuild": true,
+        "zoomOrientation": "vertical"
+      },
+      "showGuide": true,
+      "borders": {
+        "selector": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "moving": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "set": {
+          "width": "thin",
+          "line": "solid",
+          "look": "flat",
+          "color": "#ffffff",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "template": {
+          "width": "medium",
+          "line": "solid",
+          "color": "#92400e"
+        }
+      },
+      "effects": {
+        "near": {
+          "glow": false,
+          "glowNeighbors": false,
+          "border": false,
+          "highlightTemplate": false
+        },
+        "placed": {
+          "pulse": false,
+          "pulseNeighbors": false,
+          "glow": false,
+          "glowNeighbors": false,
+          "sparkle": false,
+          "sparkleNeighbors": false
+        }
+      }
+    }
+  },
+  {
+    "slug": "elephants",
+    "name": "Elephants on the Savanna",
+    "description": "",
+    "parent": "scrambled",
+    "template": "48 pieces (subtle)",
+    "categories": [
+      "Wildlife"
+    ],
+    "setup": {
+      "config": {
+        "type": "scrambled",
+        "seed": 1,
+        "panelSize": 3,
+        "order": "sequential",
+        "panelDock": "bottom",
+        "remaining": 5,
+        "viewPercent": 40,
+        "startSide": "random",
+        "looseCount": 0,
+        "spread": 30,
+        "freeBuild": true,
+        "zoomOrientation": "vertical"
+      },
+      "showGuide": true,
+      "borders": {
+        "selector": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "moving": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "set": {
+          "width": "thin",
+          "line": "solid",
+          "look": "flat",
+          "color": "#ffffff",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "template": {
+          "width": "medium",
+          "line": "solid",
+          "color": "#92400e"
+        }
+      },
+      "effects": {
+        "near": {
+          "glow": false,
+          "glowNeighbors": false,
+          "border": false,
+          "highlightTemplate": false
+        },
+        "placed": {
+          "pulse": false,
+          "pulseNeighbors": false,
+          "glow": false,
+          "glowNeighbors": false,
+          "sparkle": false,
+          "sparkleNeighbors": false
+        }
+      }
+    }
+  },
+  {
+    "slug": "tabby-cat",
+    "name": "Tabby Cat",
+    "description": "",
+    "parent": "scrambled",
+    "template": "12 pieces (subtle)",
+    "categories": [
+      "Cats"
+    ],
+    "setup": {
+      "config": {
+        "type": "scrambled",
+        "seed": 1,
+        "panelSize": 3,
+        "order": "sequential",
+        "panelDock": "bottom",
+        "remaining": 5,
+        "viewPercent": 40,
+        "startSide": "random",
+        "looseCount": 0,
+        "spread": 30,
+        "freeBuild": true,
+        "zoomOrientation": "vertical"
+      },
+      "showGuide": true,
+      "borders": {
+        "selector": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "moving": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "set": {
+          "width": "thin",
+          "line": "solid",
+          "look": "flat",
+          "color": "#ffffff",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "template": {
+          "width": "medium",
+          "line": "solid",
+          "color": "#92400e"
+        }
+      },
+      "effects": {
+        "near": {
+          "glow": false,
+          "glowNeighbors": false,
+          "border": false,
+          "highlightTemplate": false
+        },
+        "placed": {
+          "pulse": false,
+          "pulseNeighbors": false,
+          "glow": false,
+          "glowNeighbors": false,
+          "sparkle": false,
+          "sparkleNeighbors": false
+        }
+      }
+    }
+  },
+  {
+    "slug": "manhattan-skyline",
+    "name": "Manhattan Skyline",
+    "description": "",
+    "parent": "scrambled",
+    "template": "200 pieces (varied)",
+    "categories": [
+      "Cities & Skylines"
+    ],
+    "setup": {
+      "config": {
+        "type": "scrambled",
+        "seed": 1,
+        "panelSize": 3,
+        "order": "sequential",
+        "panelDock": "bottom",
+        "remaining": 5,
+        "viewPercent": 40,
+        "startSide": "random",
+        "looseCount": 40,
+        "spread": 60,
+        "freeBuild": true,
+        "zoomOrientation": "vertical"
+      },
+      "showGuide": true,
+      "borders": {
+        "selector": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "moving": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "set": {
+          "width": "thin",
+          "line": "solid",
+          "look": "flat",
+          "color": "#ffffff",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "template": {
+          "width": "medium",
+          "line": "solid",
+          "color": "#92400e"
+        }
+      },
+      "effects": {
+        "near": {
+          "glow": false,
+          "glowNeighbors": false,
+          "border": false,
+          "highlightTemplate": false
+        },
+        "placed": {
+          "pulse": false,
+          "pulseNeighbors": false,
+          "glow": false,
+          "glowNeighbors": false,
+          "sparkle": false,
+          "sparkleNeighbors": false
+        }
+      }
+    }
+  },
+  {
+    "slug": "golden-gate-bridge",
+    "name": "Golden Gate Bridge",
+    "description": "",
+    "parent": "scrambled",
+    "template": "100 pieces (subtle)",
+    "categories": [
+      "Bridges"
+    ],
+    "setup": {
+      "config": {
+        "type": "scrambled",
+        "seed": 1,
+        "panelSize": 3,
+        "order": "sequential",
+        "panelDock": "bottom",
+        "remaining": 5,
+        "viewPercent": 40,
+        "startSide": "random",
+        "looseCount": 0,
+        "spread": 30,
+        "freeBuild": true,
+        "zoomOrientation": "vertical"
+      },
+      "showGuide": true,
+      "borders": {
+        "selector": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "moving": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "set": {
+          "width": "thin",
+          "line": "solid",
+          "look": "flat",
+          "color": "#ffffff",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "template": {
+          "width": "medium",
+          "line": "solid",
+          "color": "#92400e"
+        }
+      },
+      "effects": {
+        "near": {
+          "glow": false,
+          "glowNeighbors": false,
+          "border": false,
+          "highlightTemplate": false
+        },
+        "placed": {
+          "pulse": false,
+          "pulseNeighbors": false,
+          "glow": false,
+          "glowNeighbors": false,
+          "sparkle": false,
+          "sparkleNeighbors": false
+        }
+      }
+    }
+  },
+  {
+    "slug": "neuschwanstein",
+    "name": "Neuschwanstein Castle",
+    "description": "",
+    "parent": "scrambled",
+    "template": "48 pieces (varied)",
+    "categories": [
+      "Castles"
+    ],
+    "setup": {
+      "config": {
+        "type": "scrambled",
+        "seed": 1,
+        "panelSize": 3,
+        "order": "sequential",
+        "panelDock": "bottom",
+        "remaining": 5,
+        "viewPercent": 40,
+        "startSide": "random",
+        "looseCount": 0,
+        "spread": 30,
+        "freeBuild": true,
+        "zoomOrientation": "vertical"
+      },
+      "showGuide": true,
+      "borders": {
+        "selector": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "moving": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "set": {
+          "width": "thin",
+          "line": "solid",
+          "look": "flat",
+          "color": "#ffffff",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "template": {
+          "width": "medium",
+          "line": "solid",
+          "color": "#92400e"
+        }
+      },
+      "effects": {
+        "near": {
+          "glow": false,
+          "glowNeighbors": false,
+          "border": false,
+          "highlightTemplate": false
+        },
+        "placed": {
+          "pulse": false,
+          "pulseNeighbors": false,
+          "glow": false,
+          "glowNeighbors": false,
+          "sparkle": false,
+          "sparkleNeighbors": false
+        }
+      }
+    }
+  },
+  {
+    "slug": "andromeda",
+    "name": "Andromeda Galaxy",
+    "description": "",
+    "parent": "next-pieces",
+    "template": "100 pieces (subtle)",
+    "categories": [
+      "Space"
+    ],
+    "setup": {
+      "config": {
+        "type": "next-pieces",
+        "seed": 1,
+        "panelSize": 5,
+        "order": "random",
+        "panelDock": "bottom",
+        "remaining": 5,
+        "viewPercent": 40,
+        "startSide": "random",
+        "looseCount": 0,
+        "spread": 30,
+        "freeBuild": true,
+        "zoomOrientation": "vertical"
+      },
+      "showGuide": true,
+      "borders": {
+        "selector": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "moving": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "set": {
+          "width": "thin",
+          "line": "solid",
+          "look": "flat",
+          "color": "#ffffff",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "template": {
+          "width": "medium",
+          "line": "solid",
+          "color": "#92400e"
+        }
+      },
+      "effects": {
+        "near": {
+          "glow": false,
+          "glowNeighbors": false,
+          "border": false,
+          "highlightTemplate": false
+        },
+        "placed": {
+          "pulse": false,
+          "pulseNeighbors": false,
+          "glow": false,
+          "glowNeighbors": false,
+          "sparkle": false,
+          "sparkleNeighbors": false
+        }
+      }
+    }
+  },
+  {
+    "slug": "ocean-sunset",
+    "name": "Ocean Sunset",
+    "description": "",
+    "parent": "scrambled",
+    "template": "48 pieces (subtle)",
+    "categories": [
+      "Sunsets & Skies",
+      "Beaches & Oceans"
+    ],
+    "setup": {
+      "config": {
+        "type": "scrambled",
+        "seed": 1,
+        "panelSize": 3,
+        "order": "sequential",
+        "panelDock": "bottom",
+        "remaining": 5,
+        "viewPercent": 40,
+        "startSide": "random",
+        "looseCount": 0,
+        "spread": 30,
+        "freeBuild": true,
+        "zoomOrientation": "vertical"
+      },
+      "showGuide": true,
+      "borders": {
+        "selector": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "moving": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "set": {
+          "width": "thin",
+          "line": "solid",
+          "look": "flat",
+          "color": "#ffffff",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "template": {
+          "width": "medium",
+          "line": "solid",
+          "color": "#92400e"
+        }
+      },
+      "effects": {
+        "near": {
+          "glow": false,
+          "glowNeighbors": false,
+          "border": false,
+          "highlightTemplate": false
+        },
+        "placed": {
+          "pulse": false,
+          "pulseNeighbors": false,
+          "glow": false,
+          "glowNeighbors": false,
+          "sparkle": false,
+          "sparkleNeighbors": false
+        }
+      }
+    }
+  },
+  {
+    "slug": "fruit-market",
+    "name": "A Fruit Stall in a Market",
+    "description": "",
+    "parent": "scrambled",
+    "template": "48 pieces (varied)",
+    "categories": [
+      "Fruit & Vegetables",
+      "Paintings"
+    ],
+    "setup": {
+      "config": {
+        "type": "scrambled",
+        "seed": 1,
+        "panelSize": 3,
+        "order": "sequential",
+        "panelDock": "bottom",
+        "remaining": 5,
+        "viewPercent": 40,
+        "startSide": "random",
+        "looseCount": 0,
+        "spread": 30,
+        "freeBuild": true,
+        "zoomOrientation": "vertical"
+      },
+      "showGuide": true,
+      "borders": {
+        "selector": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "moving": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "set": {
+          "width": "thin",
+          "line": "solid",
+          "look": "flat",
+          "color": "#ffffff",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "template": {
+          "width": "medium",
+          "line": "solid",
+          "color": "#92400e"
+        }
+      },
+      "effects": {
+        "near": {
+          "glow": false,
+          "glowNeighbors": false,
+          "border": false,
+          "highlightTemplate": false
+        },
+        "placed": {
+          "pulse": false,
+          "pulseNeighbors": false,
+          "glow": false,
+          "glowNeighbors": false,
+          "sparkle": false,
+          "sparkleNeighbors": false
+        }
+      }
+    }
+  },
+  {
+    "slug": "starry-night",
+    "name": "The Starry Night",
+    "description": "",
+    "parent": "scrambled",
+    "template": "100 pieces (subtle)",
+    "categories": [
+      "Paintings"
+    ],
+    "setup": {
+      "config": {
+        "type": "scrambled",
+        "seed": 1,
+        "panelSize": 3,
+        "order": "sequential",
+        "panelDock": "bottom",
+        "remaining": 5,
+        "viewPercent": 50,
+        "startSide": "random",
+        "looseCount": 0,
+        "spread": 30,
+        "freeBuild": true,
+        "zoomOrientation": "vertical"
+      },
+      "showGuide": true,
+      "borders": {
+        "selector": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "moving": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "set": {
+          "width": "thin",
+          "line": "solid",
+          "look": "flat",
+          "color": "#ffffff",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "template": {
+          "width": "medium",
+          "line": "solid",
+          "color": "#92400e"
+        }
+      },
+      "effects": {
+        "near": {
+          "glow": false,
+          "glowNeighbors": false,
+          "border": false,
+          "highlightTemplate": false
+        },
+        "placed": {
+          "pulse": false,
+          "pulseNeighbors": false,
+          "glow": false,
+          "glowNeighbors": false,
+          "sparkle": false,
+          "sparkleNeighbors": false
+        }
+      }
+    }
+  },
+  {
+    "slug": "great-wave",
+    "name": "The Great Wave",
+    "description": "",
+    "parent": "scrambled",
+    "template": "48 pieces (subtle)",
+    "categories": [
+      "Paintings"
+    ],
+    "setup": {
+      "config": {
+        "type": "scrambled",
+        "seed": 1,
+        "panelSize": 3,
+        "order": "sequential",
+        "panelDock": "bottom",
+        "remaining": 5,
+        "viewPercent": 40,
+        "startSide": "random",
+        "looseCount": 0,
+        "spread": 30,
+        "freeBuild": true,
+        "zoomOrientation": "vertical"
+      },
+      "showGuide": true,
+      "borders": {
+        "selector": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "moving": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "set": {
+          "width": "thin",
+          "line": "solid",
+          "look": "flat",
+          "color": "#ffffff",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "template": {
+          "width": "medium",
+          "line": "solid",
+          "color": "#92400e"
+        }
+      },
+      "effects": {
+        "near": {
+          "glow": false,
+          "glowNeighbors": false,
+          "border": false,
+          "highlightTemplate": false
+        },
+        "placed": {
+          "pulse": false,
+          "pulseNeighbors": false,
+          "glow": false,
+          "glowNeighbors": false,
+          "sparkle": false,
+          "sparkleNeighbors": false
+        }
+      }
+    }
+  },
+  {
+    "slug": "steam-locomotive",
+    "name": "Steam Locomotive",
+    "description": "",
+    "parent": "scrambled",
+    "template": "20 pieces (subtle)",
+    "categories": [
+      "Trains"
+    ],
+    "setup": {
+      "config": {
+        "type": "scrambled",
+        "seed": 1,
+        "panelSize": 3,
+        "order": "sequential",
+        "panelDock": "bottom",
+        "remaining": 5,
+        "viewPercent": 40,
+        "startSide": "random",
+        "looseCount": 0,
+        "spread": 30,
+        "freeBuild": true,
+        "zoomOrientation": "vertical"
+      },
+      "showGuide": true,
+      "borders": {
+        "selector": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "moving": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "set": {
+          "width": "thin",
+          "line": "solid",
+          "look": "flat",
+          "color": "#ffffff",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "template": {
+          "width": "medium",
+          "line": "solid",
+          "color": "#92400e"
+        }
+      },
+      "effects": {
+        "near": {
+          "glow": false,
+          "glowNeighbors": false,
+          "border": false,
+          "highlightTemplate": false
+        },
+        "placed": {
+          "pulse": false,
+          "pulseNeighbors": false,
+          "glow": false,
+          "glowNeighbors": false,
+          "sparkle": false,
+          "sparkleNeighbors": false
+        }
+      }
+    }
+  },
+  {
+    "slug": "autumn-leaves",
+    "name": "Autumn Leaves in a Stream",
+    "description": "",
+    "parent": "scrambled",
+    "template": "100 pieces (varied)",
+    "categories": [
+      "Autumn",
+      "Forests"
+    ],
+    "setup": {
+      "config": {
+        "type": "scrambled",
+        "seed": 1,
+        "panelSize": 3,
+        "order": "sequential",
+        "panelDock": "bottom",
+        "remaining": 5,
+        "viewPercent": 40,
+        "startSide": "random",
+        "looseCount": 0,
+        "spread": 30,
+        "freeBuild": true,
+        "zoomOrientation": "vertical"
+      },
+      "showGuide": true,
+      "borders": {
+        "selector": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "moving": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "set": {
+          "width": "thin",
+          "line": "solid",
+          "look": "flat",
+          "color": "#ffffff",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "template": {
+          "width": "medium",
+          "line": "solid",
+          "color": "#92400e"
+        }
+      },
+      "effects": {
+        "near": {
+          "glow": false,
+          "glowNeighbors": false,
+          "border": false,
+          "highlightTemplate": false
+        },
+        "placed": {
+          "pulse": false,
+          "pulseNeighbors": false,
+          "glow": false,
+          "glowNeighbors": false,
+          "sparkle": false,
+          "sparkleNeighbors": false
+        }
+      }
+    }
+  },
+  {
+    "slug": "snowy-mountains",
+    "name": "Snowy Mountains",
+    "description": "",
+    "parent": "next-pieces",
+    "template": "48 pieces (subtle)",
+    "categories": [
+      "Winter",
+      "Mountains"
+    ],
+    "setup": {
+      "config": {
+        "type": "next-pieces",
+        "seed": 1,
+        "panelSize": 3,
+        "order": "sequential",
+        "panelDock": "right",
+        "remaining": 5,
+        "viewPercent": 40,
+        "startSide": "random",
+        "looseCount": 0,
+        "spread": 30,
+        "freeBuild": true,
+        "zoomOrientation": "vertical"
+      },
+      "showGuide": true,
+      "borders": {
+        "selector": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "moving": {
+          "width": "medium",
+          "line": "solid",
+          "look": "flat",
+          "color": "#92400e",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "set": {
+          "width": "thin",
+          "line": "solid",
+          "look": "flat",
+          "color": "#ffffff",
+          "shadow": "none",
+          "gradient": "none"
+        },
+        "template": {
+          "width": "medium",
+          "line": "solid",
+          "color": "#92400e"
+        }
+      },
+      "effects": {
+        "near": {
+          "glow": false,
+          "glowNeighbors": false,
+          "border": false,
+          "highlightTemplate": false
+        },
+        "placed": {
+          "pulse": false,
+          "pulseNeighbors": false,
+          "glow": false,
+          "glowNeighbors": false,
+          "sparkle": false,
+          "sparkleNeighbors": false
+        }
+      }
+    }
+  }
+]

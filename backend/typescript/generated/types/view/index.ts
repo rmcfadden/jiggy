@@ -11,3 +11,4 @@ export { template, Template } from "./template";
 export { category, Category } from "./category";
 export { game, Game } from "./game";
 export { gameParent, GameParent } from "./gameParent";
+export { gameSummary, GameSummary } from "./gameSummary";

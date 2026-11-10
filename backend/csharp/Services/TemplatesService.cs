@@ -10,6 +10,9 @@ public record TemplateDto(long Id, string Uuid, string Type, string Name, JsonEl
 
 public record TemplateInput(string? Type, string? Name, JsonElement? Content);
 
+/// <summary>One entry of the templates seed file (<c>backend/data/templates.json</c>).</summary>
+public record TemplateSeed(string Type, string Name, JsonElement Content);
+
 public class UnknownTemplateTypeException(string type) : Exception($"unknown template type: {type}");
 
 public class TemplatesService(ICRUDRepository<TemplateView> repo, ICRUDRepository<TemplateType> types)
@@ -54,6 +57,24 @@ public class TemplatesService(ICRUDRepository<TemplateView> repo, ICRUDRepositor
         if (row is null) return false;
         await repo.Delete(row);
         return true;
+    }
+
+    /// <summary>
+    /// Creates the templates in the seed file at <paramref name="path"/> that are missing, matching on (type, name);
+    /// existing rows are never changed. Returns the names added.
+    /// </summary>
+    public async Task<List<string>> AddTemplates(string path)
+    {
+        var seeds = JsonSerializer.Deserialize<List<TemplateSeed>>(await File.ReadAllTextAsync(path), new JsonSerializerOptions(JsonSerializerDefaults.Web)) ?? [];
+        var present = (await List()).Select(t => (t.Type, t.Name)).ToHashSet();
+        var added = new List<string>();
+        foreach (var seed in seeds)
+        {
+            if (!present.Add((seed.Type, seed.Name))) continue;
+            await Create(new TemplateInput(seed.Type, seed.Name, seed.Content));
+            added.Add(seed.Name);
+        }
+        return added;
     }
 
     async Task<Dictionary<long, string>> TypeNames()

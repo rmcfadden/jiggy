@@ -1,14 +1,14 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
-import { CATEGORIES } from '@jiggy/shared'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import Explorer from './Explorer'
+import { stubFetch } from './stubApi'
 import { parsePrefs } from './browsePrefs'
 import { parseProfile, pushRecent, toggleInList } from './profile'
 
 beforeEach(() => {
-  vi.stubGlobal('fetch', async () => new Response(JSON.stringify(CATEGORIES)))
+  vi.stubGlobal('fetch', stubFetch)
 })
 
 afterEach(() => {
@@ -55,17 +55,17 @@ it('resizes icons across three sizes', async () => {
   expect(imgClass()).toContain('h-56')
 })
 
-it('shows Netflix rows with top rated, category selection and a profile list', async () => {
+it('shows Netflix rows with category selection and a profile list', async () => {
   await renderExplorer()
   fireEvent.click(pressed('Layout', 'Netflix'))
-  expect(screen.getByRole('region', { name: 'Top rated' })).toBeTruthy()
+  expect(screen.queryByRole('region', { name: 'Top rated' })).toBeNull() // saved games have no reviews yet
   expect(screen.getByRole('region', { name: 'Animals' })).toBeTruthy()
   expect(screen.queryByRole('region', { name: 'My List' })).toBeNull()
 
   fireEvent.click(pressed('Rows', 'Animals'))
   expect(screen.queryByRole('region', { name: 'Animals' })).toBeNull()
 
-  fireEvent.click(within(screen.getByRole('region', { name: 'Top rated' })).getAllByRole('button')[0])
+  fireEvent.click(within(screen.getByRole('region', { name: 'Nature' })).getAllByRole('button')[0])
   expect(screen.getByRole('region', { name: 'My List' })).toBeTruthy()
 })
 
@@ -73,7 +73,7 @@ it('lists a puzzle as recently played once opened', async () => {
   await renderExplorer()
   fireEvent.click(pressed('Layout', 'Netflix'))
   expect(screen.queryByRole('region', { name: 'Continue playing' })).toBeNull()
-  fireEvent.click(within(screen.getByRole('region', { name: 'Top rated' })).getAllByRole('link')[0])
+  fireEvent.click(within(screen.getByRole('region', { name: 'Animals' })).getAllByRole('link')[0])
   cleanup()
   await renderExplorer()
   expect(screen.getByRole('region', { name: 'Continue playing' })).toBeTruthy()

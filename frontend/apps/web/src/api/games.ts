@@ -16,6 +16,8 @@ export type SavedGameRow<C = unknown> = {
   config: C
   /** Ids of the categories the game belongs to. */
   categoryIds: number[]
+  /** The generated thumbnail of the image (what lists display), null when the image has none. */
+  thumbnailUrl: string | null
   created: string
   updated: string
 }

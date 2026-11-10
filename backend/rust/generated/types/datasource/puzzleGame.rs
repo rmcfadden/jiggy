@@ -1,17 +1,18 @@
 // schema-version: 1.0
-/// Type GameConfig.
+/// Type PuzzleGame.
 #[derive(Clone, Debug, PartialEq, datasources::Facet)]
 #[facet(crate = ::datasources::facet)]
-pub struct GameConfig {
+pub struct PuzzleGame {
     pub id: i64,
     pub uuid: datasources::uuid::Uuid,
     pub created: datasources::chrono::DateTime<datasources::chrono::Utc>,
     pub updated: datasources::chrono::DateTime<datasources::chrono::Utc>,
     pub version: Vec<u8>,
+    pub game_id: i64,
     pub template_id: i64,
     pub image_id: Option<i64>,
 }
-impl Default for GameConfig {
+impl Default for PuzzleGame {
     fn default() -> Self {
         Self {
             id: 0,
@@ -19,6 +20,7 @@ impl Default for GameConfig {
             created: datasources::chrono::Utc::now(),
             updated: datasources::chrono::Utc::now(),
             version: vec![0],
+            game_id: 0,
             template_id: 0,
             image_id: None,
         }

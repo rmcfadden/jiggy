@@ -61,6 +61,30 @@ impl TemplatesService {
         Ok(true)
     }
 
+    /// Creates the templates in the seed file at `path` that are missing, matching on (type, name); existing rows are
+    /// never changed. Returns the names added.
+    pub async fn add_templates(&self, path: &std::path::Path) -> std::result::Result<Vec<String>, Box<dyn std::error::Error>> {
+        let seeds: Vec<Value> = serde_json::from_str(&std::fs::read_to_string(path)?)?;
+        let mut have: Vec<(String, String)> = self
+            .list(None)
+            .await
+            .map_err(|_| "could not read templates")?
+            .iter()
+            .map(|t| (t["type"].as_str().unwrap_or_default().to_string(), t["name"].as_str().unwrap_or_default().to_string()))
+            .collect();
+        let mut added = vec![];
+        for seed in &seeds {
+            let key = (seed["type"].as_str().unwrap_or_default().to_string(), seed["name"].as_str().unwrap_or_default().to_string());
+            if have.contains(&key) {
+                continue;
+            }
+            self.create(seed).await.map_err(|_| format!("could not create template {}", key.1))?;
+            added.push(key.1.clone());
+            have.push(key);
+        }
+        Ok(added)
+    }
+
     async fn find(&self, id: i64) -> Result<Option<Template>> {
         Ok(self.repo.read_single_by_id(&datasources::Value::Int(id)).await?)
     }

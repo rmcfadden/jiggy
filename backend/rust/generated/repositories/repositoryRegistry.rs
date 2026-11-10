@@ -12,7 +12,6 @@ use super::super::EmailLabel;
 use super::super::EmailType;
 use super::super::Game;
 use super::super::GameCategory;
-use super::super::GameConfig;
 use super::super::GameParent;
 use super::super::GameParentCategory;
 use super::super::GameParentConfig;
@@ -30,6 +29,7 @@ use super::super::Phone;
 use super::super::PhoneAttribute;
 use super::super::PhoneLabel;
 use super::super::PhoneType;
+use super::super::PuzzleGame;
 use super::super::Resource;
 use super::super::Review;
 use super::super::Role;
@@ -119,12 +119,6 @@ pub fn register(factory: &RepositoryFactory) {
         "game_categories",
         |connection| Arc::new(super::gameCategoriesRepository::GameCategoriesRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<GameCategory>>,
         |connection| Arc::new(super::gameCategoriesRepository::GameCategoriesRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<GameCategory>>,
-    );
-    factory.register_named(
-        "GameConfig",
-        "game_configs",
-        |connection| Arc::new(super::gameConfigsRepository::GameConfigsRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<GameConfig>>,
-        |connection| Arc::new(super::gameConfigsRepository::GameConfigsRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<GameConfig>>,
     );
     factory.register_named(
         "GameParent",
@@ -229,6 +223,12 @@ pub fn register(factory: &RepositoryFactory) {
         |connection| Arc::new(super::phoneTypesRepository::PhoneTypesRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<PhoneType>>,
     );
     factory.register_named(
+        "PuzzleGame",
+        "puzzle_games",
+        |connection| Arc::new(super::puzzleGamesRepository::PuzzleGamesRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<PuzzleGame>>,
+        |connection| Arc::new(super::puzzleGamesRepository::PuzzleGamesRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<PuzzleGame>>,
+    );
+    factory.register_named(
         "Resource",
         "resources",
         |connection| Arc::new(super::resourcesRepository::ResourcesRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<Resource>>,
@@ -300,7 +300,6 @@ pub trait Repositories {
     fn email_types(&self) -> Arc<super::emailTypesRepository::EmailTypesRepository>;
     fn games(&self) -> Arc<super::gamesRepository::GamesRepository>;
     fn game_categories(&self) -> Arc<super::gameCategoriesRepository::GameCategoriesRepository>;
-    fn game_configs(&self) -> Arc<super::gameConfigsRepository::GameConfigsRepository>;
     fn game_parents(&self) -> Arc<super::gameParentsRepository::GameParentsRepository>;
     fn game_parent_categories(&self) -> Arc<super::gameParentCategoriesRepository::GameParentCategoriesRepository>;
     fn game_parent_configs(&self) -> Arc<super::gameParentConfigsRepository::GameParentConfigsRepository>;
@@ -318,6 +317,7 @@ pub trait Repositories {
     fn phone_attributes(&self) -> Arc<super::phoneAttributesRepository::PhoneAttributesRepository>;
     fn phone_labels(&self) -> Arc<super::phoneLabelsRepository::PhoneLabelsRepository>;
     fn phone_types(&self) -> Arc<super::phoneTypesRepository::PhoneTypesRepository>;
+    fn puzzle_games(&self) -> Arc<super::puzzleGamesRepository::PuzzleGamesRepository>;
     fn resources(&self) -> Arc<super::resourcesRepository::ResourcesRepository>;
     fn reviews(&self) -> Arc<super::reviewsRepository::ReviewsRepository>;
     fn roles(&self) -> Arc<super::rolesRepository::RolesRepository>;
@@ -369,9 +369,6 @@ impl Repositories for Arc<dyn Datasource> {
     fn game_categories(&self) -> Arc<super::gameCategoriesRepository::GameCategoriesRepository> {
         Arc::new(super::gameCategoriesRepository::GameCategoriesRepository::new(self.bind_connection(None)).expect("game_categories"))
     }
-    fn game_configs(&self) -> Arc<super::gameConfigsRepository::GameConfigsRepository> {
-        Arc::new(super::gameConfigsRepository::GameConfigsRepository::new(self.bind_connection(None)).expect("game_configs"))
-    }
     fn game_parents(&self) -> Arc<super::gameParentsRepository::GameParentsRepository> {
         Arc::new(super::gameParentsRepository::GameParentsRepository::new(self.bind_connection(None)).expect("game_parents"))
     }
@@ -422,6 +419,9 @@ impl Repositories for Arc<dyn Datasource> {
     }
     fn phone_types(&self) -> Arc<super::phoneTypesRepository::PhoneTypesRepository> {
         Arc::new(super::phoneTypesRepository::PhoneTypesRepository::new(self.bind_connection(None)).expect("phone_types"))
+    }
+    fn puzzle_games(&self) -> Arc<super::puzzleGamesRepository::PuzzleGamesRepository> {
+        Arc::new(super::puzzleGamesRepository::PuzzleGamesRepository::new(self.bind_connection(None)).expect("puzzle_games"))
     }
     fn resources(&self) -> Arc<super::resourcesRepository::ResourcesRepository> {
         Arc::new(super::resourcesRepository::ResourcesRepository::new(self.bind_connection(None)).expect("resources"))

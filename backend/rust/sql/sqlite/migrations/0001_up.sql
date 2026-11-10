@@ -727,27 +727,6 @@ BEGIN
   UPDATE "game_parent_configs" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "game_configs" (
-    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    "uuid" TEXT CONSTRAINT "game_configs_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
-    "created" TEXT CONSTRAINT "game_configs_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-    "updated" TEXT CONSTRAINT "game_configs_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-    "version" BLOB CONSTRAINT "game_configs_version_default_constraint" DEFAULT X'00' NOT NULL,
-    "template_id" INTEGER NOT NULL,
-    "image_id" INTEGER,
-    CONSTRAINT "game_configs_uuid_unique_constraint" UNIQUE ("uuid"),
-    CONSTRAINT "game_configs_template_id_foreign_key" FOREIGN KEY ("template_id") REFERENCES "templates" ("id"),
-    CONSTRAINT "game_configs_image_id_foreign_key" FOREIGN KEY ("image_id") REFERENCES "resources" ("id")
-);
-GO
-CREATE TRIGGER "trg_game_configs_updated_at"
-AFTER UPDATE ON "game_configs"
-FOR EACH ROW
-WHEN NEW."updated" IS OLD."updated"
-BEGIN
-  UPDATE "game_configs" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
-END;
-GO
 CREATE TABLE "games" (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     "uuid" TEXT CONSTRAINT "games_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
@@ -757,12 +736,10 @@ CREATE TABLE "games" (
     "name" VARCHAR(128) NOT NULL,
     "description" TEXT NOT NULL,
     "game_parent_id" INTEGER NOT NULL,
-    "game_config_id" INTEGER NOT NULL,
     "is_deleted" BOOLEAN CONSTRAINT "games_is_deleted_default_constraint" DEFAULT 0 NOT NULL,
     "is_enabled" BOOLEAN CONSTRAINT "games_is_enabled_default_constraint" DEFAULT 1 NOT NULL,
     CONSTRAINT "games_uuid_unique_constraint" UNIQUE ("uuid"),
-    CONSTRAINT "games_game_parent_id_foreign_key" FOREIGN KEY ("game_parent_id") REFERENCES "game_parents" ("id"),
-    CONSTRAINT "games_game_config_id_foreign_key" FOREIGN KEY ("game_config_id") REFERENCES "game_configs" ("id")
+    CONSTRAINT "games_game_parent_id_foreign_key" FOREIGN KEY ("game_parent_id") REFERENCES "game_parents" ("id")
 );
 GO
 CREATE TRIGGER "trg_games_updated_at"
@@ -771,6 +748,31 @@ FOR EACH ROW
 WHEN NEW."updated" IS OLD."updated"
 BEGIN
   UPDATE "games" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+END;
+GO
+CREATE TABLE "puzzle_games" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "puzzle_games_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "puzzle_games_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "puzzle_games_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "puzzle_games_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "game_id" INTEGER NOT NULL,
+    "template_id" INTEGER NOT NULL,
+    "image_id" INTEGER,
+    CONSTRAINT "puzzle_games_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "puzzle_games_game_id_foreign_key" FOREIGN KEY ("game_id") REFERENCES "games" ("id"),
+    CONSTRAINT "puzzle_games_template_id_foreign_key" FOREIGN KEY ("template_id") REFERENCES "templates" ("id"),
+    CONSTRAINT "puzzle_games_image_id_foreign_key" FOREIGN KEY ("image_id") REFERENCES "resources" ("id")
+);
+GO
+CREATE UNIQUE INDEX "puzzle_games_puzzle_game_game_id_index" ON "puzzle_games" ("game_id");
+GO
+CREATE TRIGGER "trg_puzzle_games_updated_at"
+AFTER UPDATE ON "puzzle_games"
+FOR EACH ROW
+WHEN NEW."updated" IS OLD."updated"
+BEGIN
+  UPDATE "puzzle_games" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
 CREATE TABLE "game_categories" (
