@@ -1,0 +1,137 @@
+[
+  {
+    "name": "Architecture",
+    "description": "Buildings and structures",
+    "children": [
+      { "name": "Castles" },
+      { "name": "Bridges" },
+      { "name": "Churches & Cathedrals" },
+      { "name": "Lighthouses" },
+      { "name": "Cities & Skylines" },
+      { "name": "Houses & Cottages" },
+      { "name": "Windmills & Barns" }
+    ]
+  },
+  {
+    "name": "Vehicles",
+    "description": "Things that move people and cargo",
+    "children": [
+      { "name": "Cars" },
+      { "name": "Trains" },
+      { "name": "Planes" },
+      { "name": "Ships & Boats" },
+      { "name": "Bicycles & Motorcycles" },
+      { "name": "Tractors & Trucks" }
+    ]
+  },
+  {
+    "name": "Outdoors",
+    "description": "Landscapes and nature",
+    "children": [
+      { "name": "Mountains" },
+      { "name": "Beaches & Oceans" },
+      { "name": "Forests" },
+      { "name": "Lakes & Rivers" },
+      { "name": "Gardens & Flowers" },
+      { "name": "Waterfalls" },
+      { "name": "Sunsets & Skies" }
+    ]
+  },
+  {
+    "name": "Animals",
+    "description": "Pets and wildlife",
+    "children": [
+      { "name": "Cats" },
+      { "name": "Dogs" },
+      { "name": "Birds" },
+      { "name": "Wildlife" },
+      { "name": "Farm Animals" },
+      { "name": "Marine Life" },
+      { "name": "Horses" }
+    ]
+  },
+  {
+    "name": "Fantasy & Sci-Fi",
+    "description": "Imagined worlds and creatures",
+    "children": [
+      { "name": "Dragons" },
+      { "name": "Fairies" },
+      { "name": "Space" },
+      { "name": "Magic" },
+      { "name": "Robots" },
+      { "name": "Mythical Creatures" }
+    ]
+  },
+  {
+    "name": "Art",
+    "description": "Paintings, illustration and patterns",
+    "children": [
+      { "name": "Paintings" },
+      { "name": "Illustration" },
+      { "name": "Abstract & Patterns" },
+      { "name": "Mandalas" },
+      { "name": "Photography" }
+    ]
+  },
+  {
+    "name": "Food & Drink",
+    "description": "Meals, sweets and drinks",
+    "children": [
+      { "name": "Desserts & Candy" },
+      { "name": "Fruit & Vegetables" },
+      { "name": "Coffee & Tea" },
+      { "name": "Baking" }
+    ]
+  },
+  {
+    "name": "Travel & Places",
+    "description": "Destinations around the world",
+    "children": [
+      { "name": "Landmarks" },
+      { "name": "Countries & Maps" },
+      { "name": "Cities" },
+      { "name": "Villages & Streets" }
+    ]
+  },
+  {
+    "name": "Holidays & Seasons",
+    "description": "Celebrations and times of year",
+    "children": [
+      { "name": "Christmas" },
+      { "name": "Halloween" },
+      { "name": "Easter" },
+      { "name": "Spring" },
+      { "name": "Summer" },
+      { "name": "Autumn" },
+      { "name": "Winter" }
+    ]
+  },
+  {
+    "name": "Vintage & Nostalgia",
+    "description": "Retro and historical scenes",
+    "children": [
+      { "name": "Vintage Posters" },
+      { "name": "Antiques" },
+      { "name": "Historical Scenes" }
+    ]
+  },
+  {
+    "name": "People & Culture",
+    "description": "People, traditions and hobbies",
+    "children": [
+      { "name": "Music" },
+      { "name": "Sports" },
+      { "name": "Festivals" },
+      { "name": "Crafts & Hobbies" }
+    ]
+  },
+  {
+    "name": "Kids",
+    "description": "Puzzles for younger players",
+    "children": [
+      { "name": "Cartoons" },
+      { "name": "Alphabet & Numbers" },
+      { "name": "Toys" }
+    ]
+  }
+]

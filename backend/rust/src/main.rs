@@ -29,6 +29,15 @@ async fn main() {
         } else {
             println!("added parent games: {}", added.join(", "));
         }
+        let path = std::env::var("CATEGORIES_SEED_PATH")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|_| std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../data/categories.json"));
+        let added = CategoriesService::new(ds.categories()).add_categories(&path).await.expect("add categories");
+        if added.is_empty() {
+            println!("categories already present");
+        } else {
+            println!("added {} categories", added.len());
+        }
         return;
     }
     let categories = Arc::new(CategoriesService::new(ds.categories()));
