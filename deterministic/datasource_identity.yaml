@@ -1,0 +1,7 @@
+version: 1.0.0
+types:
+  - user_setting:
+      indexes:
+        - user_setting_user_id_name:
+            fields: [user_id, name]
+            is_unique: true

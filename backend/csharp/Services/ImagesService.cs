@@ -12,7 +12,7 @@ public record ImageUpload(Stream Data, string ContentType, string? FileName);
 
 public class UnsupportedImageTypeException(string type) : Exception($"unsupported image type: {type}");
 
-public class ImagesService(ICRUDRepository<Resource> repo, ICRUDRepository<MimeTypeRow> mimes, IImageStorage storage)
+public class ImagesService(ICRUDRepository<Resource> repo, IReadonlyRepository<MimeTypeRow> mimes, IImageStorage storage)
 {
     static readonly Dictionary<string, string> Extensions = new()
     {

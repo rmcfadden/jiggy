@@ -38,7 +38,7 @@ pub struct GameSummary {
     pub parent_name: String,
     pub thumbname_location: String,
     pub categories: Vec<(i64, String)>,
-    pub attributes: Vec<(String, String)>,
+    pub attributes: BTreeMap<String, String>,
 }
 
 impl GameSummary {
@@ -50,7 +50,7 @@ impl GameSummary {
             "parentName": self.parent_name,
             "thumbnameLocation": self.thumbname_location,
             "categories": self.categories.iter().map(|(id, name)| json!({ "id": id, "name": name })).collect::<Vec<_>>(),
-            "attributes": self.attributes.iter().map(|(name, value)| json!({ "name": name, "value": value })).collect::<Vec<_>>(),
+            "attributes": self.attributes,
         })
     }
 }
@@ -122,22 +122,20 @@ impl GameSummariesService {
                     parent_name: text(row.get("parentName")),
                     thumbname_location: thumb.unwrap_or_else(|| text(row.get("imageLocation"))),
                     categories: vec![],
-                    attributes: vec![],
+                    attributes: BTreeMap::new(),
                 }
             });
             if let Some(category) = int(row.get("categoryId")) {
                 summary.categories.push((category, text(row.get("categoryName"))));
             }
             if row.get("attributeName").is_some_and(|v| matches!(v, Value::Text(_))) {
-                summary.attributes.push((text(row.get("attributeName")), text(row.get("attributeValue"))));
+                summary.attributes.insert(text(row.get("attributeName")), text(row.get("attributeValue")));
             }
         }
         let mut list: Vec<GameSummary> = by_game.into_values().collect();
         for summary in &mut list {
             summary.categories.sort();
             summary.categories.dedup();
-            summary.attributes.sort();
-            summary.attributes.dedup();
         }
         Ok(list)
     }

@@ -1,0 +1,21 @@
+version: 1.0.0
+seeds:
+  - secret_type:
+      - id1:
+          name: password_argon2id
+      - id2:
+          name: password_bcrypt
+      - id3:
+          name: pin_argon2id
+      - id4:
+          name: pin_bcrypt
+
+  - token_type:
+      - id1:
+          name: text
+      - id2:
+          name: guid
+      - id3:
+          name: jwt_access_token
+      - id4:
+          name: jwt_refresh_token

@@ -12,7 +12,7 @@ builder.Services.AddSingleton(sp => new GameParentsService(sp.GetRequiredService
 builder.Services.AddSingleton(sp =>
 {
     var ds = sp.GetRequiredService<IDatasource>();
-    return new TemplatesService(ds.CreateRepository<Backend.Types.View.Template>("Templates"), ds.CreateRepository<Backend.Types.Datasource.TemplateType>("TemplateTypes"));
+    return new TemplatesService(ds.CreateRepository<Backend.Types.View.Template>("Templates"), ds.CreateReadonlyRepository<Backend.Types.Datasource.TemplateType>("TemplateTypes"));
 });
 builder.Services.AddSingleton<IImageStorage>(sp =>
 {
@@ -26,7 +26,7 @@ builder.Services.AddSingleton<IImageStorage>(sp =>
 builder.Services.AddSingleton(sp =>
 {
     var ds = sp.GetRequiredService<IDatasource>();
-    return new ImagesService(ds.CreateRepository<Backend.Types.View.Resource>("Resources"), ds.CreateRepository<Backend.Types.Datasource.MimeType>("MimeTypes"), sp.GetRequiredService<IImageStorage>());
+    return new ImagesService(ds.CreateRepository<Backend.Types.View.Resource>("Resources"), ds.CreateReadonlyRepository<Backend.Types.Datasource.MimeType>("MimeTypes"), sp.GetRequiredService<IImageStorage>());
 });
 builder.Services.AddSingleton(sp =>
 {

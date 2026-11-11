@@ -1,13 +1,13 @@
 using Datasources;
 
-public sealed class MimeTypesRepository : CRUDRepository<Backend.Types.Datasource.MimeType>
+public sealed class MimeTypesRepository : ReadonlyRepository<Backend.Types.Datasource.MimeType>
 {
     public MimeTypesRepository(IConnection connection) : base(connection, Options(connection)) { }
 
     public static IReadonlyRepository<Backend.Types.Datasource.MimeType> CreateReadonly(IConnection connection) =>
-        new ReadonlyRepository<Backend.Types.Datasource.MimeType>(connection, Options(connection));
+        new MimeTypesRepository(connection);
 
-    static CRUDRepositoryOptions<Backend.Types.Datasource.MimeType> Options(IConnection connection) =>
+    static ReadonlyRepositoryMappingOptions<Backend.Types.Datasource.MimeType> Options(IConnection connection) =>
         new CRUDRepositoryBuilder<Backend.Types.Datasource.MimeType>()
             .Add(new()
             {
@@ -23,10 +23,7 @@ public sealed class MimeTypesRepository : CRUDRepository<Backend.Types.Datasourc
                     ["Name"] = "name",
                     ["Description"] = "description",
                 }),
-                Ids = ["Id"],
                 ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "Name", "Description"],
-                CreateProperties = ["Name", "Description"],
-                UpdateProperties = ["Uuid", "Name", "Description"],
                 Schema = new(new Dictionary<string, SchemaColumn>
                 {
                     ["Id"] = new("biginteger", false, false, true),
@@ -52,10 +49,7 @@ public sealed class MimeTypesRepository : CRUDRepository<Backend.Types.Datasourc
                     ["Name"] = "name",
                     ["Description"] = "description",
                 }),
-                Ids = ["Id"],
                 ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "Name", "Description"],
-                CreateProperties = ["Uuid", "Created", "Version", "Name", "Description"],
-                UpdateProperties = ["Uuid", "Created", "Version", "Name", "Description"],
                 Schema = new(new Dictionary<string, SchemaColumn>
                 {
                     ["Id"] = new("biginteger", false, false, true),

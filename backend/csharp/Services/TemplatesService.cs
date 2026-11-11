@@ -15,7 +15,7 @@ public record TemplateSeed(string Type, string Name, JsonElement Content);
 
 public class UnknownTemplateTypeException(string type) : Exception($"unknown template type: {type}");
 
-public class TemplatesService(ICRUDRepository<TemplateView> repo, ICRUDRepository<TemplateType> types)
+public class TemplatesService(ICRUDRepository<TemplateView> repo, IReadonlyRepository<TemplateType> types)
 {
     /// <summary>Templates of <paramref name="type"/> (a template type name such as "jigsaw"), or all of them when null.</summary>
     public async Task<List<TemplateDto>> List(string? type = null)

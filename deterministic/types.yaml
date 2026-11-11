@@ -1,7 +1,8 @@
 version: 1.0.0
 includes:
   - file: games.yaml
-
+  - file: identity.yaml
+  - file: sessions.yaml
 types:
   - game_summary:
       tags: [view_type, readonly]
@@ -26,5 +27,5 @@ types:
             type: category[]
             references: game_category.game_id
         - attributes:
-            type: game_attribute[]
+            type: game_attribute_map{}
             references: game_attribute.game_id

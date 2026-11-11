@@ -72,7 +72,7 @@ export class GameSummariesService extends ReadonlyRepository<GameSummary> {
           gameDeleted: 'gameDeleted',
           gameEnabled: 'gameEnabled',
           categories: { key: 'categoryId', fields: { id: 'categoryId', name: 'categoryName' } },
-          attributes: { key: 'attributeName', fields: { name: 'attributeName', value: 'attributeValue' } },
+          attributes: { key: 'attributeName', value: 'attributeValue' },
         },
       }),
     )

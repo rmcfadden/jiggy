@@ -1,0 +1,12 @@
+version: 1.0.0
+types:
+  - template_type:
+      fields:
+        - name:
+            is_unique: true
+  - template_base:
+      mapping: templates
+      indexes:
+        - template_template_type_id_name:
+            fields: [template_type_id, name]
+            is_unique: true
