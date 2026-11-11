@@ -7,6 +7,7 @@ export class Token {
   created: Date = new Date();
   updated: Date = new Date();
   version: string = Buffer.from([0]).toString("base64");
+  tokenTypeId!: number;
   name: string = "";
   secret: string = "";
   isEnabled: boolean = true;

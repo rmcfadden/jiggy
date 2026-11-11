@@ -38,9 +38,9 @@ impl TokensRepository {
             ("description".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "token_type_id".into(), "name".into(), "secret".into(), "is_enabled".into(), "expires".into(), "revoked".into(), "is_deleted".into(), "description".into()];
-        options.create_properties = Some(vec!["token_type_id".into(), "name".into(), "secret".into(), "is_enabled".into(), "expires".into(), "revoked".into(), "is_deleted".into(), "description".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "token_type_id".into(), "name".into(), "secret".into(), "is_enabled".into(), "expires".into(), "revoked".into(), "is_deleted".into(), "description".into()]);
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "token_type_id".into(), "name".into(), "secret".into(), "is_enabled".into(), "expires".into(), "revoked".into(), "is_deleted".into()];
+        options.create_properties = Some(vec!["token_type_id".into(), "name".into(), "secret".into(), "is_enabled".into(), "expires".into(), "revoked".into(), "is_deleted".into()]);
+        options.update_properties = Some(vec!["uuid".into(), "token_type_id".into(), "name".into(), "secret".into(), "is_enabled".into(), "expires".into(), "revoked".into(), "is_deleted".into()]);
         options
     })
     .add_for("sqlite", {
@@ -66,9 +66,9 @@ impl TokensRepository {
             ("description".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "token_type_id".into(), "name".into(), "secret".into(), "is_enabled".into(), "expires".into(), "revoked".into(), "is_deleted".into(), "description".into()];
-        options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "token_type_id".into(), "name".into(), "secret".into(), "is_enabled".into(), "expires".into(), "revoked".into(), "is_deleted".into(), "description".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "token_type_id".into(), "name".into(), "secret".into(), "is_enabled".into(), "expires".into(), "revoked".into(), "is_deleted".into(), "description".into()]);
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "token_type_id".into(), "name".into(), "secret".into(), "is_enabled".into(), "expires".into(), "revoked".into(), "is_deleted".into()];
+        options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "token_type_id".into(), "name".into(), "secret".into(), "is_enabled".into(), "expires".into(), "revoked".into(), "is_deleted".into()]);
+        options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "token_type_id".into(), "name".into(), "secret".into(), "is_enabled".into(), "expires".into(), "revoked".into(), "is_deleted".into()]);
         options
     })
     .for_connection(connection.as_ref())?;
@@ -76,6 +76,7 @@ impl TokensRepository {
         let token_type = TokenTypesRepository::new(Arc::clone(&connection))?;
         let mut repo = CRUDRepository::<Token>::new(Arc::clone(&connection), options)?;
         repo.add_enriched(Enrichment::new("token_type_name", "token_type_id", "id", Some("name".into()), EnrichmentPropertyType::Object), &token_type, None);
+        repo.add_enriched(Enrichment::new("description", "token_type_id", "id", Some("description".into()), EnrichmentPropertyType::Object), &token_type, None);
         Ok(Self { inner: Arc::new(repo), token_type })
     }
 
@@ -101,10 +102,11 @@ impl TokensRepository {
             ("token_type_name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("description".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
         ]));
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "token_type_id".into(), "name".into(), "secret".into(), "is_enabled".into(), "expires".into(), "revoked".into(), "is_deleted".into(), "description".into()];
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "token_type_id".into(), "name".into(), "secret".into(), "is_enabled".into(), "expires".into(), "revoked".into(), "is_deleted".into()];
         let token_type = TokenTypesRepository::new(Arc::clone(&connection))?;
         let mut repo = ReadonlyRepository::<Token>::new(connection, options)?;
         repo.add_enriched(Enrichment::new("token_type_name", "token_type_id", "id", Some("name".into()), EnrichmentPropertyType::Object), &token_type, None);
+        repo.add_enriched(Enrichment::new("description", "token_type_id", "id", Some("description".into()), EnrichmentPropertyType::Object), &token_type, None);
         Ok(repo)
     }
 }
@@ -231,9 +233,9 @@ pub fn tokens_row_repository(connection: Arc<dyn Connection>) -> Result<CRUDRepo
             ("description".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "token_type_id".into(), "name".into(), "secret".into(), "is_enabled".into(), "expires".into(), "revoked".into(), "is_deleted".into(), "description".into()];
-        options.create_properties = Some(vec!["token_type_id".into(), "name".into(), "secret".into(), "is_enabled".into(), "expires".into(), "revoked".into(), "is_deleted".into(), "description".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "token_type_id".into(), "name".into(), "secret".into(), "is_enabled".into(), "expires".into(), "revoked".into(), "is_deleted".into(), "description".into()]);
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "token_type_id".into(), "name".into(), "secret".into(), "is_enabled".into(), "expires".into(), "revoked".into(), "is_deleted".into()];
+        options.create_properties = Some(vec!["token_type_id".into(), "name".into(), "secret".into(), "is_enabled".into(), "expires".into(), "revoked".into(), "is_deleted".into()]);
+        options.update_properties = Some(vec!["uuid".into(), "token_type_id".into(), "name".into(), "secret".into(), "is_enabled".into(), "expires".into(), "revoked".into(), "is_deleted".into()]);
         options
     })
     .add_for("sqlite", {
@@ -259,9 +261,9 @@ pub fn tokens_row_repository(connection: Arc<dyn Connection>) -> Result<CRUDRepo
             ("description".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "token_type_id".into(), "name".into(), "secret".into(), "is_enabled".into(), "expires".into(), "revoked".into(), "is_deleted".into(), "description".into()];
-        options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "token_type_id".into(), "name".into(), "secret".into(), "is_enabled".into(), "expires".into(), "revoked".into(), "is_deleted".into(), "description".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "token_type_id".into(), "name".into(), "secret".into(), "is_enabled".into(), "expires".into(), "revoked".into(), "is_deleted".into(), "description".into()]);
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "token_type_id".into(), "name".into(), "secret".into(), "is_enabled".into(), "expires".into(), "revoked".into(), "is_deleted".into()];
+        options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "token_type_id".into(), "name".into(), "secret".into(), "is_enabled".into(), "expires".into(), "revoked".into(), "is_deleted".into()]);
+        options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "token_type_id".into(), "name".into(), "secret".into(), "is_enabled".into(), "expires".into(), "revoked".into(), "is_deleted".into()]);
         options
     })
     .for_connection(connection.as_ref())?;
@@ -269,5 +271,6 @@ pub fn tokens_row_repository(connection: Arc<dyn Connection>) -> Result<CRUDRepo
         let token_type = Arc::new(super::tokenTypesRepository::token_types_row_repository(Arc::clone(&connection))?);
         let mut repo = CRUDRepository::<datasources::Row>::new(Arc::clone(&connection), options)?;
         repo.add_enriched(Enrichment::new("token_type_name", "token_type_id", "id", Some("name".into()), EnrichmentPropertyType::Object), Arc::clone(&token_type), None);
+        repo.add_enriched(Enrichment::new("description", "token_type_id", "id", Some("description".into()), EnrichmentPropertyType::Object), Arc::clone(&token_type), None);
         Ok(repo)
 }

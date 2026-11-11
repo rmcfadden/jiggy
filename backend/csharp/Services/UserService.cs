@@ -83,9 +83,20 @@ public class UserService(
     public async Task<bool> VerifyPassword(string username, string plain)
     {
         var user = await Find(username);
-        if (user is null) return false;
-        var current = await PasswordSecret(user.Id, await PasswordTypeId());
-        return current is not null && BCrypt.Net.BCrypt.Verify(plain, current.Value);
+        var current = user is null ? null : await PasswordSecret(user.Id, await PasswordTypeId());
+        // Always run one bcrypt comparison so an unknown user costs the same as a wrong password.
+        var matches = BCrypt.Net.BCrypt.Verify(plain, current?.Value ?? DummyHash.Value);
+        return current is not null && matches;
+    }
+
+    /// <summary>A throwaway hash (never matches a real password) used to equalise timing for unknown users.</summary>
+    static readonly Lazy<string> DummyHash = new(() => BCrypt.Net.BCrypt.HashPassword($"unused-{Guid.NewGuid()}", BcryptCost));
+
+    public async Task<User?> FindById(long id)
+    {
+        await foreach (var row in users.Read())
+            if (row.Id == id) return row;
+        return null;
     }
 
     public async Task<bool> HasUsers()
