@@ -1,0 +1,129 @@
+version: 1.0.0
+types:
+  - secret_type:
+      tags:
+        - datasource_type
+        - readonly_lookup
+      inherits: base
+      fields:
+        - name:
+            type: string
+            size: 512
+            min_size: 1
+        - description:
+            type: string
+            size: unlimited
+            is_nullable: true
+  - secrets_base:
+      tags:
+        - datasource_type
+      inherits: base
+      fields:
+        - secret_type_id:
+            references: secret_type.id
+        - value:
+            type: string
+            size: 512
+            min_size: 1
+        - expires:
+            type: datetime
+            is_nullable: true
+        - is_enabled:
+            type: boolean
+            default_value: true
+        - is_deleted:
+            type: boolean
+            default_value: false
+
+  - secret:
+      tags:
+        - view_type
+      inherits: secrets_base
+      fields: []
+      union:
+        - secret_type
+      mapping:
+        name: secret_type_name
+      remove_fields:
+        - secret_type.id
+        - secret_type.uuid
+        - secret_type.created
+        - secret_type.updated
+        - secret_type.version
+
+  - user_secret:
+      tags:
+        - datasource_type
+        - many_to_many
+      inherits: base
+      fields:
+        - user_id:
+            references: user_base.id
+        - secret_id:
+            references: secrets_base.id
+ 
+  - token_type:
+      tags:
+        - datasource_type
+        - readonly_lookup
+      inherits: base
+      fields:
+        - name:
+            type: string
+            size: 512
+            min_size: 1
+        - description:
+            type: string
+            size: unlimited
+            
+  - tokens_base:
+      tags:
+        - datasource_type
+      inherits: base
+      fields:
+        - token_type_id:
+            references: token_type.id
+        - name:
+            type: string
+            size: 128
+            min_size: 1
+        - secret:
+            type: string
+            size: unlimited
+        - is_enabled:
+            type: boolean
+            default_value: true
+        - expires:
+            type: datetime
+        - revoked:
+            type: datetime
+            is_nullable: true
+        - is_deleted:
+            type: boolean
+            default_value: false
+  - token:
+      tags:
+        - view_type
+      inherits: tokens_base
+      fields: []
+      union:
+        - token_type
+      mapping:
+        token_type.name: token_type_name
+      remove_fields:
+        - token_type.id
+        - token_type.uuid
+        - token_type.created
+        - token_type.updated
+        - token_type.version
+
+  - user_token:
+      tags:
+        - datasource_type
+        - many_to_many
+      inherits: base
+      fields:
+        - user_id:
+            references: user_base.id
+        - token_id:
+            references: tokens_base.id

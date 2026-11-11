@@ -1,13 +1,13 @@
 using Datasources;
 
-public sealed class EmailTypesRepository : CRUDRepository<Backend.Types.Datasource.EmailType>
+public sealed class EmailTypesRepository : ReadonlyRepository<Backend.Types.Datasource.EmailType>
 {
     public EmailTypesRepository(IConnection connection) : base(connection, Options(connection)) { }
 
     public static IReadonlyRepository<Backend.Types.Datasource.EmailType> CreateReadonly(IConnection connection) =>
-        new ReadonlyRepository<Backend.Types.Datasource.EmailType>(connection, Options(connection));
+        new EmailTypesRepository(connection);
 
-    static CRUDRepositoryOptions<Backend.Types.Datasource.EmailType> Options(IConnection connection) =>
+    static ReadonlyRepositoryMappingOptions<Backend.Types.Datasource.EmailType> Options(IConnection connection) =>
         new CRUDRepositoryBuilder<Backend.Types.Datasource.EmailType>()
             .Add(new()
             {
@@ -23,10 +23,7 @@ public sealed class EmailTypesRepository : CRUDRepository<Backend.Types.Datasour
                     ["Name"] = "name",
                     ["Description"] = "description",
                 }),
-                Ids = ["Id"],
                 ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "Name", "Description"],
-                CreateProperties = ["Name", "Description"],
-                UpdateProperties = ["Uuid", "Name", "Description"],
                 Schema = new(new Dictionary<string, SchemaColumn>
                 {
                     ["Id"] = new("biginteger", false, false, true),
@@ -52,10 +49,7 @@ public sealed class EmailTypesRepository : CRUDRepository<Backend.Types.Datasour
                     ["Name"] = "name",
                     ["Description"] = "description",
                 }),
-                Ids = ["Id"],
                 ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "Name", "Description"],
-                CreateProperties = ["Uuid", "Created", "Version", "Name", "Description"],
-                UpdateProperties = ["Uuid", "Created", "Version", "Name", "Description"],
                 Schema = new(new Dictionary<string, SchemaColumn>
                 {
                     ["Id"] = new("biginteger", false, false, true),

@@ -1,0 +1,7 @@
+version: 1.0.0
+seeds:
+  - session_type:
+      - id1:
+          name: Signin
+      - id2:
+          name: LocalApplication

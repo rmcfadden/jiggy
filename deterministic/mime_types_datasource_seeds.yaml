@@ -1,0 +1,174 @@
+version: 1.0.0
+seeds:
+  - mime_type:
+      - id1:
+          name: "text/plain"
+          description: "Plain text"
+      - id2:
+          name: "text/html"
+          description: "HTML document"
+      - id3:
+          name: "text/css"
+          description: "Cascading Style Sheets"
+      - id4:
+          name: "text/csv"
+          description: "Comma-separated values"
+      - id5:
+          name: "text/markdown"
+          description: "Markdown document"
+      - id6:
+          name: "text/javascript"
+          description: "JavaScript"
+      - id7:
+          name: "text/calendar"
+          description: "iCalendar"
+      - id8:
+          name: "text/xml"
+          description: "XML (text)"
+      - id9:
+          name: "application/json"
+          description: "JSON"
+      - id10:
+          name: "application/xml"
+          description: "XML"
+      - id11:
+          name: "application/pdf"
+          description: "Adobe PDF document"
+      - id12:
+          name: "application/zip"
+          description: "ZIP archive"
+      - id13:
+          name: "application/gzip"
+          description: "GZip archive"
+      - id14:
+          name: "application/x-tar"
+          description: "Tape archive (tar)"
+      - id15:
+          name: "application/x-7z-compressed"
+          description: "7-Zip archive"
+      - id16:
+          name: "application/x-rar-compressed"
+          description: "RAR archive"
+      - id17:
+          name: "application/octet-stream"
+          description: "Arbitrary binary data"
+      - id18:
+          name: "application/javascript"
+          description: "JavaScript"
+      - id19:
+          name: "application/x-www-form-urlencoded"
+          description: "URL-encoded form data"
+      - id20:
+          name: "application/yaml"
+          description: "YAML"
+      - id21:
+          name: "application/sql"
+          description: "SQL"
+      - id22:
+          name: "application/rtf"
+          description: "Rich Text Format"
+      - id23:
+          name: "application/msword"
+          description: "Microsoft Word (.doc)"
+      - id24:
+          name: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          description: "Microsoft Word (.docx)"
+      - id25:
+          name: "application/vnd.ms-excel"
+          description: "Microsoft Excel (.xls)"
+      - id26:
+          name: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          description: "Microsoft Excel (.xlsx)"
+      - id27:
+          name: "application/vnd.ms-powerpoint"
+          description: "Microsoft PowerPoint (.ppt)"
+      - id28:
+          name: "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+          description: "Microsoft PowerPoint (.pptx)"
+      - id29:
+          name: "application/vnd.oasis.opendocument.text"
+          description: "OpenDocument text"
+      - id30:
+          name: "application/vnd.oasis.opendocument.spreadsheet"
+          description: "OpenDocument spreadsheet"
+      - id31:
+          name: "application/wasm"
+          description: "WebAssembly"
+      - id32:
+          name: "image/jpeg"
+          description: "JPEG image"
+      - id33:
+          name: "image/png"
+          description: "PNG image"
+      - id34:
+          name: "image/gif"
+          description: "GIF image"
+      - id35:
+          name: "image/webp"
+          description: "WebP image"
+      - id36:
+          name: "image/svg+xml"
+          description: "SVG image"
+      - id37:
+          name: "image/bmp"
+          description: "Bitmap image"
+      - id38:
+          name: "image/tiff"
+          description: "TIFF image"
+      - id39:
+          name: "image/x-icon"
+          description: "Icon image"
+      - id40:
+          name: "image/avif"
+          description: "AVIF image"
+      - id41:
+          name: "audio/mpeg"
+          description: "MP3 audio"
+      - id42:
+          name: "audio/ogg"
+          description: "Ogg audio"
+      - id43:
+          name: "audio/wav"
+          description: "WAV audio"
+      - id44:
+          name: "audio/webm"
+          description: "WebM audio"
+      - id45:
+          name: "audio/aac"
+          description: "AAC audio"
+      - id46:
+          name: "audio/flac"
+          description: "FLAC audio"
+      - id47:
+          name: "video/mp4"
+          description: "MP4 video"
+      - id48:
+          name: "video/mpeg"
+          description: "MPEG video"
+      - id49:
+          name: "video/ogg"
+          description: "Ogg video"
+      - id50:
+          name: "video/webm"
+          description: "WebM video"
+      - id51:
+          name: "video/quicktime"
+          description: "QuickTime video"
+      - id52:
+          name: "video/x-msvideo"
+          description: "AVI video"
+      - id53:
+          name: "font/woff"
+          description: "Web Open Font Format"
+      - id54:
+          name: "font/woff2"
+          description: "Web Open Font Format 2"
+      - id55:
+          name: "font/ttf"
+          description: "TrueType font"
+      - id56:
+          name: "font/otf"
+          description: "OpenType font"
+      - id57:
+          name: "multipart/form-data"
+          description: "Multipart form data"

@@ -5,10 +5,10 @@ edition = "2024"
 
 [dependencies]
 axum = { version = "0.8.9", features = ["multipart"] }
-datasources = "0.1.56"
-datasources-mysql = "0.1.56"
-datasources-postgres = "0.1.56"
-datasources-sqlite = "0.1.56"
+datasources = "0.1.58"
+datasources-mysql = "0.1.58"
+datasources-postgres = "0.1.58"
+datasources-sqlite = "0.1.58"
 futures-util = "0.3.34"
 image = { version = "0.25", default-features = false, features = ["jpeg", "png", "gif", "webp", "bmp"] }
 serde_json = "1.0.154"

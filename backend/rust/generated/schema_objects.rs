@@ -71,9 +71,25 @@ impl SchemaObject for Review {}
 
 impl SchemaObject for Role {}
 
+impl SchemaObject for Secret {}
+
+impl SchemaObject for SecretType {}
+
+impl SchemaObject for Session {}
+
+impl SchemaObject for SessionHit {}
+
+impl SchemaObject for SessionStatesBase {}
+
+impl SchemaObject for SessionType {}
+
 impl SchemaObject for Template {}
 
 impl SchemaObject for TemplateType {}
+
+impl SchemaObject for Token {}
+
+impl SchemaObject for TokenType {}
 
 impl SchemaObject for User {}
 
@@ -81,5 +97,9 @@ impl SchemaObject for UserGroup {}
 
 impl SchemaObject for UserRole {}
 
+impl SchemaObject for UserSecret {}
+
 impl SchemaObject for UserSetting {}
+
+impl SchemaObject for UserToken {}
 

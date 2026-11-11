@@ -1,0 +1,6 @@
+version: 1.0.0
+seeds:
+  - template_type:
+      - id1:
+          name: "jigsaw"
+          description: "Jigsaw template settings"

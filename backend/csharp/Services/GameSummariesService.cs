@@ -4,9 +4,7 @@ using Datasources;
 namespace Backend.Services;
 
 /// <summary>What the list API returns: no uuid or dates, categories trimmed to id and name.</summary>
-public record GameSummaryDto(long Id, string Name, string Description, string ParentName, string ThumbnameLocation, List<CategorySummaryDto> Categories, List<AttributeSummaryDto> Attributes);
-
-public record AttributeSummaryDto(string Name, string Value);
+public record GameSummaryDto(long Id, string Name, string Description, string ParentName, string ThumbnameLocation, List<CategorySummaryDto> Categories, Dictionary<string, string> Attributes);
 
 public record CategorySummaryDto(long Id, string Name);
 
@@ -94,15 +92,11 @@ public class GameSummariesService
                     ["GameEnabled"] = "GameEnabled",
                     ["ImageId"] = "ImageId",
                     ["ImageLocation"] = "ImageLocation",
+                    ["Attributes"] = new TypeMapField.Dictionary("AttributeName", "AttributeValue"),
                     ["Categories"] = new TypeMapGroup
                     {
                         Key = "CategoryId",
                         Fields = new Dictionary<string, TypeMapField> { ["Id"] = "CategoryId", ["Name"] = "CategoryName" },
-                    },
-                    ["Attributes"] = new TypeMapGroup
-                    {
-                        Key = "AttributeName",
-                        Fields = new Dictionary<string, TypeMapField> { ["Name"] = "AttributeName", ["Value"] = "AttributeValue" },
                     },
                 },
             }));
@@ -125,7 +119,7 @@ public class GameSummariesService
     {
         var list = new List<GameSummaryDto>();
         await foreach (var s in Read())
-            list.Add(new GameSummaryDto(s.Id, s.Name, s.Description, s.ParentName, s.ThumbnameLocation, s.Categories.Select(c => new CategorySummaryDto(c.Id, c.Name)).ToList(), s.Attributes.Select(a => new AttributeSummaryDto(a.Name, a.Value)).ToList()));
+            list.Add(new GameSummaryDto(s.Id, s.Name, s.Description, s.ParentName, s.ThumbnameLocation, s.Categories.Select(c => new CategorySummaryDto(c.Id, c.Name)).ToList(), s.Attributes));
         return list;
     }
 }

@@ -12,11 +12,11 @@ export type GameSummaryRow = {
   parentName: string
   thumbnameLocation: string
   categories: { id: number; name: string }[]
-  attributes: { name: string; value: string }[]
+  attributes: Record<string, string>
 }
 
 /** The value of the attribute called `name`, or undefined. */
-export const attributeOf = (g: GameSummaryRow, name: string) => g.attributes.find((a) => a.name === name)?.value
+export const attributeOf = (g: GameSummaryRow, name: string) => g.attributes[name]
 
 /** Under `['games']`, so saving or deleting a game in the designer refreshes it too. */
 export const GAME_SUMMARIES_KEY = ['games', 'summaries']

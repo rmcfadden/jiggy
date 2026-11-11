@@ -5,10 +5,10 @@
     "setup": "cargo run -- setup"
   },
   "dependencies": {
-    "@deterministic-code/datasources": "^0.1.56",
-    "@deterministic-code/datasources-mysql": "^0.1.56",
-    "@deterministic-code/datasources-postgres": "^0.1.56",
-    "@deterministic-code/datasources-sqlite": "^0.1.56",
+    "@deterministic-code/datasources": "^0.1.58",
+    "@deterministic-code/datasources-mysql": "^0.1.58",
+    "@deterministic-code/datasources-postgres": "^0.1.58",
+    "@deterministic-code/datasources-sqlite": "^0.1.58",
     "@deterministic-code/migraters": "^0.0.16"
   }
 }

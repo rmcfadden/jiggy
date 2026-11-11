@@ -14,7 +14,7 @@ export function gameSummariesRouter(service: GameSummariesService): Router {
           name: s.name,
           description: s.description,
           parentName: s.parentName,
-          attributes: s.attributes.map((a) => ({ name: a.name, value: a.value })),
+          attributes: s.attributes,
           thumbnameLocation: s.thumbnameLocation,
           categories: s.categories.map((c) => ({ id: c.id, name: c.name })),
         })

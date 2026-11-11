@@ -1,0 +1,91 @@
+version: 1.0.0
+types:
+  - session_type:
+      tags:
+        - datasource_type
+        - readonly_lookup
+      inherits: base
+      fields:
+        - name:
+            type: string
+            size: 512
+            min_size: 1
+  - sessions_base:
+      tags:
+        - datasource_type
+      inherits: base
+      fields:
+        - session_type_id:
+            references: session_type.id
+        - user_id:
+            is_nullable: true
+            references: user_base.id
+        - relative_expiration:
+            type: integer
+            is_nullable: true
+        - absolute_expiration:
+            type: datetime
+            is_nullable: true
+        - revoked:
+            type: datetime
+            is_nullable: true
+        - expired:
+            type: datetime
+            is_nullable: true
+        - is_enabled:
+            type: boolean
+            default_value: true
+  - session:
+      tags:
+        - view_type
+      inherits: sessions_base
+      fields: []
+      union:
+        - session_type
+      mapping:
+        name: session_type_name
+      remove_fields:
+        - session_type.id
+        - session_type.uuid
+        - session_type.created
+        - session_type.updated
+        - session_type.version
+  - session_hits_base:
+      tags:
+        - datasource_type
+      inherits: base
+      fields:
+        - session_id:
+            references: sessions_base.id
+        - ip_address:
+            type: binary
+            size: 16
+  - session_hit:
+      tags:
+        - view_type
+      inherits: session_hits_base
+      fields: []
+  - session_states_base:
+      tags:
+        - datasource_type
+      inherits: base
+      fields:
+        - session_id:
+            references: sessions_base.id
+        - state:
+            type: string
+            size: unlimited
+        - code_challenge:
+            type: string
+            size: unlimited
+            is_nullable: true
+        - code_challenge_method:
+            type: string
+            size: 256
+            is_nullable: true
+        - revoked:
+            type: datetime
+            is_nullable: true
+        - is_enabled:
+            type: boolean
+            default_value: true

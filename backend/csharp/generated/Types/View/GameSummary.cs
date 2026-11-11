@@ -12,5 +12,5 @@ public class GameSummary
     public string ParentName { get; set; } = "";
     public string ThumbnameLocation { get; set; } = "";
     public List<Category> Categories { get; set; } = [];
-    public List<Backend.Types.Datasource.GameAttribute> Attributes { get; set; } = [];
+    public Dictionary<string, string> Attributes { get; set; } = [];
 }

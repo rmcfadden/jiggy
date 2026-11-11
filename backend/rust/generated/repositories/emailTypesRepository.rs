@@ -1,4 +1,4 @@
-use datasources::{Connection, CRUDRepository, CRUDRepositoryBuilder, CRUDRepositoryOptions, DictionaryMapper, EnrichmentVia, ICRUDRepository, IReadonlyRepository, IRepository, IWhere, ReadonlyRepository, ReadonlyRepositoryMappingOptions, Schema, SchemaColumn, Statement, Result, async_trait, CommandMiddleware, IdKey, Response, Stream};
+use datasources::{Connection, CRUDRepositoryBuilder, CRUDRepositoryOptions, DictionaryMapper, EnrichmentVia, ICRUDRepository, IReadonlyRepository, IRepository, IWhere, ReadonlyRepository, ReadonlyRepositoryMappingOptions, Schema, SchemaColumn, Statement, Result, async_trait, Stream};
 use super::super::EmailType;
 use std::any::TypeId;
 use std::collections::HashMap;
@@ -7,7 +7,7 @@ use std::pin::Pin;
 use std::sync::Arc;
 
 pub struct EmailTypesRepository {
-    pub(crate) inner: Arc<CRUDRepository<EmailType>>,
+    pub(crate) inner: Arc<ReadonlyRepository<EmailType>>,
 }
 
 impl EmailTypesRepository {
@@ -28,10 +28,7 @@ impl EmailTypesRepository {
             ("name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("description".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: true, is_id: false }),
         ]));
-        options.ids = vec!["id".into()];
         options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "name".into(), "description".into()];
-        options.create_properties = Some(vec!["name".into(), "description".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "name".into(), "description".into()]);
         options
     })
     .add_for("sqlite", {
@@ -49,15 +46,13 @@ impl EmailTypesRepository {
             ("name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("description".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: true, is_id: false }),
         ]));
-        options.ids = vec!["id".into()];
         options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "name".into(), "description".into()];
-        options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "name".into(), "description".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "name".into(), "description".into()]);
         options
     })
-    .for_connection(connection.as_ref())?;
+    .for_connection(connection.as_ref())?
+    .read;
 
-        let repo = CRUDRepository::<EmailType>::new(connection, options)?;
+        let repo = ReadonlyRepository::<EmailType>::new(connection, options)?;
         Ok(Self { inner: Arc::new(repo) })
     }
 
@@ -83,7 +78,7 @@ impl EmailTypesRepository {
 }
 
 impl Deref for EmailTypesRepository {
-    type Target = CRUDRepository<EmailType>;
+    type Target = ReadonlyRepository<EmailType>;
     fn deref(&self) -> &Self::Target {
         self.inner.as_ref()
     }
@@ -98,7 +93,7 @@ impl EnrichmentVia<EmailType> for &EmailTypesRepository {
     ) {
         (
             Arc::clone(&self.inner) as Arc<dyn IReadonlyRepository<EmailType>>,
-            Some(Arc::clone(&self.inner) as Arc<dyn ICRUDRepository<EmailType>>),
+            None,
         )
     }
 }
@@ -116,7 +111,7 @@ impl IRepository for EmailTypesRepository {
 #[async_trait]
 impl IReadonlyRepository<EmailType> for EmailTypesRepository {
     fn to_crud(self: Arc<Self>) -> Option<Arc<dyn ICRUDRepository<EmailType>>> {
-        Some(self)
+        None
     }
 
     async fn read_single(
@@ -152,34 +147,8 @@ impl IReadonlyRepository<EmailType> for EmailTypesRepository {
     }
 }
 
-#[async_trait]
-impl ICRUDRepository<EmailType> for EmailTypesRepository {
-    async fn create(&self, item: EmailType) -> Result<EmailType> {
-        self.inner.create(item).await
-    }
 
-    async fn update(&self, item: EmailType, by_where: Option<&dyn IWhere>) -> Result<Response> {
-        ICRUDRepository::update(self.inner.as_ref(), item, by_where).await
-    }
-
-    async fn delete(&self, item: EmailType, by_where: Option<&dyn IWhere>) -> Result<Response> {
-        ICRUDRepository::delete(self.inner.as_ref(), item, by_where).await
-    }
-
-    async fn read_single_by_id(&self, id: &dyn IdKey) -> Result<Option<EmailType>> {
-        self.inner.read_single_by_id(id).await
-    }
-
-    fn id_names(&self) -> Vec<String> {
-        self.inner.id_names()
-    }
-
-    fn add_middleware(&self, middleware: Arc<dyn CommandMiddleware>) {
-        self.inner.add_middleware(middleware)
-    }
-}
-
-pub fn email_types_row_repository(connection: Arc<dyn Connection>) -> Result<CRUDRepository<datasources::Row>> {
+pub fn email_types_row_repository(connection: Arc<dyn Connection>) -> Result<ReadonlyRepository<datasources::Row>> {
     let options = CRUDRepositoryBuilder::new()
     .add({
         let mut options = CRUDRepositoryOptions::default();
@@ -196,10 +165,7 @@ pub fn email_types_row_repository(connection: Arc<dyn Connection>) -> Result<CRU
             ("name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("description".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: true, is_id: false }),
         ]));
-        options.ids = vec!["id".into()];
         options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "name".into(), "description".into()];
-        options.create_properties = Some(vec!["name".into(), "description".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "name".into(), "description".into()]);
         options
     })
     .add_for("sqlite", {
@@ -217,13 +183,11 @@ pub fn email_types_row_repository(connection: Arc<dyn Connection>) -> Result<CRU
             ("name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("description".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: true, is_id: false }),
         ]));
-        options.ids = vec!["id".into()];
         options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "name".into(), "description".into()];
-        options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "name".into(), "description".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "name".into(), "description".into()]);
         options
     })
-    .for_connection(connection.as_ref())?;
+    .for_connection(connection.as_ref())?
+    .read;
 
-    CRUDRepository::<datasources::Row>::new(connection, options)
+    ReadonlyRepository::<datasources::Row>::new(connection, options)
 }
