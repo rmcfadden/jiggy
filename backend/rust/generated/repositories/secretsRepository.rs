@@ -36,9 +36,9 @@ impl SecretsRepository {
             ("description".into(), SchemaColumn { type_name: "string".into(), nullable: true, has_default: false, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "secret_type_id".into(), "value".into(), "expires".into(), "is_enabled".into(), "is_deleted".into(), "description".into()];
-        options.create_properties = Some(vec!["secret_type_id".into(), "value".into(), "expires".into(), "is_enabled".into(), "is_deleted".into(), "description".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "secret_type_id".into(), "value".into(), "expires".into(), "is_enabled".into(), "is_deleted".into(), "description".into()]);
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "secret_type_id".into(), "value".into(), "expires".into(), "is_enabled".into(), "is_deleted".into()];
+        options.create_properties = Some(vec!["secret_type_id".into(), "value".into(), "expires".into(), "is_enabled".into(), "is_deleted".into()]);
+        options.update_properties = Some(vec!["uuid".into(), "secret_type_id".into(), "value".into(), "expires".into(), "is_enabled".into(), "is_deleted".into()]);
         options
     })
     .add_for("sqlite", {
@@ -62,9 +62,9 @@ impl SecretsRepository {
             ("description".into(), SchemaColumn { type_name: "string".into(), nullable: true, has_default: false, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "secret_type_id".into(), "value".into(), "expires".into(), "is_enabled".into(), "is_deleted".into(), "description".into()];
-        options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "secret_type_id".into(), "value".into(), "expires".into(), "is_enabled".into(), "is_deleted".into(), "description".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "secret_type_id".into(), "value".into(), "expires".into(), "is_enabled".into(), "is_deleted".into(), "description".into()]);
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "secret_type_id".into(), "value".into(), "expires".into(), "is_enabled".into(), "is_deleted".into()];
+        options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "secret_type_id".into(), "value".into(), "expires".into(), "is_enabled".into(), "is_deleted".into()]);
+        options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "secret_type_id".into(), "value".into(), "expires".into(), "is_enabled".into(), "is_deleted".into()]);
         options
     })
     .for_connection(connection.as_ref())?;
@@ -72,6 +72,7 @@ impl SecretsRepository {
         let secret_type = SecretTypesRepository::new(Arc::clone(&connection))?;
         let mut repo = CRUDRepository::<Secret>::new(Arc::clone(&connection), options)?;
         repo.add_enriched(Enrichment::new("secret_type_name", "secret_type_id", "id", Some("name".into()), EnrichmentPropertyType::Object), &secret_type, None);
+        repo.add_enriched(Enrichment::new("description", "secret_type_id", "id", Some("description".into()), EnrichmentPropertyType::Object), &secret_type, None);
         Ok(Self { inner: Arc::new(repo), secret_type })
     }
 
@@ -95,10 +96,11 @@ impl SecretsRepository {
             ("secret_type_name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("description".into(), SchemaColumn { type_name: "string".into(), nullable: true, has_default: false, is_id: false }),
         ]));
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "secret_type_id".into(), "value".into(), "expires".into(), "is_enabled".into(), "is_deleted".into(), "description".into()];
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "secret_type_id".into(), "value".into(), "expires".into(), "is_enabled".into(), "is_deleted".into()];
         let secret_type = SecretTypesRepository::new(Arc::clone(&connection))?;
         let mut repo = ReadonlyRepository::<Secret>::new(connection, options)?;
         repo.add_enriched(Enrichment::new("secret_type_name", "secret_type_id", "id", Some("name".into()), EnrichmentPropertyType::Object), &secret_type, None);
+        repo.add_enriched(Enrichment::new("description", "secret_type_id", "id", Some("description".into()), EnrichmentPropertyType::Object), &secret_type, None);
         Ok(repo)
     }
 }
@@ -223,9 +225,9 @@ pub fn secrets_row_repository(connection: Arc<dyn Connection>) -> Result<CRUDRep
             ("description".into(), SchemaColumn { type_name: "string".into(), nullable: true, has_default: false, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "secret_type_id".into(), "value".into(), "expires".into(), "is_enabled".into(), "is_deleted".into(), "description".into()];
-        options.create_properties = Some(vec!["secret_type_id".into(), "value".into(), "expires".into(), "is_enabled".into(), "is_deleted".into(), "description".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "secret_type_id".into(), "value".into(), "expires".into(), "is_enabled".into(), "is_deleted".into(), "description".into()]);
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "secret_type_id".into(), "value".into(), "expires".into(), "is_enabled".into(), "is_deleted".into()];
+        options.create_properties = Some(vec!["secret_type_id".into(), "value".into(), "expires".into(), "is_enabled".into(), "is_deleted".into()]);
+        options.update_properties = Some(vec!["uuid".into(), "secret_type_id".into(), "value".into(), "expires".into(), "is_enabled".into(), "is_deleted".into()]);
         options
     })
     .add_for("sqlite", {
@@ -249,9 +251,9 @@ pub fn secrets_row_repository(connection: Arc<dyn Connection>) -> Result<CRUDRep
             ("description".into(), SchemaColumn { type_name: "string".into(), nullable: true, has_default: false, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "secret_type_id".into(), "value".into(), "expires".into(), "is_enabled".into(), "is_deleted".into(), "description".into()];
-        options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "secret_type_id".into(), "value".into(), "expires".into(), "is_enabled".into(), "is_deleted".into(), "description".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "secret_type_id".into(), "value".into(), "expires".into(), "is_enabled".into(), "is_deleted".into(), "description".into()]);
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "secret_type_id".into(), "value".into(), "expires".into(), "is_enabled".into(), "is_deleted".into()];
+        options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "secret_type_id".into(), "value".into(), "expires".into(), "is_enabled".into(), "is_deleted".into()]);
+        options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "secret_type_id".into(), "value".into(), "expires".into(), "is_enabled".into(), "is_deleted".into()]);
         options
     })
     .for_connection(connection.as_ref())?;
@@ -259,5 +261,6 @@ pub fn secrets_row_repository(connection: Arc<dyn Connection>) -> Result<CRUDRep
         let secret_type = Arc::new(super::secretTypesRepository::secret_types_row_repository(Arc::clone(&connection))?);
         let mut repo = CRUDRepository::<datasources::Row>::new(Arc::clone(&connection), options)?;
         repo.add_enriched(Enrichment::new("secret_type_name", "secret_type_id", "id", Some("name".into()), EnrichmentPropertyType::Object), Arc::clone(&secret_type), None);
+        repo.add_enriched(Enrichment::new("description", "secret_type_id", "id", Some("description".into()), EnrichmentPropertyType::Object), Arc::clone(&secret_type), None);
         Ok(repo)
 }
