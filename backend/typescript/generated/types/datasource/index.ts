@@ -31,7 +31,6 @@ export { category, Category } from "./category";
 export { gameParentBase, GameParentBase } from "./gameParentBase";
 export { gameParentConfig, GameParentConfig } from "./gameParentConfig";
 export { gameBase, GameBase } from "./gameBase";
-export { puzzleGame, PuzzleGame } from "./puzzleGame";
 export { gameCategory, GameCategory } from "./gameCategory";
 export { gameParentCategory, GameParentCategory } from "./gameParentCategory";
 export { gameState, GameState } from "./gameState";

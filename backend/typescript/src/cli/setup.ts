@@ -10,7 +10,6 @@ import { ImagesService } from '../services/images.ts'
 import { TemplatesService } from '../services/templates.ts'
 import { createSetupService } from './users.ts'
 import type { Game } from '../../generated/types/view/game.ts'
-import type { PuzzleGame } from '../../generated/types/datasource/puzzleGame.ts'
 import type { GameCategory } from '../../generated/types/datasource/gameCategory.ts'
 import type { MimeType } from '../../generated/types/datasource/mimeType.ts'
 import type { Resource } from '../../generated/types/view/resource.ts'
@@ -45,8 +44,7 @@ export async function setup(): Promise<void> {
     templates: ICRUDRepository<TemplateBase>
     templateTypes: ICRUDRepository<TemplateType>
     games: ICRUDRepository<Game>
-    puzzleGames: ICRUDRepository<PuzzleGame>
-    gameCategories: ICRUDRepository<GameCategory>
+      gameCategories: ICRUDRepository<GameCategory>
     resources: ICRUDRepository<Resource>
     mimeTypes: ICRUDRepository<MimeType>
   }
@@ -64,7 +62,7 @@ export async function setup(): Promise<void> {
   console.log(added.length ? `added templates: ${added.join(', ')}` : 'templates already present')
   const samples = await images.addSamples(seedFile(process.env.IMAGES_SAMPLES_PATH, '../../../../frontend/apps/web/public/catalog'))
   console.log(samples.length ? `added sample images: ${samples.join(', ')}` : 'sample images already present')
-  const games = new GamesService(ds.games, ds.puzzleGames, ds.gameCategories, categoriesService, gameParents, templates, images)
+  const games = new GamesService(ds.games, ds.gameCategories, categoriesService, gameParents, templates, images)
   const puzzles = await games.addPuzzles(seedFile(process.env.PUZZLES_SEED_PATH, '../../../data/puzzles.json'))
   console.log(puzzles.length ? `added ${puzzles.length} puzzles` : 'puzzles already present')
   const attributes = await games.addAttributes()

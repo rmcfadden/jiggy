@@ -47,11 +47,6 @@ types:
       mapping: localized_string
   - resource_base:
       mapping: resource
-  - puzzle_game:
-      indexes:
-        - puzzle_game_game_id:
-            fields: [game_id]
-            is_unique: true
   - game_category:
       indexes:
         - game_category_game_id_category_id:

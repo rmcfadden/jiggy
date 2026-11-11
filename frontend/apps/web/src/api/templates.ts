@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 /** A saved template. `content` is the template's settings, stored as JSON on the server. */
 export type Template<C = unknown> = {
@@ -11,6 +11,9 @@ export type Template<C = unknown> = {
   created: string
   updated: string
 }
+
+/** A template as the list returns it: everything but `content`, which is loaded with `templatesApi.get` once it is needed. */
+export type TemplateListRow = Omit<Template, 'content'>
 
 export type TemplateInput<C = unknown> = { type: string; name: string; content: C }
 
@@ -26,7 +29,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const templatesApi = {
-  list: <C>(type?: string) => request<Template<C>[]>(type ? `?type=${encodeURIComponent(type)}` : ''),
+  list: (type?: string) => request<TemplateListRow[]>(type ? `?type=${encodeURIComponent(type)}` : ''),
   get: <C>(id: number) => request<Template<C>>(`/${id}`),
   create: <C>(input: TemplateInput<C>) => request<Template<C>>('', { method: 'POST', body: JSON.stringify(input) }),
   update: <C>(id: number, input: Partial<TemplateInput<C>>) =>
@@ -36,12 +39,16 @@ export const templatesApi = {
 
 const KEY = ['templates']
 
-/** Templates of one type, e.g. `useTemplates<JigsawTemplateParams>('jigsaw')`. */
-export const useTemplates = <C = unknown>(type?: string) =>
-  useQuery({ queryKey: [...KEY, type ?? 'all'], queryFn: () => templatesApi.list<C>(type) })
+/** The templates of one type, e.g. `useTemplates('jigsaw')`, without their content (see `useTemplate`). */
+export const useTemplates = (type?: string) =>
+  useQuery({ queryKey: [...KEY, type ?? 'all'], queryFn: () => templatesApi.list(type) })
 
-export const useTemplate = <C = unknown>(id: number) =>
-  useQuery({ queryKey: [...KEY, 'one', id], queryFn: () => templatesApi.get<C>(id) })
+/** Query options for one template, with its content; fetch it on demand with `queryClient.fetchQuery(templateQuery(id))`. */
+export const templateQuery = <C = unknown>(id: number) => ({ queryKey: [...KEY, 'one', id], queryFn: () => templatesApi.get<C>(id) })
+
+/** One template with its content, loaded only while `id` is set; the previous one stays until the next arrives. */
+export const useTemplate = <C = unknown>(id: number | null) =>
+  useQuery({ ...templateQuery<C>(id ?? 0), enabled: id !== null, placeholderData: keepPreviousData })
 
 function useInvalidating<V, R>(fn: (v: V) => Promise<R>) {
   const client = useQueryClient()

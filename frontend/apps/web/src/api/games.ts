@@ -22,6 +22,9 @@ export type SavedGameRow<C = unknown> = {
   updated: string
 }
 
+/** A game as the list returns it: everything but `config`, which is loaded with `gamesApi.get` once a game is selected. */
+export type GameListRow = Omit<SavedGameRow, 'config'>
+
 export type GameInput<C = unknown> = Partial<Pick<SavedGameRow<C>, 'name' | 'description' | 'parent' | 'templateId' | 'imageId' | 'config' | 'categoryIds'>>
 
 const URL = '/api/games'
@@ -39,7 +42,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const gamesApi = {
-  list: <C>() => request<SavedGameRow<C>[]>(''),
+  list: () => request<GameListRow[]>(''),
+  get: <C>(id: number) => request<SavedGameRow<C>>(`/${id}`),
   create: <C>(input: GameInput<C>) => request<SavedGameRow<C>>('', { method: 'POST', body: JSON.stringify(input) }),
   update: <C>(id: number, input: GameInput<C>) => request<SavedGameRow<C>>(`/${id}`, { method: 'PUT', body: JSON.stringify(input) }),
   delete: (id: number) => request<void>(`/${id}`, { method: 'DELETE' }),
@@ -47,7 +51,10 @@ export const gamesApi = {
 
 const KEY = ['games']
 
-export const useGames = <C = unknown>() => useQuery({ queryKey: KEY, queryFn: () => gamesApi.list<C>() })
+export const useGames = () => useQuery({ queryKey: KEY, queryFn: () => gamesApi.list() })
+
+/** Query options for one game; fetch it on demand with `queryClient.fetchQuery(gameQuery(id))`. */
+export const gameQuery = <C = unknown>(id: number) => ({ queryKey: [...KEY, 'one', id], queryFn: () => gamesApi.get<C>(id) })
 
 function useInvalidating<V, R>(fn: (v: V) => Promise<R>) {
   const client = useQueryClient()

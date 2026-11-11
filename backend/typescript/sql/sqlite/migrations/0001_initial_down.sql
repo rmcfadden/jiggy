@@ -35,8 +35,6 @@ DROP TABLE IF EXISTS "game_parent_categories";
 GO
 DROP TABLE IF EXISTS "game_categories";
 GO
-DROP TABLE IF EXISTS "puzzle_games";
-GO
 DROP TABLE IF EXISTS "games";
 GO
 DROP TABLE IF EXISTS "game_parent_configs";

@@ -65,6 +65,11 @@ export class ImagesService {
     return row ? toDto(row) : undefined
   }
 
+  /** Image id to the URL of the image itself. */
+  async urls(): Promise<Map<number, string>> {
+    return new Map((await this.rows()).map((r) => [Number(r.id), r.location]))
+  }
+
   /** Image id to the URL of its generated thumbnail; images without a thumbnail are left out. */
   async thumbnailUrls(): Promise<Map<number, string>> {
     const rows = await this.rows()

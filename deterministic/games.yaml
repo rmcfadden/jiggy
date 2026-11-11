@@ -88,20 +88,6 @@ types:
         - is_enabled:
             type: boolean
             default_value: true
-  - puzzle_game:
-      # the puzzle a game plays: its template and background photo. The rest of its
-      # configuration is stored as game_setting rows.
-      tags: [datasource_type]
-      inherits: base
-      fields:
-        - game_id:
-            references: game_base.id
-        - template_id:
-            references: template_base.id
-        - image_id:
-            # a cms resource
-            references: resource_base.id
-            is_nullable: true
   - game_category:
       tags: [datasource_type, many_to_many]
       inherits: base

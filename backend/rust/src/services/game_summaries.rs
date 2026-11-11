@@ -1,3 +1,4 @@
+use crate::generated::repositories::gamesRepository::GamesRepository;
 use crate::services::images::{ImageError, ImagesService};
 use datasources::{
     Connection, DictionaryMapper, Join, OrderBy, ReadonlyRepository, ReadonlyRepositoryMappingOptions, Row, SelectStatement, SelectStatementOptions, Value,
@@ -10,21 +11,18 @@ use std::sync::Arc;
 type Result<T> = std::result::Result<T, ImageError>;
 
 /// Entity names the join statement uses, mapped to their tables.
-const ENTITIES: [(&str, &str); 7] = [
+const ENTITIES: [(&str, &str); 5] = [
     ("Game", "games"),
     ("GameParent", "game_parents"),
-    ("PuzzleGame", "puzzle_games"),
-    ("Resource", "resources"),
     ("GameCategory", "game_categories"),
     ("Category", "categories"),
     ("GameAttribute", "game_attributes"),
 ];
 
 /// Property names to columns. A path such as `GameParent.name` is qualified by its entity (`game_parents.name`).
-const PROPERTIES: [(&str, &str); 6] = [
+const PROPERTIES: [(&str, &str); 5] = [
     ("gameParentId", "game_parent_id"),
     ("gameId", "game_id"),
-    ("imageId", "image_id"),
     ("categoryId", "category_id"),
     ("isDeleted", "is_deleted"),
     ("isEnabled", "is_enabled"),
@@ -55,30 +53,32 @@ impl GameSummary {
     }
 }
 
-/// Read-only summaries of the playable games, from one join over games, game parents, puzzles, images and
-/// categories. The thumbnail is a second resource named `{image}_thumbnail`, which a join cannot reach, so it is
-/// filled from `ImagesService::thumbnail_urls` (the image itself when there is none).
+/// Read-only summaries of the playable games, from one join over games, game parents and categories. The image is
+/// the game's `image_id` setting and the thumbnail a second resource named `{image}_thumbnail`; neither can be
+/// joined, so both are filled from `ImagesService` (the image itself when there is no thumbnail).
 pub struct GameSummariesService {
     rows: ReadonlyRepository<Row>,
     images: Arc<ImagesService>,
+    games: Arc<GamesRepository>,
 }
 
 impl GameSummariesService {
-    pub fn new(connection: Arc<dyn Connection>, images: Arc<ImagesService>) -> Result<Self> {
+    pub fn new(connection: Arc<dyn Connection>, images: Arc<ImagesService>, games: Arc<GamesRepository>) -> Result<Self> {
         let mut options = ReadonlyRepositoryMappingOptions::default();
         options.entity = "Game".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new(ENTITIES.map(|(a, b)| (a.into(), b.into())))));
         options.property_mappings = Some(Arc::new(DictionaryMapper::new(PROPERTIES.map(|(a, b)| (a.into(), b.into())))));
-        Ok(Self { rows: ReadonlyRepository::<Row>::new(connection, options).map_err(ImageError::from)?, images })
+        Ok(Self { rows: ReadonlyRepository::<Row>::new(connection, options).map_err(ImageError::from)?, images, games })
     }
 
     /// Every enabled, undeleted game by id, with its categories by id.
     pub async fn read(&self) -> Result<Vec<GameSummary>> {
         let thumbs = self.images.thumbnail_urls().await?;
+        let urls = self.images.urls().await?;
+        let games: Vec<crate::generated::Game> = self.games.read(None, None).try_collect().await.map_err(ImageError::from)?;
+        let image_of: BTreeMap<i64, i64> = games.iter().filter_map(|g| Some((g.id, g.settings.get("image_id")?.parse().ok()?))).collect();
         let joins = [
             Join::inner("GameParent", "GameParent.id", "Game.gameParentId"),
-            Join::inner("PuzzleGame", "PuzzleGame.gameId", "Game.id"),
-            Join::left("Resource", "Resource.id", "PuzzleGame.imageId"),
             Join::left("GameCategory", "GameCategory.gameId", "Game.id"),
             Join::left("Category", "Category.id", "GameCategory.categoryId"),
             Join::left("GameAttribute", "GameAttribute.gameId", "Game.id"),
@@ -86,11 +86,11 @@ impl GameSummariesService {
         // Fields are paths; each alias is the result-column name the rows are read by.
         let fields = [
             "Game.id", "Game.name", "Game.description", "Game.isDeleted", "Game.isEnabled", "GameParent.name",
-            "PuzzleGame.imageId", "Resource.location", "GameCategory.categoryId", "Category.name", "GameAttribute.name", "GameAttribute.value",
+            "GameCategory.categoryId", "Category.name", "GameAttribute.name", "GameAttribute.value",
         ];
         let aliases = [
             Some("id"), Some("name"), Some("description"), Some("gameDeleted"), Some("gameEnabled"), Some("parentName"),
-            Some("imageId"), Some("imageLocation"), Some("categoryId"), Some("categoryName"), Some("attributeName"), Some("attributeValue"),
+            Some("categoryId"), Some("categoryName"), Some("attributeName"), Some("attributeValue"),
         ];
         let order_by = [OrderBy::asc("Game.id"), OrderBy::asc("GameCategory.categoryId"), OrderBy::asc("GameAttribute.name")];
         let select = SelectStatement::new(SelectStatementOptions {
@@ -114,13 +114,13 @@ impl GameSummariesService {
             }
             let Some(id) = int(row.get("id")) else { continue };
             let summary = by_game.entry(id).or_insert_with(|| {
-                let thumb = int(row.get("imageId")).and_then(|image| thumbs.get(&image).cloned());
+                let thumb = image_of.get(&id).and_then(|image| thumbs.get(image).or_else(|| urls.get(image)).cloned());
                 GameSummary {
                     id,
                     name: text(row.get("name")),
                     description: text(row.get("description")),
                     parent_name: text(row.get("parentName")),
-                    thumbname_location: thumb.unwrap_or_else(|| text(row.get("imageLocation"))),
+                    thumbname_location: thumb.unwrap_or_default(),
                     categories: vec![],
                     attributes: BTreeMap::new(),
                 }

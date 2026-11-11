@@ -65,8 +65,6 @@ pub mod gameParentBase;
 pub mod gameParentConfig;
 #[path = "types/datasource/gameBase.rs"]
 pub mod gameBase;
-#[path = "types/datasource/puzzleGame.rs"]
-pub mod puzzleGame;
 #[path = "types/datasource/gameCategory.rs"]
 pub mod gameCategory;
 #[path = "types/datasource/gameParentCategory.rs"]
@@ -164,7 +162,6 @@ pub use category::*;
 pub use gameParentBase::*;
 pub use gameParentConfig::*;
 pub use gameBase::*;
-pub use puzzleGame::*;
 pub use gameCategory::*;
 pub use gameParentCategory::*;
 pub use gameState::*;

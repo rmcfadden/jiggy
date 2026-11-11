@@ -6,7 +6,8 @@ import {
   verifyJigsaw,
   type JigsawTemplateParams,
 } from '@jiggy/shared'
-import { useCreateTemplate, useDeleteTemplate, useTemplates, useUpdateTemplate } from '../api/templates'
+import { useQueryClient } from '@tanstack/react-query'
+import { templateQuery, useCreateTemplate, useDeleteTemplate, useTemplates, useUpdateTemplate } from '../api/templates'
 import { JigsawPanel } from './JigsawPanel'
 import { JigsawView, VIEW_PAD } from './JigsawView'
 
@@ -16,7 +17,10 @@ export function JigsawTab() {
   const [params, setParams] = useState<JigsawTemplateParams>(DEFAULT_JIGSAW_PARAMS)
   // What the selected template looked like when it was loaded or last saved; Save compares against this.
   const [baseline, setBaseline] = useState<{ id: string; params: JigsawTemplateParams } | null>(null)
-  const { data: saved = [], error: loadError, isLoading } = useTemplates<Partial<JigsawTemplateParams>>(TYPE)
+  const { data: saved = [], error: listError, isLoading } = useTemplates(TYPE)
+  const client = useQueryClient()
+  // The list holds names only; a template's content is fetched when it is selected.
+  const [loadError, setLoadError] = useState<Error | null>(null)
   const create = useCreateTemplate<JigsawTemplateParams>()
   const update = useUpdateTemplate<JigsawTemplateParams>()
   const remove = useDeleteTemplate()
@@ -69,15 +73,19 @@ export function JigsawTab() {
         templates={{
           loading: isLoading,
           required: true,
-          error: [loadError, create.error, update.error, remove.error].find(Boolean)?.message ?? null,
+          error: [listError, loadError, create.error, update.error, remove.error].find(Boolean)?.message ?? null,
           items: saved.map((t) => ({ id: String(t.id), name: t.name })),
           // A template saved by an older build may lack newer settings, so fill them from the defaults.
-          onLoad: (id) => {
-            const t = saved.find((x) => String(x.id) === id)
-            if (!t) return
-            const loaded = { ...DEFAULT_JIGSAW_PARAMS, ...t.content }
-            setParams(loaded)
-            setBaseline({ id, params: loaded })
+          onLoad: async (id) => {
+            try {
+              const t = await client.fetchQuery(templateQuery<Partial<JigsawTemplateParams>>(Number(id)))
+              const loaded = { ...DEFAULT_JIGSAW_PARAMS, ...t.content }
+              setParams(loaded)
+              setBaseline({ id, params: loaded })
+              setLoadError(null)
+            } catch (err) {
+              setLoadError(err instanceof Error ? err : new Error(String(err)))
+            }
           },
           onAdd: async (name) => {
             const id = String((await create.mutateAsync({ type: TYPE, name, content: params })).id)

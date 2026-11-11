@@ -30,7 +30,6 @@ pub mod phonesRepository;
 pub mod phoneAttributesRepository;
 pub mod phoneLabelsRepository;
 pub mod phoneTypesRepository;
-pub mod puzzleGamesRepository;
 pub mod resourcesRepository;
 pub mod reviewsRepository;
 pub mod rolesRepository;

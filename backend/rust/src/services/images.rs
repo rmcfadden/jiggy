@@ -99,6 +99,11 @@ impl ImagesService {
         Ok(self.find_row(by).await?.as_ref().map(to_json))
     }
 
+    /// Image id to the URL of the image itself.
+    pub async fn urls(&self) -> Result<HashMap<i64, String>> {
+        Ok(self.rows().await?.into_iter().map(|r| (r.id, r.location)).collect())
+    }
+
     /// Image id to the URL of its generated thumbnail; images without a thumbnail are left out.
     pub async fn thumbnail_urls(&self) -> Result<HashMap<i64, String>> {
         let rows = self.rows().await?;

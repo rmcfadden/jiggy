@@ -38,13 +38,18 @@ export const CATEGORY_ROWS = [
 /** A saved game on the default template with default settings; load it with `pick('Saved games', '9')` to enable the panel. */
 export const SAVED_GAME = { id: 9, uuid: 'g9', name: 'Saved', description: '', parent: 'scrambled', templateId: 1, imageId: null, config: {}, categoryIds: [], created: '', updated: '' }
 
-/** The designer inside a query client that already holds the parent games, templates, images and the given saved games, so no request is made for them. */
+/** What a list endpoint returns: the rows without their `config` / `content`, which are fetched per item once selected. */
+const light = (rows: unknown[], field: string) => rows.map((r) => Object.fromEntries(Object.entries(r as object).filter(([k]) => k !== field)))
+
+/** The designer inside a query client that already holds the parent games, templates, images and the given saved games (each also as its own single-item entry), so no request is made for them. */
 export const Designer = ({ games = [] }: { games?: unknown[] }) => {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity } } })
   client.setQueryData(['game-parents'], PARENT_GAMES)
   client.setQueryData(['images'], STOCK_IMAGES)
-  client.setQueryData(['templates', 'jigsaw'], JIGSAW_TEMPLATES)
-  client.setQueryData(['games'], games)
+  client.setQueryData(['templates', 'jigsaw'], light(JIGSAW_TEMPLATES, 'content'))
+  for (const t of JIGSAW_TEMPLATES) client.setQueryData(['templates', 'one', t.id], t)
+  client.setQueryData(['games'], light(games, 'config'))
+  for (const g of games as { id: number }[]) client.setQueryData(['games', 'one', g.id], g)
   client.setQueryData(['categories', 'flat'], CATEGORY_ROWS)
   return (
     <QueryClientProvider client={client}>

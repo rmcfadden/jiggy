@@ -176,7 +176,8 @@ it('saves a game as its template, background photo and configuration, and loads 
   expect(screen.queryByRole('dialog')).toBeNull()
   expect(screen.getByLabelText('Template name')).toHaveProperty('value', '1')
   pick('Saved games', '5')
-  expect(screen.getByLabelText('Template name')).toHaveProperty('value', '2')
+  // The game's config is fetched when it is selected, so it applies a moment later.
+  await waitFor(() => expect(screen.getByLabelText('Template name')).toHaveProperty('value', '2'))
   expect(within(screen.getByLabelText('Parent game')).getByRole('button', { name: /Solve last X pieces/ }).getAttribute('aria-pressed')).toBe('true')
   expect(within(screen.getByLabelText('Background photo')).getByRole('button', { name: STOCK_IMAGES[1].name }).getAttribute('aria-pressed')).toBe('true')
   vi.unstubAllGlobals()
@@ -302,6 +303,7 @@ it('saves, loads and deletes jigsaw templates through the templates API', async 
       }
       if (method === 'PUT') return reply(Object.assign(rows[0], body))
       if (method === 'DELETE') return rows.splice(0), reply(null, 204)
+      if (/\/api\/templates\/\d+$/.test(url)) return reply(rows[0])
       return reply(rows)
     }),
   )

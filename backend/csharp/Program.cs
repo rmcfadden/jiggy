@@ -33,7 +33,6 @@ builder.Services.AddSingleton(sp =>
     var ds = sp.GetRequiredService<IDatasource>();
     return new GamesService(
         ds.CreateRepository<Backend.Types.View.Game>("Games"),
-        ds.CreateRepository<Backend.Types.Datasource.PuzzleGame>("PuzzleGames"),
         ds.CreateRepository<Backend.Types.Datasource.GameCategory>("GameCategories"),
         sp.GetRequiredService<CategoriesService>(),
         sp.GetRequiredService<GameParentsService>(),
@@ -97,7 +96,7 @@ builder.Services.AddSingleton(sp =>
 });
 builder.Services.AddSingleton(sp => new OAuthService(
     sp.GetRequiredService<UserService>(), sp.GetRequiredService<TokenService>(), sp.GetRequiredService<SessionService>(), sp.GetRequiredService<TokenSettings>()));
-builder.Services.AddSingleton(sp => new GameSummariesService(sp.GetRequiredService<IDatasource>().CreateConnection().GetAwaiter().GetResult(), sp.GetRequiredService<ImagesService>()));
+builder.Services.AddSingleton(sp => new GameSummariesService(sp.GetRequiredService<IDatasource>().CreateConnection().GetAwaiter().GetResult(), sp.GetRequiredService<ImagesService>(), sp.GetRequiredService<IDatasource>().CreateRepository<Backend.Types.View.Game>("Games")));
 builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = builder.Configuration.GetValue("Images:MaxBytes", 10L * 1024 * 1024));
 var app = builder.Build();
 

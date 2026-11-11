@@ -63,8 +63,6 @@ impl SchemaObject for PhoneLabel {}
 
 impl SchemaObject for PhoneType {}
 
-impl SchemaObject for PuzzleGame {}
-
 impl SchemaObject for Resource {}
 
 impl SchemaObject for Review {}

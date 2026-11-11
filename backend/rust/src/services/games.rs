@@ -1,7 +1,6 @@
 use crate::generated::repositories::gameCategoriesRepository::GameCategoriesRepository;
 use crate::generated::repositories::gamesRepository::GamesRepository;
-use crate::generated::repositories::puzzleGamesRepository::PuzzleGamesRepository;
-use crate::generated::{Game, GameCategory, PuzzleGame};
+use crate::generated::{Game, GameCategory};
 use crate::services::categories::CategoriesService;
 use crate::services::game_parents::GameParentsService;
 use crate::services::images::{By, ImagesService};
@@ -12,6 +11,10 @@ use std::collections::{BTreeSet, HashMap};
 use std::sync::Arc;
 
 const CONFIG_KEY: &str = "config";
+/// Setting holding the uuid of the game's template.
+const TEMPLATE_KEY: &str = "template_uid";
+/// Setting holding the id of the game's background image (a cms resource); absent when it has none.
+const IMAGE_KEY: &str = "image_id";
 /// Attribute holding the pieces in the game's template (`cols * rows`).
 pub const PIECE_COUNT: &str = "pieceCount";
 
@@ -41,10 +44,10 @@ fn invalid<T>(message: impl Into<String>) -> Result<T> {
 }
 
 /// A game is a puzzle described by three things: its `templateId`, its background `imageId` and its `config`
-/// (every setting of the designer panel, as JSON).
+/// (every setting of the designer panel, as JSON). They are stored as game settings (`template_uid`, `image_id`,
+/// `config`) without foreign keys, so each game keeps its own template and image.
 pub struct GamesService {
     repo: Arc<GamesRepository>,
-    puzzles: Arc<PuzzleGamesRepository>,
     game_categories: Arc<GameCategoriesRepository>,
     categories: Arc<CategoriesService>,
     parents: Arc<GameParentsService>,
@@ -55,18 +58,18 @@ pub struct GamesService {
 impl GamesService {
     pub fn new(
         repo: Arc<GamesRepository>,
-        puzzles: Arc<PuzzleGamesRepository>,
         game_categories: Arc<GameCategoriesRepository>,
         categories: Arc<CategoriesService>,
         parents: Arc<GameParentsService>,
         templates: Arc<TemplatesService>,
         images: Arc<ImagesService>,
     ) -> Self {
-        Self { repo, puzzles, game_categories, categories, parents, templates, images }
+        Self { repo, game_categories, categories, parents, templates, images }
     }
 
+    /// Every game without its `config`, which `get` loads for the one that is selected.
     pub async fn list(&self) -> Result<Vec<Value>> {
-        let puzzles = self.puzzles_by_game().await?;
+        let template_ids = self.template_ids().await?;
         let categories = self.categories_by_game().await?;
         let thumbs = self.images.thumbnail_urls().await.map_err(GameError::from)?;
         let parents = self.parent_locations().await?;
@@ -75,27 +78,29 @@ impl GamesService {
             .iter()
             .filter(|g| !g.is_deleted)
             .filter_map(|g| {
-                let puzzle = puzzles.get(&g.id)?;
-                Some(to_json(g, puzzle, parents.get(&g.game_parent_id).map_or("", String::as_str), categories.get(&g.id).cloned().unwrap_or_default(), &thumbs))
+                let template_id = *template_ids.get(g.settings.get(TEMPLATE_KEY)?)?;
+                Some(to_json(g, template_id, parents.get(&g.game_parent_id).map_or("", String::as_str), categories.get(&g.id).cloned().unwrap_or_default(), &thumbs, false))
             })
             .collect())
     }
 
     pub async fn get(&self, id: i64) -> Result<Option<Value>> {
-        let (Some(game), Some(puzzle)) = (self.find(id).await?, self.puzzles_by_game().await?.remove(&id)) else { return Ok(None) };
+        let Some(game) = self.find(id).await? else { return Ok(None) };
+        let template_ids = self.template_ids().await?;
+        let Some(template_id) = game.settings.get(TEMPLATE_KEY).and_then(|uid| template_ids.get(uid)).copied() else { return Ok(None) };
         let parents = self.parent_locations().await?;
         let categories = self.categories_by_game().await?.remove(&id).unwrap_or_default();
         let thumbs = self.images.thumbnail_urls().await.map_err(GameError::from)?;
-        Ok(Some(to_json(&game, &puzzle, parents.get(&game.game_parent_id).map_or("", String::as_str), categories, &thumbs)))
+        Ok(Some(to_json(&game, template_id, parents.get(&game.game_parent_id).map_or("", String::as_str), categories, &thumbs, true)))
     }
 
-    /// Creates the game and its puzzle from `{ name, description, parent, templateId, imageId, config, categoryIds }`;
+    /// Creates the game from `{ name, description, parent, templateId, imageId, config, categoryIds }`;
     /// the template, image, parent and categories must exist.
     pub async fn create(&self, input: &Value) -> Result<Value> {
         let Some(location) = input["parent"].as_str() else { return invalid("parent is required") };
         let parent_id = self.find_parent(location).await?;
         let Some(template_id) = input["templateId"].as_i64() else { return invalid("templateId is required") };
-        self.check_template(template_id).await?;
+        let template_uid = self.template_uid(template_id).await?;
         let image_id = input["imageId"].as_i64();
         self.check_image(image_id).await?;
         let category_ids = self.check_categories(&input["categoryIds"]).await?;
@@ -104,31 +109,36 @@ impl GamesService {
             name: input["name"].as_str().unwrap_or_default().into(),
             description: input["description"].as_str().unwrap_or_default().into(),
             game_parent_id: parent_id,
-            settings: settings(&input["config"]),
+            settings: settings(&template_uid, image_id, &input["config"]),
             attributes: self.attributes_of(template_id).await?,
             ..Game::default()
         };
         let created = self.repo.create(item).await?;
-        self.puzzles.create(PuzzleGame { game_id: created.id, template_id, image_id, ..PuzzleGame::default() }).await?;
         self.set_categories(created.id, category_ids.unwrap_or_default()).await?;
         Ok(self.get(created.id).await?.unwrap_or(Value::Null))
     }
 
     /// Merges the fields present in `input`; `None` when the game does not exist.
     pub async fn update(&self, id: i64, input: &Value) -> Result<Option<Value>> {
-        let (Some(mut game), Some(mut puzzle)) = (self.find(id).await?, self.puzzles_by_game().await?.remove(&id)) else { return Ok(None) };
+        let Some(mut game) = self.find(id).await? else { return Ok(None) };
+        if !game.settings.contains_key(TEMPLATE_KEY) {
+            return Ok(None);
+        }
         if let Some(location) = input["parent"].as_str() {
             game.game_parent_id = self.find_parent(location).await?;
         }
         if let Some(template_id) = input["templateId"].as_i64() {
-            self.check_template(template_id).await?;
-            puzzle.template_id = template_id;
+            let uid = self.template_uid(template_id).await?;
+            game.settings.insert(TEMPLATE_KEY.into(), uid);
             game.attributes.extend(self.attributes_of(template_id).await?);
         }
-        if input.get("imageId").is_some_and(|v| !v.is_null()) {
-            let image_id = input["imageId"].as_i64();
+        if let Some(value) = input.get("imageId") {
+            let image_id = value.as_i64();
             self.check_image(image_id).await?;
-            puzzle.image_id = image_id;
+            match image_id {
+                Some(id) => game.settings.insert(IMAGE_KEY.into(), id.to_string()),
+                None => game.settings.remove(IMAGE_KEY),
+            };
         }
         let category_ids = self.check_categories(&input["categoryIds"]).await?;
         if let Some(v) = input["name"].as_str() {
@@ -138,10 +148,9 @@ impl GamesService {
             game.description = v.into();
         }
         if !input["config"].is_null() {
-            game.settings = settings(&input["config"]);
+            game.settings.insert(CONFIG_KEY.into(), input["config"].to_string());
         }
         self.repo.update(game, None).await?;
-        self.puzzles.update(puzzle, None).await?;
         if let Some(ids) = category_ids {
             self.set_categories(id, ids).await?;
         }
@@ -151,15 +160,15 @@ impl GamesService {
     /// Gives every game its attributes where they are missing or its template changed behind its back (run by
     /// `setup`); returns the names of the games it updated.
     pub async fn add_attributes(&self) -> Result<Vec<String>> {
-        let puzzles = self.puzzles_by_game().await?;
+        let template_ids = self.template_ids().await?;
         let games: Vec<Game> = self.repo.read(None, None).try_collect().await?;
         let mut updated = vec![];
         for mut game in games {
-            let Some(puzzle) = puzzles.get(&game.id) else { continue };
+            let Some(template_id) = game.settings.get(TEMPLATE_KEY).and_then(|uid| template_ids.get(uid)).copied() else { continue };
             if game.is_deleted {
                 continue;
             }
-            let wanted = self.attributes_of(puzzle.template_id).await?;
+            let wanted = self.attributes_of(template_id).await?;
             if wanted.iter().all(|(k, v)| game.attributes.get(k) == Some(v)) {
                 continue;
             }
@@ -181,9 +190,6 @@ impl GamesService {
 
     pub async fn delete(&self, id: i64) -> Result<bool> {
         let Some(game) = self.find(id).await? else { return Ok(false) };
-        if let Some(puzzle) = self.puzzles_by_game().await?.remove(&id) {
-            self.puzzles.delete(puzzle, None).await?;
-        }
         self.set_categories(id, BTreeSet::new()).await?;
         self.repo.delete(game, None).await?;
         Ok(true)
@@ -242,11 +248,6 @@ impl GamesService {
         Ok(self.repo.read_single_by_id(&datasources::Value::Int(id)).await?.filter(|g| !g.is_deleted))
     }
 
-    async fn puzzles_by_game(&self) -> Result<HashMap<i64, PuzzleGame>> {
-        let rows: Vec<PuzzleGame> = self.puzzles.read(None, None).try_collect().await?;
-        Ok(rows.into_iter().map(|p| (p.game_id, p)).collect())
-    }
-
     async fn categories_by_game(&self) -> Result<HashMap<i64, Vec<i64>>> {
         let rows: Vec<GameCategory> = self.game_categories.read(None, None).try_collect().await?;
         let mut map: HashMap<i64, Vec<i64>> = HashMap::new();
@@ -299,12 +300,19 @@ impl GamesService {
         Ok(self.parents.list().await?.iter().filter_map(|p| Some((p["id"].as_i64()?, p["location"].as_str()?.to_string()))).collect())
     }
 
-    async fn check_template(&self, id: i64) -> Result<()> {
+    /// The uuid stored in a game's `template_uid` setting; fails when the template does not exist.
+    async fn template_uid(&self, id: i64) -> Result<String> {
         match self.templates.get(id).await {
-            Ok(Some(_)) => Ok(()),
+            Ok(Some(template)) => Ok(template["uuid"].as_str().unwrap_or_default().to_string()),
             Ok(None) => invalid(format!("unknown template: {id}")),
             Err(_) => invalid("could not read templates"),
         }
+    }
+
+    /// Template uuid to template id.
+    async fn template_ids(&self) -> Result<HashMap<String, i64>> {
+        let templates = self.templates.list(None).await.map_err(|_| GameError::Invalid("could not read templates".into()))?;
+        Ok(templates.iter().filter_map(|t| Some((t["uuid"].as_str()?.to_string(), t["id"].as_i64()?))).collect())
     }
 
     async fn check_image(&self, id: Option<i64>) -> Result<()> {
@@ -316,24 +324,34 @@ impl GamesService {
     }
 }
 
-fn settings(config: &Value) -> HashMap<String, String> {
-    if config.is_null() { HashMap::new() } else { HashMap::from([(CONFIG_KEY.to_string(), config.to_string())]) }
+fn settings(template_uid: &str, image_id: Option<i64>, config: &Value) -> HashMap<String, String> {
+    let mut map = HashMap::from([(TEMPLATE_KEY.to_string(), template_uid.to_string())]);
+    if let Some(id) = image_id {
+        map.insert(IMAGE_KEY.to_string(), id.to_string());
+    }
+    if !config.is_null() {
+        map.insert(CONFIG_KEY.to_string(), config.to_string());
+    }
+    map
 }
 
-fn to_json(game: &Game, puzzle: &PuzzleGame, parent: &str, category_ids: Vec<i64>, thumbs: &HashMap<i64, String>) -> Value {
-    let config = game.settings.get(CONFIG_KEY).and_then(|s| serde_json::from_str::<Value>(s).ok()).unwrap_or_else(|| json!({}));
-    json!({
+fn to_json(game: &Game, template_id: i64, parent: &str, category_ids: Vec<i64>, thumbs: &HashMap<i64, String>, with_config: bool) -> Value {
+    let image_id = game.settings.get(IMAGE_KEY).and_then(|s| s.parse::<i64>().ok());
+    let mut value = json!({
         "id": game.id,
         "uuid": game.uuid.to_string(),
         "name": game.name,
         "description": game.description,
         "parent": parent,
-        "templateId": puzzle.template_id,
-        "imageId": puzzle.image_id,
-        "config": config,
+        "templateId": template_id,
+        "imageId": image_id,
         "categoryIds": category_ids,
-        "thumbnailUrl": puzzle.image_id.and_then(|id| thumbs.get(&id)),
+        "thumbnailUrl": image_id.and_then(|id| thumbs.get(&id)),
         "created": game.created.to_rfc3339(),
         "updated": game.updated.to_rfc3339(),
-    })
+    });
+    if with_config {
+        value["config"] = game.settings.get(CONFIG_KEY).and_then(|s| serde_json::from_str::<Value>(s).ok()).unwrap_or_else(|| json!({}));
+    }
+    value
 }

@@ -7,9 +7,13 @@ namespace Backend.Services;
 
 /// <summary>
 /// What the API exchanges. A game is a puzzle described by three things: its <c>TemplateId</c>, its background
-/// <c>ImageId</c> and its <c>Config</c> (every setting of the designer panel, as JSON).
+/// <c>ImageId</c> and its <c>Config</c> (every setting of the designer panel, as JSON). They are stored as game settings
+/// (<c>template_uid</c>, <c>image_id</c>, <c>config</c>) without foreign keys, so each game keeps its own template and image.
 /// </summary>
 public record GameDto(long Id, string Uuid, string Name, string Description, string Parent, long TemplateId, long? ImageId, JsonElement Config, List<long> CategoryIds, string? ThumbnailUrl, DateTime Created, DateTime Updated);
+
+/// <summary>A game as the list returns it: without <c>Config</c>, which <c>Get</c> loads for the one that is selected.</summary>
+public record GameListItem(long Id, string Uuid, string Name, string Description, string Parent, long TemplateId, long? ImageId, List<long> CategoryIds, string? ThumbnailUrl, DateTime Created, DateTime Updated);
 
 public record GameInput(string? Name, string? Description, string? Parent, long? TemplateId, long? ImageId, JsonElement? Config, List<long>? CategoryIds);
 
@@ -20,7 +24,6 @@ public class InvalidGameException(string message) : Exception(message);
 
 public class GamesService(
     ICRUDRepository<GameView> repo,
-    ICRUDRepository<PuzzleGame> puzzles,
     ICRUDRepository<GameCategory> gameCategories,
     CategoriesService categories,
     GameParentsService parents,
@@ -28,17 +31,21 @@ public class GamesService(
     ImagesService images)
 {
     const string ConfigKey = "config";
+    /// <summary>Setting holding the uuid of the game's template.</summary>
+    const string TemplateKey = "template_uid";
+    /// <summary>Setting holding the id of the game's background image (a cms resource); absent when it has none.</summary>
+    const string ImageKey = "image_id";
     /// <summary>Attribute holding the pieces in the game's template (<c>cols * rows</c>).</summary>
     public const string PieceCount = "pieceCount";
 
-    public async Task<List<GameDto>> List()
+    public async Task<List<GameListItem>> List()
     {
-        var puzzleOf = await PuzzlesByGame();
+        var templateIds = await TemplateIds();
         var categoryOf = await CategoriesByGame();
         var thumbs = await images.ThumbnailUrls();
-        var list = new List<GameDto>();
+        var list = new List<GameListItem>();
         foreach (var game in await Games())
-            if (puzzleOf.TryGetValue(game.Id, out var puzzle)) list.Add(ToDto(game, puzzle, await ParentOf(game), categoryOf.GetValueOrDefault(game.Id) ?? [], thumbs));
+            if (game.Settings.GetValueOrDefault(TemplateKey) is { } uid && templateIds.TryGetValue(uid, out var templateId)) list.Add(ToListItem(game, templateId, await ParentOf(game), categoryOf.GetValueOrDefault(game.Id) ?? [], thumbs));
         return list;
     }
 
@@ -46,15 +53,17 @@ public class GamesService(
     {
         var game = await repo.ReadSingleById(id);
         if (game is null || game.IsDeleted) return null;
-        return await PuzzleOf(id) is { } puzzle ? ToDto(game, puzzle, await ParentOf(game), await CategoryIdsOf(id), await images.ThumbnailUrls()) : null;
+        return game.Settings.GetValueOrDefault(TemplateKey) is { } uid && (await TemplateIds()).TryGetValue(uid, out var templateId)
+            ? ToDto(game, templateId, await ParentOf(game), await CategoryIdsOf(id), await images.ThumbnailUrls())
+            : null;
     }
 
-    /// <summary>Creates the game and its puzzle; the template, image and parent must exist.</summary>
+    /// <summary>Creates the game; the template, image and parent must exist.</summary>
     public async Task<GameDto> Create(GameInput input)
     {
         var parent = await FindParent(input.Parent ?? throw new InvalidGameException("parent is required"));
         var templateId = input.TemplateId ?? throw new InvalidGameException("templateId is required");
-        await CheckTemplate(templateId);
+        var templateUid = await TemplateUid(templateId);
         await CheckImage(input.ImageId);
         await CheckCategories(input.CategoryIds);
 
@@ -63,48 +72,46 @@ public class GamesService(
             Name = input.Name ?? "",
             Description = input.Description ?? "",
             GameParentId = parent.Id,
-            Settings = Settings(input.Config),
+            Settings = Settings(templateUid, input.ImageId, input.Config),
             Attributes = await AttributesOf(templateId),
         };
         var created = await repo.Create(game);
-        var puzzle = await puzzles.Create(new PuzzleGame { GameId = created.Id, TemplateId = templateId, ImageId = input.ImageId });
         await SetCategories(created.Id, input.CategoryIds ?? []);
-        return ToDto(await repo.ReadSingleById(created.Id) ?? created, puzzle, parent.Location, await CategoryIdsOf(created.Id), await images.ThumbnailUrls());
+        return ToDto(await repo.ReadSingleById(created.Id) ?? created, templateId, parent.Location, await CategoryIdsOf(created.Id), await images.ThumbnailUrls());
     }
 
     /// <summary>Merges the fields present in <paramref name="input"/>; null when the game does not exist.</summary>
     public async Task<GameDto?> Update(long id, GameInput input)
     {
         var game = await repo.ReadSingleById(id);
-        if (game is null || game.IsDeleted || await PuzzleOf(id) is not { } puzzle) return null;
+        if (game is null || game.IsDeleted || !game.Settings.ContainsKey(TemplateKey)) return null;
+        var settings = new Dictionary<string, string>(game.Settings);
 
         if (input.Parent is not null) game.GameParentId = (await FindParent(input.Parent)).Id;
         if (input.TemplateId is { } templateId)
         {
-            await CheckTemplate(templateId);
-            puzzle.TemplateId = templateId;
+            settings[TemplateKey] = await TemplateUid(templateId);
             foreach (var (name, value) in await AttributesOf(templateId)) game.Attributes[name] = value;
         }
-        if (input.ImageId is not null)
+        if (input.ImageId is { } imageId)
         {
-            await CheckImage(input.ImageId);
-            puzzle.ImageId = input.ImageId;
+            await CheckImage(imageId);
+            settings[ImageKey] = imageId.ToString();
         }
         await CheckCategories(input.CategoryIds);
         game.Name = input.Name ?? game.Name;
         game.Description = input.Description ?? game.Description;
-        if (input.Config is not null) game.Settings = Settings(input.Config);
+        if (input.Config is { } config) settings[ConfigKey] = config.GetRawText();
+        game.Settings = settings;
         await repo.Update(game);
-        await puzzles.Update(puzzle);
         if (input.CategoryIds is not null) await SetCategories(id, input.CategoryIds);
-        return ToDto(await repo.ReadSingleById(id) ?? game, puzzle, await ParentOf(game), await CategoryIdsOf(id), await images.ThumbnailUrls());
+        return ToDto(await repo.ReadSingleById(id) ?? game, (await TemplateIds())[settings[TemplateKey]], await ParentOf(game), await CategoryIdsOf(id), await images.ThumbnailUrls());
     }
 
     public async Task<bool> Delete(long id)
     {
         var game = await repo.ReadSingleById(id);
         if (game is null || game.IsDeleted) return false;
-        if (await PuzzleOf(id) is { } puzzle) await puzzles.Delete(puzzle);
         await SetCategories(id, []);
         await repo.Delete(game);
         return true;
@@ -156,12 +163,12 @@ public class GamesService(
     /// </summary>
     public async Task<List<string>> AddAttributes()
     {
-        var puzzleOf = await PuzzlesByGame();
+        var templateIds = await TemplateIds();
         var updated = new List<string>();
         foreach (var game in await Games())
         {
-            if (!puzzleOf.TryGetValue(game.Id, out var puzzle)) continue;
-            var wanted = await AttributesOf(puzzle.TemplateId);
+            if (game.Settings.GetValueOrDefault(TemplateKey) is not { } uid || !templateIds.TryGetValue(uid, out var templateId)) continue;
+            var wanted = await AttributesOf(templateId);
             if (wanted.All(a => game.Attributes.GetValueOrDefault(a.Key) == a.Value)) continue;
             foreach (var (name, value) in wanted) game.Attributes[name] = value;
             await repo.Update(game);
@@ -176,13 +183,6 @@ public class GamesService(
         var content = (await templates.Get(templateId))?.Content;
         long Get(string name) => content is { ValueKind: JsonValueKind.Object } c && c.TryGetProperty(name, out var v) && v.TryGetInt64(out var n) ? n : 0;
         return new() { [PieceCount] = (Get("cols") * Get("rows")).ToString() };
-    }
-
-    async Task<Dictionary<long, PuzzleGame>> PuzzlesByGame()
-    {
-        var map = new Dictionary<long, PuzzleGame>();
-        await foreach (var row in puzzles.Read()) map[row.GameId] = row;
-        return map;
     }
 
     async Task<Dictionary<long, List<long>>> CategoriesByGame()
@@ -221,29 +221,40 @@ public class GamesService(
         if (ids.FirstOrDefault(id => !known.Contains(id), -1) is var bad && bad != -1) throw new InvalidGameException($"unknown category: {bad}");
     }
 
-    async Task<PuzzleGame?> PuzzleOf(long gameId) => (await PuzzlesByGame()).GetValueOrDefault(gameId);
-
     async Task<Backend.Types.View.GameParent> FindParent(string location) =>
         (await parents.List()).FirstOrDefault(p => p.Location == location) ?? throw new InvalidGameException($"unknown parent game: {location}");
 
     async Task<string> ParentOf(GameView game) => (await parents.Get(game.GameParentId))?.Location ?? "";
 
-    async Task CheckTemplate(long id)
-    {
-        if (await templates.Get(id) is null) throw new InvalidGameException($"unknown template: {id}");
-    }
+    /// <summary>The uuid stored in a game's <c>template_uid</c> setting; throws when the template does not exist.</summary>
+    async Task<string> TemplateUid(long id) => (await templates.Get(id))?.Uuid ?? throw new InvalidGameException($"unknown template: {id}");
+
+    /// <summary>Template uuid to template id.</summary>
+    async Task<Dictionary<string, long>> TemplateIds() => (await templates.List()).ToDictionary(t => t.Uuid, t => t.Id);
 
     async Task CheckImage(long? id)
     {
         if (id is { } image && await images.Find(id: image) is null) throw new InvalidGameException($"unknown image: {image}");
     }
 
-    static Dictionary<string, string> Settings(JsonElement? config) =>
-        config is { } c ? new() { [ConfigKey] = c.GetRawText() } : [];
-
-    static GameDto ToDto(GameView game, PuzzleGame puzzle, string parent, List<long> categoryIds, Dictionary<long, string> thumbs)
+    static Dictionary<string, string> Settings(string templateUid, long? imageId, JsonElement? config)
     {
+        var settings = new Dictionary<string, string> { [TemplateKey] = templateUid };
+        if (imageId is { } image) settings[ImageKey] = image.ToString();
+        if (config is { } c) settings[ConfigKey] = c.GetRawText();
+        return settings;
+    }
+
+    static GameDto ToDto(GameView game, long templateId, string parent, List<long> categoryIds, Dictionary<long, string> thumbs)
+    {
+        var item = ToListItem(game, templateId, parent, categoryIds, thumbs);
         var config = game.Settings.TryGetValue(ConfigKey, out var json) ? JsonDocument.Parse(json).RootElement.Clone() : JsonDocument.Parse("{}").RootElement.Clone();
-        return new(game.Id, game.Uuid.ToString(), game.Name, game.Description, parent, puzzle.TemplateId, puzzle.ImageId, config, categoryIds, puzzle.ImageId is { } image ? thumbs.GetValueOrDefault(image) : null, game.Created, game.Updated);
+        return new(item.Id, item.Uuid, item.Name, item.Description, item.Parent, item.TemplateId, item.ImageId, config, item.CategoryIds, item.ThumbnailUrl, item.Created, item.Updated);
+    }
+
+    static GameListItem ToListItem(GameView game, long templateId, string parent, List<long> categoryIds, Dictionary<long, string> thumbs)
+    {
+        long? imageId = game.Settings.TryGetValue(ImageKey, out var id) && long.TryParse(id, out var n) ? n : null;
+        return new(game.Id, game.Uuid.ToString(), game.Name, game.Description, parent, templateId, imageId, categoryIds, imageId is { } image ? thumbs.GetValueOrDefault(image) : null, game.Created, game.Updated);
     }
 }

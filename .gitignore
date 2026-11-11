@@ -9,3 +9,5 @@ bin
 obj
 *.sqlite
 backend/*/uploads
+*.sqlite-wal
+*.sqlite-shm

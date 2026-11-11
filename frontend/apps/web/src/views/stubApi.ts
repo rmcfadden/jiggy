@@ -17,6 +17,12 @@ export const stubApi = (url: string): unknown => {
       id: i + 1, attributes: [{ name: 'pieceCount', value: String(pieces(p.template.size)) }], name: p.name, description: '', parentName: p.settings.type, thumbnameLocation: p.image.location,
       categories: p.categories.map((id) => ({ id: all.findIndex((c) => c.id === id) + 1, name: all.find((c) => c.id === id)!.name })),
     }))
+  const one = /^\/api\/games\/(\d+)/.exec(url)
+  if (one) {
+    const game = (stubApi('/api/games') as { id: number }[]).find((g) => g.id === Number(one[1]))
+    return game
+  }
+  if (url.startsWith('/api/templates/')) return { id: 1, uuid: '1', type: 'jigsaw', name: 'Stub', content: { cols: 4, rows: 3, width: 800, height: 600, seed: 7 }, created: '', updated: '' }
   if (url.startsWith('/api/games'))
     return CATALOG.puzzles.map((p, i) => ({
       id: i + 1, uuid: String(i), name: p.name, description: '', parent: p.settings.type, templateId: 1, imageId: null,
