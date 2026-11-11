@@ -36,6 +36,12 @@ import { SigninService } from './services/signin.ts'
 import { OAuthService } from './services/oauth.ts'
 import { signinRouter } from './routes/signin.ts'
 import { oauthRouter } from './routes/oauth.ts'
+import type { Contact } from '../generated/types/view/contact.ts'
+import type { Email } from '../generated/types/view/email.ts'
+import type { EmailType } from '../generated/types/datasource/emailType.ts'
+import type { Gender } from '../generated/types/datasource/gender.ts'
+import { SignupService } from './services/signup.ts'
+import { signupRouter } from './routes/signup.ts'
 
 const ds = Datasource.default as Datasource & {
   categories: ICRUDRepository<Category>
@@ -53,6 +59,10 @@ const ds = Datasource.default as Datasource & {
   sessions: ICRUDRepository<Session>
   sessionHits: ICRUDRepository<SessionHit>
   sessionTypes: ICRUDRepository<SessionType>
+  contacts: ICRUDRepository<Contact>
+  emails: ICRUDRepository<Email>
+  emailTypes: ICRUDRepository<EmailType>
+  genders: ICRUDRepository<Gender>
 }
 const categories = new CategoriesService(ds.categories)
 const gameParents = new GameParentsService(ds.gameParents)
@@ -64,8 +74,9 @@ const users = createUsersService()
 const tokenSettings = tokenSettingsFromEnv()
 const tokens = new TokenService(ds.tokens, ds.userTokens, ds.tokenTypes, tokenSettings)
 const sessions = new SessionService(ds.sessions, ds.sessionHits, ds.sessionTypes, tokens)
-const signin = new SigninService(users, tokens)
+const signin = new SigninService(users, tokens, ds.contacts, ds.emails)
 const oauth = new OAuthService(users, tokens, sessions, tokenSettings)
+const signup = new SignupService(users, tokens, ds.contacts, ds.emails, ds.emailTypes, ds.genders)
 
 const summaries = new GameSummariesService(await ds.createConnection(), images)
 
@@ -84,6 +95,7 @@ app.use('/api/templates', templatesRouter(templates))
 app.use('/api/images', imagesRouter(images))
 app.use('/api/signin', signinRouter(signin))
 app.use('/api/oauth', oauthRouter(oauth))
+app.use('/api/signup', signupRouter(signup))
 
 const port = Number(process.env.PORT ?? 3000)
 app.listen(port, () => console.log(`listening on :${port}`))

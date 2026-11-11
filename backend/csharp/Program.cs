@@ -75,7 +75,26 @@ builder.Services.AddSingleton(sp =>
         ds.CreateReadonlyRepository<Backend.Types.Datasource.SessionType>("SessionTypes"),
         sp.GetRequiredService<TokenService>());
 });
-builder.Services.AddSingleton(sp => new SigninService(sp.GetRequiredService<UserService>(), sp.GetRequiredService<TokenService>()));
+builder.Services.AddSingleton(sp =>
+{
+    var ds = sp.GetRequiredService<IDatasource>();
+    return new SigninService(
+        sp.GetRequiredService<UserService>(),
+        sp.GetRequiredService<TokenService>(),
+        ds.CreateRepository<Backend.Types.View.Contact>("Contacts"),
+        ds.CreateRepository<Backend.Types.View.Email>("Emails"));
+});
+builder.Services.AddSingleton(sp =>
+{
+    var ds = sp.GetRequiredService<IDatasource>();
+    return new SignupService(
+        sp.GetRequiredService<UserService>(),
+        sp.GetRequiredService<TokenService>(),
+        ds.CreateRepository<Backend.Types.View.Contact>("Contacts"),
+        ds.CreateRepository<Backend.Types.View.Email>("Emails"),
+        ds.CreateReadonlyRepository<Backend.Types.Datasource.EmailType>("EmailTypes"),
+        ds.CreateReadonlyRepository<Backend.Types.Datasource.Gender>("Genders"));
+});
 builder.Services.AddSingleton(sp => new OAuthService(
     sp.GetRequiredService<UserService>(), sp.GetRequiredService<TokenService>(), sp.GetRequiredService<SessionService>(), sp.GetRequiredService<TokenSettings>()));
 builder.Services.AddSingleton(sp => new GameSummariesService(sp.GetRequiredService<IDatasource>().CreateConnection().GetAwaiter().GetResult(), sp.GetRequiredService<ImagesService>()));
@@ -126,6 +145,7 @@ app.MapGameSummaries();
 app.MapTemplates();
 app.MapImages();
 app.MapSignin();
+app.MapSignup();
 app.MapOAuth();
 
 app.Run();

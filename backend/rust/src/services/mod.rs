@@ -7,6 +7,7 @@ pub mod jwt;
 pub mod oauth;
 pub mod sessions;
 pub mod signin;
+pub mod signup;
 pub mod setup;
 pub mod templates;
 pub mod tokens;

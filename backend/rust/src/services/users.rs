@@ -20,13 +20,15 @@ const MAX_PASSWORD_BYTES: usize = 72;
 #[derive(Debug)]
 pub enum UserError {
     Invalid(String),
+    /// The username is already taken (signup maps this to 409).
+    Exists(String),
     Datasource(datasources::DatasourceError),
 }
 
 impl std::fmt::Display for UserError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            UserError::Invalid(message) => write!(f, "{message}"),
+            UserError::Invalid(message) | UserError::Exists(message) => write!(f, "{message}"),
             UserError::Datasource(error) => write!(f, "{error}"),
         }
     }
@@ -86,7 +88,7 @@ impl UsersService {
         }
         check_password(&input.password)?;
         if self.find(&username).await?.is_some() {
-            return invalid(format!("user \"{username}\" already exists"));
+            return Err(UserError::Exists(format!("user \"{username}\" already exists")));
         }
         let roles = by_name(self.roles.read(None, None).try_collect::<Vec<Role>>().await?, &input.roles, "role", |r| r.name.clone())?;
         let groups = by_name(self.groups.read(None, None).try_collect::<Vec<Group>>().await?, &input.groups, "group", |g| g.name.clone())?;
@@ -136,6 +138,22 @@ impl UsersService {
             }
         }
         Ok(user)
+    }
+
+    /// Deletes a user together with its password secrets (used to roll back a failed signup).
+    pub async fn remove(&self, user: &User) -> Result<()> {
+        let links: Vec<UserSecret> = self.user_secrets.read(None, None).try_collect().await?;
+        let links: Vec<UserSecret> = links.into_iter().filter(|l| l.user_id == user.id).collect();
+        let ids: HashSet<i64> = links.iter().map(|l| l.secret_id).collect();
+        for link in links {
+            self.user_secrets.delete(link, None).await?;
+        }
+        let secrets: Vec<Secret> = self.secrets.read(None, None).try_collect().await?;
+        for secret in secrets.into_iter().filter(|s| ids.contains(&s.id)) {
+            self.secrets.delete(secret, None).await?;
+        }
+        self.users.delete(user.clone(), None).await?;
+        Ok(())
     }
 
     /// True when `plain` matches the user's stored password hash.

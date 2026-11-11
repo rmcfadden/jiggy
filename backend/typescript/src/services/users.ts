@@ -19,6 +19,8 @@ export type UpdateUserInput = { password?: string; isEnabled?: boolean }
 
 /** A bad argument or a missing/duplicate record; the CLI prints the message and exits 1. */
 export class UserError extends Error {}
+/** The username is already taken (signup maps this to 409). */
+export class UserExistsError extends UserError {}
 
 export class UsersService {
   constructor(
@@ -34,7 +36,7 @@ export class UsersService {
     const username = input.username.trim()
     if (!username) throw new UserError('username is required')
     checkPassword(input.password)
-    if (await this.find(username)) throw new UserError(`user "${username}" already exists`)
+    if (await this.find(username)) throw new UserExistsError(`user "${username}" already exists`)
     const roles = await this.byName(this.roles, input.roles ?? [], 'role')
     const groups = await this.byName(this.groups, input.groups ?? [], 'group')
     const secretTypeId = await this.passwordTypeId()
@@ -69,6 +71,16 @@ export class UsersService {
       else await this.storePassword(existing.id, secretTypeId, hash)
     }
     return next
+  }
+
+  /** Deletes a user together with its password secrets (used to roll back a failed signup). */
+  async remove(existing: User): Promise<void> {
+    const links: UserSecret[] = []
+    for await (const link of this.userSecrets.read()) if (Number(link.userId) === Number(existing.id)) links.push(link)
+    const ids = new Set(links.map((link) => Number(link.secretId)))
+    for (const link of links) await this.userSecrets.delete(link)
+    for await (const row of this.secrets.read()) if (ids.has(Number(row.id))) await this.secrets.delete(row)
+    await this.users.delete(existing)
   }
 
   /** True when `plain` matches the user's stored password hash. */
