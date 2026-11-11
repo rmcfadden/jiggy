@@ -41,7 +41,7 @@ impl From<datasources::DatasourceError> for AuthError {
 impl From<UserError> for AuthError {
     fn from(error: UserError) -> Self {
         match error {
-            UserError::Invalid(message) => AuthError::Invalid(message),
+            UserError::Invalid(message) | UserError::Exists(message) => AuthError::Invalid(message),
             UserError::Datasource(error) => AuthError::Datasource(error),
         }
     }

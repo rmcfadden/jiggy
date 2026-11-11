@@ -12,6 +12,9 @@ public record UpdateUserInput(string? Password, bool? IsEnabled);
 /// <summary>A bad argument or a missing/duplicate record; the CLI prints the message and exits 1.</summary>
 public class UserException(string message) : Exception(message);
 
+/// <summary>The username is already taken (signup maps this to 409).</summary>
+public class UserExistsException(string message) : UserException(message);
+
 public class UserService(
     ICRUDRepository<User> users,
     ICRUDRepository<Role> roles,
@@ -34,7 +37,7 @@ public class UserService(
         var username = input.Username.Trim();
         if (username.Length == 0) throw new UserException("username is required");
         CheckPassword(input.Password);
-        if (await Find(username) is not null) throw new UserException($"user \"{username}\" already exists");
+        if (await Find(username) is not null) throw new UserExistsException($"user \"{username}\" already exists");
         var userRoles = await ByName(roles, input.Roles, "role", r => r.Name);
         var userGroups = await ByName(groups, input.Groups, "group", g => g.Name);
         var secretTypeId = await PasswordTypeId();
@@ -77,6 +80,21 @@ public class UserService(
             }
         }
         return user;
+    }
+
+    /// <summary>Deletes a user together with its password secrets (used to roll back a failed signup).</summary>
+    public async Task Remove(User user)
+    {
+        var links = new List<UserSecret>();
+        await foreach (var link in userSecrets.Read())
+            if (link.UserId == user.Id) links.Add(link);
+        var ids = links.Select(l => l.SecretId).ToHashSet();
+        foreach (var link in links) await userSecrets.Delete(link);
+        var owned = new List<Secret>();
+        await foreach (var row in secrets.Read())
+            if (ids.Contains(row.Id)) owned.Add(row);
+        foreach (var row in owned) await secrets.Delete(row);
+        await users.Delete(user);
     }
 
     /// <summary>True when <paramref name="plain"/> matches the user's stored password hash.</summary>

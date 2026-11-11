@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
+import { useSession } from './auth/hooks'
 import {
   BACKGROUNDS,
   MODES,
@@ -12,11 +13,12 @@ import {
   loadPalette,
 } from './theme'
 
-const LINKS = [
+const BASE_LINKS = [
   { to: '/puzzles', label: 'Puzzles', short: 'E' },
   { to: '/designer', label: 'Designer', short: 'D' },
-  { to: '/account', label: 'Account', short: 'A' },
 ]
+const ACCOUNT_LINK = { to: '/account', label: 'Account', short: 'A' }
+const SIGNIN_LINK = { to: '/signin', label: 'Sign in', short: 'S' }
 
 const STORAGE_KEY = 'jiggy.sidebar.collapsed'
 
@@ -44,6 +46,7 @@ function useIsMobile() {
 }
 
 export default function Sidebar() {
+  const links = [...BASE_LINKS, useSession().data ? ACCOUNT_LINK : SIGNIN_LINK]
   const [collapsedPref, setCollapsed] = useState(loadCollapsed)
   const mobile = useIsMobile()
   // On phones the nav is a bottom bar: full labels, compact theme buttons.
@@ -93,7 +96,7 @@ export default function Sidebar() {
       >
         {collapsed ? '»' : '«'}
       </button>
-      {LINKS.map((l) => (
+      {links.map((l) => (
         <NavLink
           key={l.to}
           to={l.to}
