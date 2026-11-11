@@ -42,14 +42,11 @@ types:
       fields: []
       union:
         - secret_type
+      extract:
+        - secret_type.name
+        - secret_type.description
       mapping:
         name: secret_type_name
-      remove_fields:
-        - secret_type.id
-        - secret_type.uuid
-        - secret_type.created
-        - secret_type.updated
-        - secret_type.version
 
   - user_secret:
       tags:
