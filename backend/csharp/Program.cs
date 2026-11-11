@@ -56,6 +56,28 @@ builder.Services.AddSingleton(sp =>
     var ds = sp.GetRequiredService<IDatasource>();
     return new SetupService(ds.CreateRepository<Backend.Types.Datasource.Role>("Roles"), ds.CreateRepository<Backend.Types.Datasource.Group>("Groups"), sp.GetRequiredService<UserService>());
 });
+builder.Services.AddSingleton(sp => TokenSettings.From(sp.GetRequiredService<IConfiguration>()));
+builder.Services.AddSingleton(sp =>
+{
+    var ds = sp.GetRequiredService<IDatasource>();
+    return new TokenService(
+        ds.CreateRepository<Backend.Types.View.Token>("Tokens"),
+        ds.CreateRepository<Backend.Types.Datasource.UserToken>("UserTokens"),
+        ds.CreateReadonlyRepository<Backend.Types.Datasource.TokenType>("TokenTypes"),
+        sp.GetRequiredService<TokenSettings>());
+});
+builder.Services.AddSingleton(sp =>
+{
+    var ds = sp.GetRequiredService<IDatasource>();
+    return new SessionService(
+        ds.CreateRepository<Backend.Types.View.Session>("Sessions"),
+        ds.CreateRepository<Backend.Types.View.SessionHit>("SessionHits"),
+        ds.CreateReadonlyRepository<Backend.Types.Datasource.SessionType>("SessionTypes"),
+        sp.GetRequiredService<TokenService>());
+});
+builder.Services.AddSingleton(sp => new SigninService(sp.GetRequiredService<UserService>(), sp.GetRequiredService<TokenService>()));
+builder.Services.AddSingleton(sp => new OAuthService(
+    sp.GetRequiredService<UserService>(), sp.GetRequiredService<TokenService>(), sp.GetRequiredService<SessionService>(), sp.GetRequiredService<TokenSettings>()));
 builder.Services.AddSingleton(sp => new GameSummariesService(sp.GetRequiredService<IDatasource>().CreateConnection().GetAwaiter().GetResult(), sp.GetRequiredService<ImagesService>()));
 builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = builder.Configuration.GetValue("Images:MaxBytes", 10L * 1024 * 1024));
 var app = builder.Build();
@@ -95,6 +117,7 @@ if (args.FirstOrDefault() is "add-user" or "update-user")
     return;
 }
 
+app.Services.GetRequiredService<TokenSettings>(); // fail at startup, not on the first signin, when JWT_SECRET is missing
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 app.MapCategories();
 app.MapGameParents();
@@ -102,5 +125,7 @@ app.MapGames();
 app.MapGameSummaries();
 app.MapTemplates();
 app.MapImages();
+app.MapSignin();
+app.MapOAuth();
 
 app.Run();

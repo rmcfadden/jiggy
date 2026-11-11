@@ -74,14 +74,20 @@ export class UsersService {
   /** True when `plain` matches the user's stored password hash. */
   async verifyPassword(username: string, plain: string): Promise<boolean> {
     const existing = await this.find(username)
-    if (!existing) return false
-    const current = await this.passwordSecret(existing.id, await this.passwordTypeId())
-    return !!current && bcrypt.compare(plain, current.value)
+    const current = existing ? await this.passwordSecret(existing.id, await this.passwordTypeId()) : undefined
+    // Always run one bcrypt comparison so an unknown user costs the same as a wrong password.
+    const matches = await bcrypt.compare(plain, current?.value ?? (await dummyHash()))
+    return !!current && matches
   }
 
   async hasUsers(): Promise<boolean> {
     for await (const _ of this.users.read()) return true
     return false
+  }
+
+  async findById(id: number): Promise<User | undefined> {
+    for await (const row of this.users.read()) if (Number(row.id) === Number(id)) return row
+    return undefined
   }
 
   async find(username: string): Promise<User | undefined> {
@@ -123,6 +129,12 @@ export class UsersService {
     }
     return undefined
   }
+}
+
+let dummy: Promise<string> | undefined
+/** A throwaway hash (never matches a real password) used to equalise timing for unknown users. */
+function dummyHash(): Promise<string> {
+  return (dummy ??= bcrypt.hash(`unused-${Math.random()}`, BCRYPT_COST))
 }
 
 function checkPassword(password: string): void {

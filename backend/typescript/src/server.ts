@@ -23,6 +23,19 @@ import { gameSummariesRouter } from './routes/gameSummaries.ts'
 import { GameSummariesService } from './services/gameSummaries.ts'
 import { templatesRouter } from './routes/templates.ts'
 import { TemplatesService } from './services/templates.ts'
+import type { Token } from '../generated/types/view/token.ts'
+import type { TokenType } from '../generated/types/datasource/tokenType.ts'
+import type { UserToken } from '../generated/types/datasource/userToken.ts'
+import type { Session } from '../generated/types/view/session.ts'
+import type { SessionHit } from '../generated/types/view/sessionHit.ts'
+import type { SessionType } from '../generated/types/datasource/sessionType.ts'
+import { createUsersService } from './cli/users.ts'
+import { TokenService, tokenSettingsFromEnv } from './services/tokens.ts'
+import { SessionService } from './services/sessions.ts'
+import { SigninService } from './services/signin.ts'
+import { OAuthService } from './services/oauth.ts'
+import { signinRouter } from './routes/signin.ts'
+import { oauthRouter } from './routes/oauth.ts'
 
 const ds = Datasource.default as Datasource & {
   categories: ICRUDRepository<Category>
@@ -34,12 +47,25 @@ const ds = Datasource.default as Datasource & {
   gameParents: ICRUDRepository<GameParent>
   templates: ICRUDRepository<TemplateBase>
   templateTypes: ICRUDRepository<TemplateType>
+  tokens: ICRUDRepository<Token>
+  tokenTypes: ICRUDRepository<TokenType>
+  userTokens: ICRUDRepository<UserToken>
+  sessions: ICRUDRepository<Session>
+  sessionHits: ICRUDRepository<SessionHit>
+  sessionTypes: ICRUDRepository<SessionType>
 }
 const categories = new CategoriesService(ds.categories)
 const gameParents = new GameParentsService(ds.gameParents)
 const templates = new TemplatesService(ds.templates, ds.templateTypes)
 const images = new ImagesService(ds.resources, ds.mimeTypes)
 const games = new GamesService(ds.games, ds.puzzleGames, ds.gameCategories, categories, gameParents, templates, images)
+
+const users = createUsersService()
+const tokenSettings = tokenSettingsFromEnv()
+const tokens = new TokenService(ds.tokens, ds.userTokens, ds.tokenTypes, tokenSettings)
+const sessions = new SessionService(ds.sessions, ds.sessionHits, ds.sessionTypes, tokens)
+const signin = new SigninService(users, tokens)
+const oauth = new OAuthService(users, tokens, sessions, tokenSettings)
 
 const summaries = new GameSummariesService(await ds.createConnection(), images)
 
@@ -56,6 +82,8 @@ app.use('/api/games', gamesRouter(games))
 app.use('/api/games_summaries', gameSummariesRouter(summaries))
 app.use('/api/templates', templatesRouter(templates))
 app.use('/api/images', imagesRouter(images))
+app.use('/api/signin', signinRouter(signin))
+app.use('/api/oauth', oauthRouter(oauth))
 
 const port = Number(process.env.PORT ?? 3000)
 app.listen(port, () => console.log(`listening on :${port}`))

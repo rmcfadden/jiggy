@@ -139,14 +139,22 @@ impl UsersService {
     }
 
     /// True when `plain` matches the user's stored password hash.
-    #[allow(dead_code)]
     pub async fn verify_password(&self, username: &str, plain: &str) -> Result<bool> {
-        let Some(user) = self.find(username).await? else { return Ok(false) };
-        let secret_type_id = self.password_type_id().await?;
-        Ok(match self.password_secret(user.id, secret_type_id).await? {
-            Some(secret) => bcrypt::verify(plain, &secret.value).unwrap_or(false),
-            None => false,
-        })
+        let secret = match self.find(username).await? {
+            Some(user) => {
+                let secret_type_id = self.password_type_id().await?;
+                self.password_secret(user.id, secret_type_id).await?
+            }
+            None => None,
+        };
+        // Always run one bcrypt comparison so an unknown user costs the same as a wrong password.
+        let matches = bcrypt::verify(plain, secret.as_ref().map(|s| s.value.as_str()).unwrap_or_else(|| dummy_hash())).unwrap_or(false);
+        Ok(secret.is_some() && matches)
+    }
+
+    pub async fn find_by_id(&self, id: i64) -> Result<Option<User>> {
+        let rows: Vec<User> = self.users.read(None, None).try_collect().await?;
+        Ok(rows.into_iter().find(|u| u.id == id))
     }
 
     pub async fn has_users(&self) -> Result<bool> {
@@ -203,6 +211,12 @@ fn by_name<T>(rows: Vec<T>, names: &[String], kind: &str, name_of: impl Fn(&T) -
     }
     let mut seen = HashSet::new();
     Ok(rows.into_iter().filter(|r| names.contains(&name_of(r)) && seen.insert(name_of(r))).collect())
+}
+
+/// A throwaway hash (never matches a real password) used to equalise timing for unknown users.
+fn dummy_hash() -> &'static str {
+    static DUMMY: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+    DUMMY.get_or_init(|| bcrypt::hash(format!("unused-{}", datasources::uuid::Uuid::new_v4()), BCRYPT_COST).expect("hash"))
 }
 
 fn check_password(password: &str) -> Result<()> {

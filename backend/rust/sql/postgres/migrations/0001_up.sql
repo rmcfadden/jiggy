@@ -2282,16 +2282,19 @@ SELECT setval(pg_get_serial_sequence('secret_types', 'id'), (SELECT MAX("id") FR
 GO
 -- Seeds: token_types
 GO
-INSERT INTO "token_types" ("id", "uuid", "name") VALUES (1, '8b7ad845-911a-5d50-b42c-2c7462c2ad59', 'text');
+INSERT INTO "token_types" ("id", "uuid", "name", "description") VALUES (1, '8b7ad845-911a-5d50-b42c-2c7462c2ad59', 'text', 'Opaque text token');
 SELECT setval(pg_get_serial_sequence('token_types', 'id'), (SELECT MAX("id") FROM "token_types"));
 GO
-INSERT INTO "token_types" ("id", "uuid", "name") VALUES (2, '75a005dc-5ddb-51e2-8bcc-3000f324d2ef', 'guid');
+INSERT INTO "token_types" ("id", "uuid", "name", "description") VALUES (2, '75a005dc-5ddb-51e2-8bcc-3000f324d2ef', 'guid', 'GUID token');
 SELECT setval(pg_get_serial_sequence('token_types', 'id'), (SELECT MAX("id") FROM "token_types"));
 GO
-INSERT INTO "token_types" ("id", "uuid", "name") VALUES (3, 'aca707e1-3734-5144-9672-81729882b595', 'jwt_access_token');
+INSERT INTO "token_types" ("id", "uuid", "name", "description") VALUES (3, 'aca707e1-3734-5144-9672-81729882b595', 'jwt_access_token', 'Short-lived JWT access token');
 SELECT setval(pg_get_serial_sequence('token_types', 'id'), (SELECT MAX("id") FROM "token_types"));
 GO
-INSERT INTO "token_types" ("id", "uuid", "name") VALUES (4, 'cd47f747-f368-5287-881a-8d7a030984f0', 'jwt_refresh_token');
+INSERT INTO "token_types" ("id", "uuid", "name", "description") VALUES (4, 'cd47f747-f368-5287-881a-8d7a030984f0', 'jwt_refresh_token', 'Long-lived JWT refresh token');
+SELECT setval(pg_get_serial_sequence('token_types', 'id'), (SELECT MAX("id") FROM "token_types"));
+GO
+INSERT INTO "token_types" ("id", "uuid", "name", "description") VALUES (5, '0ee8e7da-925d-5595-b865-77c620798be9', 'signin_token', 'Single-use signin token exchanged for access and refresh tokens');
 SELECT setval(pg_get_serial_sequence('token_types', 'id'), (SELECT MAX("id") FROM "token_types"));
 GO
 -- Seeds: session_types

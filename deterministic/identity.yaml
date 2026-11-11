@@ -107,12 +107,9 @@ types:
         - token_type
       mapping:
         token_type.name: token_type_name
-      remove_fields:
-        - token_type.id
-        - token_type.uuid
-        - token_type.created
-        - token_type.updated
-        - token_type.version
+      extract:
+        - token_type.name
+        - token_type.description
 
   - user_token:
       tags:

@@ -13,9 +13,16 @@ seeds:
   - token_type:
       - id1:
           name: text
+          description: Opaque text token
       - id2:
           name: guid
+          description: GUID token
       - id3:
           name: jwt_access_token
+          description: Short-lived JWT access token
       - id4:
           name: jwt_refresh_token
+          description: Long-lived JWT refresh token
+      - id5:
+          name: signin_token
+          description: Single-use signin token exchanged for access and refresh tokens

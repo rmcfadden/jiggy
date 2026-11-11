@@ -8,6 +8,7 @@ public sealed class TokensRepository : CRUDRepository<Backend.Types.View.Token>
     {
         TokenType = new TokenTypesRepository(connection);
         AddEnriched(new("TokenTypeName", "TokenTypeId", "Id", "Name"), TokenType);
+        AddEnriched(new("Description", "TokenTypeId", "Id", "Description"), TokenType);
     }
 
     public static IReadonlyRepository<Backend.Types.View.Token> CreateReadonly(IConnection connection)
@@ -15,6 +16,7 @@ public sealed class TokensRepository : CRUDRepository<Backend.Types.View.Token>
         var repo = new ReadonlyRepository<Backend.Types.View.Token>(connection, Options(connection));
         var TokenType = new TokenTypesRepository(connection);
         repo.AddEnriched(new("TokenTypeName", "TokenTypeId", "Id", "Name"), TokenType);
+        repo.AddEnriched(new("Description", "TokenTypeId", "Id", "Description"), TokenType);
         return repo;
     }
 
@@ -38,12 +40,11 @@ public sealed class TokensRepository : CRUDRepository<Backend.Types.View.Token>
                     ["Expires"] = "expires",
                     ["Revoked"] = "revoked",
                     ["IsDeleted"] = "is_deleted",
-                    ["Description"] = "description",
                 }),
                 Ids = ["Id"],
-                ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "TokenTypeId", "Name", "Secret", "IsEnabled", "Expires", "Revoked", "IsDeleted", "Description"],
-                CreateProperties = ["TokenTypeId", "Name", "Secret", "IsEnabled", "Expires", "Revoked", "IsDeleted", "Description"],
-                UpdateProperties = ["Uuid", "TokenTypeId", "Name", "Secret", "IsEnabled", "Expires", "Revoked", "IsDeleted", "Description"],
+                ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "TokenTypeId", "Name", "Secret", "IsEnabled", "Expires", "Revoked", "IsDeleted"],
+                CreateProperties = ["TokenTypeId", "Name", "Secret", "IsEnabled", "Expires", "Revoked", "IsDeleted"],
+                UpdateProperties = ["Uuid", "TokenTypeId", "Name", "Secret", "IsEnabled", "Expires", "Revoked", "IsDeleted"],
                 Schema = new(new Dictionary<string, SchemaColumn>
                 {
                     ["Id"] = new("biginteger", false, false, true),
@@ -80,12 +81,11 @@ public sealed class TokensRepository : CRUDRepository<Backend.Types.View.Token>
                     ["Expires"] = "expires",
                     ["Revoked"] = "revoked",
                     ["IsDeleted"] = "is_deleted",
-                    ["Description"] = "description",
                 }),
                 Ids = ["Id"],
-                ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "TokenTypeId", "Name", "Secret", "IsEnabled", "Expires", "Revoked", "IsDeleted", "Description"],
-                CreateProperties = ["Uuid", "Created", "Version", "TokenTypeId", "Name", "Secret", "IsEnabled", "Expires", "Revoked", "IsDeleted", "Description"],
-                UpdateProperties = ["Uuid", "Created", "Version", "TokenTypeId", "Name", "Secret", "IsEnabled", "Expires", "Revoked", "IsDeleted", "Description"],
+                ReadProperties = ["Id", "Uuid", "Created", "Updated", "Version", "TokenTypeId", "Name", "Secret", "IsEnabled", "Expires", "Revoked", "IsDeleted"],
+                CreateProperties = ["Uuid", "Created", "Version", "TokenTypeId", "Name", "Secret", "IsEnabled", "Expires", "Revoked", "IsDeleted"],
+                UpdateProperties = ["Uuid", "Created", "Version", "TokenTypeId", "Name", "Secret", "IsEnabled", "Expires", "Revoked", "IsDeleted"],
                 Schema = new(new Dictionary<string, SchemaColumn>
                 {
                     ["Id"] = new("biginteger", false, false, true),

@@ -14,8 +14,12 @@ use services::game_parents::GameParentsService;
 use services::game_summaries::GameSummariesService;
 use services::games::GamesService;
 use services::images::ImagesService;
+use services::oauth::OAuthService;
+use services::sessions::SessionService;
 use services::setup::SetupService;
+use services::signin::SigninService;
 use services::templates::TemplatesService;
+use services::tokens::{TokenService, TokenSettings};
 use services::users::UsersService;
 use std::sync::Arc;
 
@@ -42,6 +46,11 @@ async fn main() {
     ));
     let summaries = Arc::new(GameSummariesService::new(ds.bind_connection(None), images.clone()).expect("game summaries"));
     let users = Arc::new(UsersService::new(ds.users(), ds.roles(), ds.groups(), ds.secrets(), ds.secret_types(), ds.user_secrets()));
+    let settings = TokenSettings::from_env().expect("token settings");
+    let tokens = Arc::new(TokenService::new(ds.tokens(), ds.user_tokens(), ds.token_types(), settings.clone()));
+    let sessions = Arc::new(SessionService::new(ds.sessions(), ds.session_hits(), ds.session_types(), tokens.clone()));
+    let signin = Arc::new(SigninService::new(users.clone(), tokens.clone()));
+    let oauth = Arc::new(OAuthService::new(users.clone(), tokens, sessions, settings));
     let identity = SetupService::new(ds.roles(), ds.groups(), users.clone());
     let args: Vec<String> = std::env::args().skip(1).collect();
     match args.first().map(String::as_str) {
@@ -60,11 +69,13 @@ async fn main() {
         .merge(routes::templates::router(templates))
         .merge(routes::images::router(images))
         .merge(routes::games::router(games))
-        .merge(routes::game_summaries::router(summaries));
+        .merge(routes::game_summaries::router(summaries))
+        .merge(routes::signin::router(signin))
+        .merge(routes::oauth::router(oauth));
     let port = std::env::var("PORT").unwrap_or_else(|_| "3000".into());
     let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{port}")).await.unwrap();
     println!("listening on :{port}");
-    axum::serve(listener, app).await.unwrap();
+    axum::serve(listener, app.into_make_service_with_connect_info::<std::net::SocketAddr>()).await.unwrap();
 }
 
 /// A seed file: the environment variable when set, otherwise `default` relative to this crate.
