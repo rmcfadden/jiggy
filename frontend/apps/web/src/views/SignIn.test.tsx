@@ -40,7 +40,7 @@ it('shows the server message for bad credentials and stays signed out', async ()
 
   expect((await screen.findByRole('alert')).textContent).toBe('invalid username or password')
   expect(loadSession()).toBeNull()
-  expect(screen.getByRole('link', { name: 'Sign in' })).toBeTruthy()
+  expect(screen.getByRole('heading', { name: 'Sign in' })).toBeTruthy()
 })
 
 it('shows the error description when the token exchange is refused', async () => {

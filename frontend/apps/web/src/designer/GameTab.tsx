@@ -20,8 +20,8 @@ import { useEditedUrls } from './renderImage'
 import type { ImageEdits } from './imageFilters'
 import { useQueryClient } from '@tanstack/react-query'
 import { IMAGES_KEY, imagesApi, useImages } from '../api/images'
-import { useCreateGame, useDeleteGame, useGames, useUpdateGame } from '../api/games'
-import { useTemplates } from '../api/templates'
+import { gameQuery, useCreateGame, useDeleteGame, useGames, useUpdateGame, type SavedGameRow } from '../api/games'
+import { useTemplate, useTemplates } from '../api/templates'
 import { addItem, newId, normalizeSetup, updateItem, removeItem, useLibrary, type GameSetup, type SavedImage } from './library'
 
 const sameIds = (a: number[], b: number[]) => a.length === b.length && [...a].sort().join() === [...b].sort().join()
@@ -40,9 +40,10 @@ export function GameTab() {
   const [categoryIds, setCategoryIds] = useState<number[]>([])
 
   // A game is built on a jigsaw template saved on the server; the first one is used until another is picked.
-  const { data: templates = [] } = useTemplates<Partial<JigsawTemplateParams>>('jigsaw')
-  const chosenTemplate = templates.find((t) => t.id === chosenTemplateId) ?? templates[0]
-  const templateId = chosenTemplate?.id ?? null
+  // The list holds names only; the chosen template's content is fetched when it is chosen.
+  const { data: templates = [] } = useTemplates('jigsaw')
+  const templateId = (templates.find((t) => t.id === chosenTemplateId) ?? templates[0])?.id ?? null
+  const { data: chosenTemplate } = useTemplate<Partial<JigsawTemplateParams>>(templateId)
   const templateParams = useMemo(() => ({ ...DEFAULT_JIGSAW_PARAMS, ...chosenTemplate?.content }), [chosenTemplate])
   const jigsaw = useMemo(() => new JigsawVectorizer().vectorize(new JigsawTemplateGenerator(templateParams).generate()), [templateParams])
   const total = jigsaw.pieces.length
@@ -109,7 +110,10 @@ export function GameTab() {
 
   const imageId = chosen?.serverId ?? serverImages?.find((i) => i.url === chosen?.location)?.id
   const setup = (): GameSetup => ({ config, showGuide, borders, effects })
-  const gameRows = useGames<Partial<GameSetup>>()
+  const gameRows = useGames()
+  // The list holds names only; a game's config is fetched when it is selected, and kept as the baseline Save compares against.
+  const [baseline, setBaseline] = useState<{ id: string; game: SavedGameRow<Partial<GameSetup>> } | null>(null)
+  const [loadError, setLoadError] = useState<Error | null>(null)
   const createSaved = useCreateGame<GameSetup>()
   const updateSaved = useUpdateGame<GameSetup>()
   const deleteSaved = useDeleteGame()
@@ -121,31 +125,39 @@ export function GameTab() {
     loading: gameRows.isLoading,
     promptWhenEmpty: true,
     onSelectedChange: setSelectedGameId,
-    error: [gameRows.error, createSaved.error, updateSaved.error, deleteSaved.error].find(Boolean)?.message ?? null,
-    onLoad: (id: string) => {
-      const g = saved.find((x) => String(x.id) === id)
-      if (!g) return
-      const loaded = normalizeSetup(g.config)
-      setTemplateId(g.templateId)
-      setCategoryIds(g.categoryIds ?? [])
-      if (g.imageId !== null) setPhotoId(serverPhotoId(g.imageId))
-      setConfig({ ...loaded.config, type: g.parent as GameConfig['type'] })
-      setShowGuide(loaded.showGuide)
-      setBorders(loaded.borders)
-      setEffects(loaded.effects)
+    error: [gameRows.error, loadError, createSaved.error, updateSaved.error, deleteSaved.error].find(Boolean)?.message ?? null,
+    onLoad: async (id: string) => {
+      try {
+        const g = await client.fetchQuery(gameQuery<Partial<GameSetup>>(Number(id)))
+        const loaded = normalizeSetup(g.config)
+        setTemplateId(g.templateId)
+        setCategoryIds(g.categoryIds ?? [])
+        if (g.imageId !== null) setPhotoId(serverPhotoId(g.imageId))
+        setConfig({ ...loaded.config, type: g.parent as GameConfig['type'] })
+        setShowGuide(loaded.showGuide)
+        setBorders(loaded.borders)
+        setEffects(loaded.effects)
+        setBaseline({ id, game: g })
+        setLoadError(null)
+      } catch (err) {
+        setLoadError(err instanceof Error ? err : new Error(String(err)))
+      }
     },
     // The new game takes whatever the panel shows now: its template, background photo and configuration.
     onAdd: async (name: string) => {
       if (templateId === null) throw new Error('Create a jigsaw template first')
       const created = await createSaved.mutateAsync({ name, parent: config.type, templateId, imageId: imageId ?? null, config: setup(), categoryIds })
+      setBaseline({ id: String(created.id), game: created })
       return String(created.id)
     },
     isChanged: (id: string) => {
-      const g = saved.find((x) => String(x.id) === id)
+      const g = baseline?.id === id ? baseline.game : undefined
       return !g || g.templateId !== templateId || g.imageId !== (imageId ?? null) || g.parent !== config.type || !sameIds(g.categoryIds ?? [], categoryIds) || JSON.stringify(normalizeSetup(g.config)) !== JSON.stringify(setup())
     },
     onSave: (id: string) => {
-      if (templateId !== null) updateSaved.mutate({ id: Number(id), parent: config.type, templateId, imageId: imageId ?? null, config: setup(), categoryIds })
+      if (templateId !== null) {
+        updateSaved.mutate({ id: Number(id), parent: config.type, templateId, imageId: imageId ?? null, config: setup(), categoryIds }, { onSuccess: (game) => setBaseline({ id, game }) })
+      }
     },
     onRename: (id: string, name: string) => updateSaved.mutate({ id: Number(id), name }),
     onDelete: (id: string) => deleteSaved.mutate(Number(id)),
@@ -165,7 +177,7 @@ export function GameTab() {
           // Scrambled pieces is the Puzzle view: loose pieces scattered around the board.
           <div className="min-h-0 flex-1 overflow-hidden rounded border border-slate-200">
             <ScrambledGame
-              key={`${templateId}-${config.seed}-${config.viewPercent}-${config.startSide}-${config.looseCount}-${config.spread}`}
+              key={`${chosenTemplate?.id ?? 'none'}-${chosenTemplate?.updated ?? ''}-${config.seed}-${config.viewPercent}-${config.startSide}-${config.looseCount}-${config.spread}`}
               spec={{ cols: templateParams.cols, rows: templateParams.rows, seed: templateParams.seed + config.seed }}
               jigsaw={jigsaw}
               photo={photo}

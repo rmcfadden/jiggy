@@ -1,7 +1,6 @@
 import { readFile } from 'node:fs/promises'
 import type { ICRUDRepository } from '@deterministic-code/datasources'
 import { game, type Game } from '../../generated/types/view/game.ts'
-import { puzzleGame, type PuzzleGame } from '../../generated/types/datasource/puzzleGame.ts'
 import { gameCategory, type GameCategory } from '../../generated/types/datasource/gameCategory.ts'
 import type { CategoriesService } from './categories.ts'
 import type { GameParentsService } from './gameParents.ts'
@@ -10,7 +9,8 @@ import type { ImagesService } from './images.ts'
 
 /**
  * What the API exchanges. A game is a puzzle described by three things: its `templateId`, its background
- * `imageId` and its `config` (every setting of the designer panel, as JSON).
+ * `imageId` and its `config` (every setting of the designer panel, as JSON). They are stored as game settings
+ * (`template_uid`, `image_id`, `config`) without foreign keys, so each game keeps its own template and image.
  */
 export type GameDto = {
   id: number
@@ -29,6 +29,9 @@ export type GameDto = {
   updated: Date
 }
 
+/** A game as the list returns it: without `config`, which `get` loads for the one that is selected. */
+export type GameListItem = Omit<GameDto, 'config'>
+
 export type GameInput = {
   name?: string
   description?: string
@@ -46,13 +49,16 @@ export type PuzzleSeed = { slug: string; name: string; description?: string; par
 export class UnknownReferenceError extends Error {}
 
 const CONFIG_KEY = 'config'
+/** Setting holding the uuid of the game's template. */
+const TEMPLATE_KEY = 'template_uid'
+/** Setting holding the id of the game's background image (a cms resource); absent when it has none. */
+const IMAGE_KEY = 'image_id'
 /** Attribute holding the pieces in the game's template (`cols * rows`). */
 export const PIECE_COUNT = 'pieceCount'
 
 export class GamesService {
   constructor(
     private readonly repo: ICRUDRepository<Game>,
-    private readonly puzzles: ICRUDRepository<PuzzleGame>,
     private readonly gameCategories: ICRUDRepository<GameCategory>,
     private readonly categories: CategoriesService,
     private readonly parents: GameParentsService,
@@ -60,31 +66,31 @@ export class GamesService {
     private readonly images: ImagesService,
   ) {}
 
-  async list(): Promise<GameDto[]> {
-    const puzzleOf = await this.puzzlesByGame()
+  async list(): Promise<GameListItem[]> {
+    const templateIds = await this.templateIds()
     const categoryOf = await this.categoriesByGame()
     const thumbs = await this.images.thumbnailUrls()
     const parents = await this.parentLocations()
-    const list: GameDto[] = []
+    const list: GameListItem[] = []
     for await (const row of this.repo.read()) {
-      const puzzle = puzzleOf.get(Number(row.id))
-      if (!row.isDeleted && puzzle) list.push(toDto(row, puzzle, parents.get(Number(row.gameParentId)) ?? '', categoryOf.get(Number(row.id)) ?? [], thumbs))
+      const templateId = templateIds.get(row.settings[TEMPLATE_KEY])
+      if (!row.isDeleted && templateId !== undefined) list.push(toListItem(row, templateId, parents.get(Number(row.gameParentId)) ?? '', categoryOf.get(Number(row.id)) ?? [], thumbs))
     }
     return list
   }
 
   async get(id: number): Promise<GameDto | undefined> {
     const row = await this.find(id)
-    const puzzle = row && (await this.puzzleOf(id))
-    if (!row || !puzzle) return undefined
-    return toDto(row, puzzle, (await this.parentLocations()).get(Number(row.gameParentId)) ?? '', await this.categoryIdsOf(id), await this.images.thumbnailUrls())
+    const templateId = row && (await this.templateIds()).get(row.settings[TEMPLATE_KEY])
+    if (!row || templateId === undefined) return undefined
+    return toDto(row, templateId, (await this.parentLocations()).get(Number(row.gameParentId)) ?? '', await this.categoryIdsOf(id), await this.images.thumbnailUrls())
   }
 
-  /** Creates the game and its puzzle; the template, image, parent and categories must exist. */
+  /** Creates the game; the template, image, parent and categories must exist. */
   async create(input: GameInput): Promise<GameDto> {
     const parent = await this.findParent(input.parent ?? fail('parent is required'))
     const templateId = input.templateId ?? fail('templateId is required')
-    await this.checkTemplate(templateId)
+    const templateUid = await this.templateUid(templateId)
     await this.checkImage(input.imageId)
     await this.checkCategories(input.categoryIds)
 
@@ -93,12 +99,11 @@ export class GamesService {
         name: input.name ?? '',
         description: input.description ?? '',
         gameParentId: Number(parent.id),
-        settings: settings(input.config),
+        settings: settings(templateUid, input.imageId ?? null, input.config),
         attributes: await this.attributesOf(templateId),
         categories: [],
       }),
     )
-    await this.puzzles.create(puzzleGame({ gameId: Number(created.id), templateId, imageId: input.imageId ?? null }))
     await this.setCategories(Number(created.id), input.categoryIds ?? [])
     return (await this.get(Number(created.id)))!
   }
@@ -106,25 +111,25 @@ export class GamesService {
   /** Merges the fields present in `input`; undefined when the game does not exist. */
   async update(id: number, input: GameInput): Promise<GameDto | undefined> {
     const row = await this.find(id)
-    const puzzle = row && (await this.puzzleOf(id))
-    if (!row || !puzzle) return undefined
+    if (!row || !row.settings[TEMPLATE_KEY]) return undefined
 
+    const next = { ...row.settings }
     if (input.parent !== undefined) row.gameParentId = Number((await this.findParent(input.parent)).id)
     if (input.templateId !== undefined) {
-      await this.checkTemplate(input.templateId)
-      puzzle.templateId = input.templateId
+      next[TEMPLATE_KEY] = await this.templateUid(input.templateId)
       row.attributes = { ...row.attributes, ...(await this.attributesOf(input.templateId)) }
     }
     if (input.imageId !== undefined) {
       await this.checkImage(input.imageId)
-      puzzle.imageId = input.imageId
+      if (input.imageId === null) delete next[IMAGE_KEY]
+      else next[IMAGE_KEY] = String(input.imageId)
     }
+    if (input.config !== undefined) next[CONFIG_KEY] = JSON.stringify(input.config)
+    row.settings = next
     await this.checkCategories(input.categoryIds)
     row.name = input.name ?? row.name
     row.description = input.description ?? row.description
-    if (input.config !== undefined) row.settings = settings(input.config)
     await this.repo.update(row)
-    await this.puzzles.update(puzzle)
     if (input.categoryIds) await this.setCategories(id, input.categoryIds)
     return this.get(id)
   }
@@ -132,8 +137,6 @@ export class GamesService {
   async delete(id: number): Promise<boolean> {
     const row = await this.find(id)
     if (!row) return false
-    const puzzle = await this.puzzleOf(id)
-    if (puzzle) await this.puzzles.delete(puzzle)
     await this.setCategories(id, [])
     await this.repo.delete(row)
     return true
@@ -172,12 +175,12 @@ export class GamesService {
    * `setup`); returns the names of the games it updated.
    */
   async addAttributes(): Promise<string[]> {
-    const puzzleOf = await this.puzzlesByGame()
+    const templateIds = await this.templateIds()
     const updated: string[] = []
     for await (const row of this.repo.read()) {
-      const puzzle = puzzleOf.get(Number(row.id))
-      if (!puzzle || row.isDeleted) continue
-      const wanted = await this.attributesOf(Number(puzzle.templateId))
+      const templateId = templateIds.get(row.settings[TEMPLATE_KEY])
+      if (templateId === undefined || row.isDeleted) continue
+      const wanted = await this.attributesOf(templateId)
       if (Object.entries(wanted).every(([k, v]) => row.attributes[k] === v)) continue
       row.attributes = { ...row.attributes, ...wanted }
       await this.repo.update(row)
@@ -195,16 +198,6 @@ export class GamesService {
   private async find(id: number): Promise<Game | undefined> {
     const row = await this.repo.readSingleById(id)
     return row && !row.isDeleted ? row : undefined
-  }
-
-  private async puzzlesByGame(): Promise<Map<number, PuzzleGame>> {
-    const map = new Map<number, PuzzleGame>()
-    for await (const row of this.puzzles.read()) map.set(Number(row.gameId), row)
-    return map
-  }
-
-  private async puzzleOf(gameId: number): Promise<PuzzleGame | undefined> {
-    return (await this.puzzlesByGame()).get(gameId)
   }
 
   private async categoriesByGame(): Promise<Map<number, number[]>> {
@@ -251,8 +244,14 @@ export class GamesService {
     return new Map((await this.parents.list()).map((p) => [Number(p.id), p.location]))
   }
 
-  private async checkTemplate(id: number): Promise<void> {
-    if (!(await this.templates.get(id))) throw new UnknownReferenceError(`unknown template: ${id}`)
+  /** The uuid stored in a game's `template_uid` setting; throws when the template does not exist. */
+  private async templateUid(id: number): Promise<string> {
+    return (await this.templates.get(id))?.uuid ?? fail(`unknown template: ${id}`)
+  }
+
+  /** Template uuid to template id. */
+  private async templateIds(): Promise<Map<string, number>> {
+    return new Map((await this.templates.list()).map((t) => [t.uuid, t.id]))
   }
 
   private async checkImage(id?: number | null): Promise<void> {
@@ -264,20 +263,27 @@ function fail(message: string): never {
   throw new UnknownReferenceError(message)
 }
 
-const settings = (config: unknown): Record<string, string> => (config === undefined ? {} : { [CONFIG_KEY]: JSON.stringify(config) })
+const settings = (templateUid: string, imageId: number | null, config: unknown): Record<string, string> => ({
+  [TEMPLATE_KEY]: templateUid,
+  ...(imageId === null ? {} : { [IMAGE_KEY]: String(imageId) }),
+  ...(config === undefined ? {} : { [CONFIG_KEY]: JSON.stringify(config) }),
+})
 
-function toDto(row: Game, puzzle: PuzzleGame, parent: string, categoryIds: number[], thumbs: Map<number, string>): GameDto {
+function toDto(row: Game, templateId: number, parent: string, categoryIds: number[], thumbs: Map<number, string>): GameDto {
   const json = row.settings[CONFIG_KEY]
-  const imageId = puzzle.imageId == null ? null : Number(puzzle.imageId)
+  return { ...toListItem(row, templateId, parent, categoryIds, thumbs), config: json ? JSON.parse(json) : {} }
+}
+
+function toListItem(row: Game, templateId: number, parent: string, categoryIds: number[], thumbs: Map<number, string>): GameListItem {
+  const imageId = row.settings[IMAGE_KEY] ? Number(row.settings[IMAGE_KEY]) : null
   return {
     id: Number(row.id),
     uuid: row.uuid,
     name: row.name,
     description: row.description,
     parent,
-    templateId: Number(puzzle.templateId),
+    templateId,
     imageId,
-    config: json ? JSON.parse(json) : {},
     categoryIds,
     thumbnailUrl: imageId === null ? null : (thumbs.get(imageId) ?? null),
     created: row.created,

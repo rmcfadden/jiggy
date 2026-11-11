@@ -32,7 +32,7 @@ it('redirects / to the explorer and links puzzles to the player', async () => {
   expect(screen.getByRole('heading', { name: 'Puzzles' })).toBeTruthy()
   const link = screen.getAllByRole('link').find((l) => l.getAttribute('href')?.startsWith('/puzzle?id='))!
   fireEvent.click(link)
-  expect(screen.getByLabelText('Puzzle board')).toBeTruthy()
+  expect(await screen.findByLabelText('Puzzle board')).toBeTruthy()
 })
 
 it('filters the catalog by category, including sub-categories', async () => {

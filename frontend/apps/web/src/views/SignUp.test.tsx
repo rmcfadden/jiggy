@@ -106,10 +106,8 @@ it('shows the server message for a taken email and stays signed out', async () =
   expect(loadSession()).toBeNull()
 })
 
-it('links to sign in from the sidebar and the page footer', () => {
+it('links to sign in from the page footer', () => {
   mockAuthApi({})
   renderAt('/signup')
-  const links = screen.getAllByRole('link', { name: 'Sign in' })
-  expect(links.length).toBeGreaterThan(0)
-  expect(links.every((l) => l.getAttribute('href') === '/signin')).toBe(true)
+  expect(screen.getByRole('link', { name: 'Sign in' }).getAttribute('href')).toBe('/signin')
 })

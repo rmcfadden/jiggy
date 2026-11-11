@@ -8,6 +8,9 @@ namespace Backend.Services;
 /// <summary>What the API exchanges: <c>Content</c> is the template's settings as JSON, stored as text.</summary>
 public record TemplateDto(long Id, string Uuid, string Type, string Name, JsonElement Content, DateTime Created, DateTime Updated);
 
+/// <summary>A template as the list returns it: without <c>Content</c>, which <c>Get</c> loads for the one that is selected.</summary>
+public record TemplateListItem(long Id, string Uuid, string Type, string Name, DateTime Created, DateTime Updated);
+
 public record TemplateInput(string? Type, string? Name, JsonElement? Content);
 
 /// <summary>One entry of the templates seed file (<c>backend/data/templates.json</c>).</summary>
@@ -18,11 +21,11 @@ public class UnknownTemplateTypeException(string type) : Exception($"unknown tem
 public class TemplatesService(ICRUDRepository<TemplateView> repo, IReadonlyRepository<TemplateType> types)
 {
     /// <summary>Templates of <paramref name="type"/> (a template type name such as "jigsaw"), or all of them when null.</summary>
-    public async Task<List<TemplateDto>> List(string? type = null)
+    public async Task<List<TemplateListItem>> List(string? type = null)
     {
-        var rows = new List<TemplateDto>();
+        var rows = new List<TemplateListItem>();
         await foreach (var row in repo.Read())
-            if (type is null || row.TemplateTypeName == type) rows.Add(ToDto(row));
+            if (type is null || row.TemplateTypeName == type) rows.Add(new TemplateListItem(row.Id, row.Uuid.ToString(), row.TemplateTypeName, row.Name, row.Created, row.Updated));
         return rows;
     }
 

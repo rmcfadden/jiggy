@@ -5,6 +5,8 @@ import type { TemplateType } from '../../generated/types/datasource/templateType
 
 /** What the API exchanges: `content` is the template's settings as JSON, stored as text. */
 export type TemplateDto = { id: number; uuid: string; type: string; name: string; content: unknown; created: Date; updated: Date }
+/** A template as the list returns it: without `content`, which `get` loads for the one that is selected. */
+export type TemplateListItem = Omit<TemplateDto, 'content'>
 export type TemplateInput = { type: string; name: string; content: unknown }
 
 /** One entry of `backend/data/templates.json`. */
@@ -19,11 +21,11 @@ export class TemplatesService {
   ) {}
 
   /** Templates of `type` (a template type name such as "jigsaw"), or all of them when omitted. */
-  async list(type?: string): Promise<TemplateDto[]> {
+  async list(type?: string): Promise<TemplateListItem[]> {
     const types = await this.typeNames()
-    const rows: TemplateDto[] = []
+    const rows: TemplateListItem[] = []
     for await (const row of this.repo.read()) {
-      if (!type || types.get(Number(row.templateTypeId)) === type) rows.push(toDto(row, types))
+      if (!type || types.get(Number(row.templateTypeId)) === type) rows.push(toListItem(row, types))
     }
     return rows
   }
@@ -88,14 +90,15 @@ function typeId(types: Map<number, string>, name: string): number {
   throw new UnknownTemplateTypeError(`unknown template type: ${name}`)
 }
 
-function toDto(row: TemplateBase, types: Map<number, string>): TemplateDto {
+function toListItem(row: TemplateBase, types: Map<number, string>): TemplateListItem {
   return {
     id: Number(row.id),
     uuid: row.uuid,
     type: types.get(Number(row.templateTypeId)) ?? '',
     name: row.name,
-    content: JSON.parse(row.content),
     created: row.created,
     updated: row.updated,
   }
 }
+
+const toDto = (row: TemplateBase, types: Map<number, string>): TemplateDto => ({ ...toListItem(row, types), content: JSON.parse(row.content) })

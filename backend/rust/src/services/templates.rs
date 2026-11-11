@@ -25,13 +25,18 @@ impl TemplatesService {
         Self { repo }
     }
 
-    /// Templates of `kind` (a template type name such as "jigsaw"), or all of them when `None`.
+    /// Templates of `kind` (a template type name such as "jigsaw"), or all of them when `None`, without `content`
+    /// (which `get` loads for the one that is selected).
     pub async fn list(&self, kind: Option<&str>) -> Result<Vec<Value>> {
         let rows: Vec<Template> = self.repo.read(None, None).try_collect().await?;
         Ok(rows
             .iter()
             .map(to_json)
             .filter(|t| kind.is_none_or(|k| t["type"] == k))
+            .map(|mut t| {
+                t.as_object_mut().map(|o| o.remove("content"));
+                t
+            })
             .collect())
     }
 

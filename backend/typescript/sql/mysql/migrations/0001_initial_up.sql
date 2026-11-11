@@ -622,27 +622,6 @@ GO
 CREATE TRIGGER trg_games_updated_at BEFORE UPDATE ON games
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
-CREATE TABLE puzzle_games (
-    id BIGINT AUTO_INCREMENT NOT NULL,
-    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
-    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
-    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
-    version BLOB DEFAULT (X'00') NOT NULL,
-    game_id BIGINT NOT NULL,
-    template_id BIGINT NOT NULL,
-    image_id BIGINT,
-    CONSTRAINT puzzle_games_primary_key PRIMARY KEY (id),
-    CONSTRAINT puzzle_games_uuid_unique_constraint UNIQUE (uuid),
-    CONSTRAINT puzzle_games_game_id_foreign_key FOREIGN KEY (game_id) REFERENCES games (id),
-    CONSTRAINT puzzle_games_template_id_foreign_key FOREIGN KEY (template_id) REFERENCES templates (id),
-    CONSTRAINT puzzle_games_image_id_foreign_key FOREIGN KEY (image_id) REFERENCES resources (id)
-);
-GO
-CREATE UNIQUE INDEX puzzle_games_puzzle_game_game_id_index ON puzzle_games (game_id);
-GO
-CREATE TRIGGER trg_puzzle_games_updated_at BEFORE UPDATE ON puzzle_games
-FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
-GO
 CREATE TABLE game_categories (
     id BIGINT AUTO_INCREMENT NOT NULL,
     uuid CHAR(36) DEFAULT (UUID()) NOT NULL,

@@ -4,10 +4,16 @@ import { NEAR_COLOR, DEFAULT_EFFECTS, effectClass, sparklePieces, useFlash, type
 import { DEFAULT_PIECE_BORDERS, PieceBorderPath, SET_ALPHA, type PieceBorders } from '../designer/controls'
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+import { gameQuery } from '../api/games'
+import { useImages } from '../api/images'
+import { useTemplate } from '../api/templates'
+import { normalizeSetup } from '../designer/library'
 import { NextPiecesGame } from './NextPiecesGame'
 import { templateParams } from '../designer/gameAssets'
 import {
   CATALOG,
+  DEFAULT_JIGSAW_PARAMS,
   JigsawTemplateGenerator,
   JigsawVectorizer,
   averageRating,
@@ -21,6 +27,8 @@ import {
   snapPiece,
   toSvgPath,
   viewMargins,
+  type GameConfig,
+  type JigsawTemplateParams,
   type JigsawVector,
   type Offset,
   type Puzzle,
@@ -33,7 +41,8 @@ const DEFAULT_SPEC: PuzzleSpec = { cols: 4, rows: 3, seed: 1 }
 
 export default function Player() {
   const [params] = useSearchParams()
-  const catalogPuzzle = findPuzzle(CATALOG, params.get('id'))
+  const savedId = /^\d+$/.test(params.get('id') ?? '') ? Number(params.get('id')) : null
+  const catalogPuzzle = savedId === null ? findPuzzle(CATALOG, params.get('id')) : undefined
   const spec = decodePuzzleId(params.get('id')) ?? DEFAULT_SPEC
   const id = catalogPuzzle?.id ?? encodePuzzleId(spec)
   const requested = params.get('mode')
@@ -44,6 +53,7 @@ export default function Player() {
         ? 'next-pieces'
         : 'scrambled'
   // Remount on id or mode change so the game state resets.
+  if (savedId !== null) return <SavedPlayer key={`${savedId}-${requested}`} id={savedId} requested={requested} />
   if (catalogPuzzle) return <CatalogPlayer key={`${id}-${mode}`} puzzle={catalogPuzzle} mode={mode} />
   return mode === 'next-pieces' ? (
     <NextPiecesGame key={id} spec={spec} />
@@ -52,42 +62,32 @@ export default function Player() {
   )
 }
 
+/** A saved game from `/api/games/:id`: its stored config, its template's shape and its image, all from the database. */
+function SavedPlayer({ id, requested }: { id: number; requested: string | null }) {
+  const game = useQuery(gameQuery<Parameters<typeof normalizeSetup>[0]>(id))
+  const template = useTemplate<Partial<JigsawTemplateParams>>(game.data?.templateId ?? null)
+  const images = useImages()
+  if (game.isError) return <p role="alert" className="p-4">Could not load this puzzle: {game.error.message}</p>
+  const g = game.data
+  if (!g || template.data?.id !== g.templateId || !images.data) return <p className="p-4">Loading…</p>
+  const settings = { ...normalizeSetup(g.config).config, type: g.parent as GameConfig['type'] }
+  const params = { ...DEFAULT_JIGSAW_PARAMS, ...template.data.content }
+  const photo = images.data.find((i) => i.id === g.imageId)?.url
+  const mode: Mode = requested === 'next-pieces' || requested === 'scrambled' ? requested : settings.type === 'next-pieces' ? 'next-pieces' : 'scrambled'
+  return (
+    <div className="h-full">
+      <Board key={`${id}-${mode}`} settings={settings} template={params} photo={photo} mode={mode} />
+    </div>
+  )
+}
+
 /** A catalog puzzle: its picture, template and game settings, with its reviews underneath. */
 function CatalogPlayer({ puzzle, mode }: { puzzle: Puzzle; mode: Mode }) {
-  const { settings } = puzzle
-  const template = useMemo(() => templateParams(puzzle.template.size, puzzle.template.style), [puzzle.template])
-  const jigsaw = useMemo(() => new JigsawVectorizer().vectorize(new JigsawTemplateGenerator(template).generate()), [template])
-  const cols = template.cols!
-  const rows = template.rows!
-  const spec: PuzzleSpec = { cols, rows, seed: template.seed! + settings.seed }
   const average = averageRating(puzzle)
   return (
     <div className="flex h-full flex-col">
       <div className="min-h-0 flex-1">
-        {mode === 'next-pieces' ? (
-          <NextPiecesGame
-            spec={spec}
-            jigsaw={jigsaw}
-            photo={puzzle.image.location}
-            config={{ ...settings, type: 'next-pieces' }}
-          />
-        ) : (
-          <Game
-            spec={spec}
-            jigsaw={jigsaw}
-            photo={puzzle.image.location}
-            showGuide
-            zoomOrientation={settings.zoomOrientation}
-            freeBuild={settings.freeBuild}
-            scatter={{
-              cell: { width: template.width! / cols, height: template.height! / rows },
-              viewPercent: settings.viewPercent,
-              side: settings.startSide,
-              spread: settings.spread,
-              count: settings.looseCount > 0 ? settings.looseCount : undefined,
-            }}
-          />
-        )}
+        <Board settings={puzzle.settings} template={templateParams(puzzle.template.size, puzzle.template.style)} photo={puzzle.image.location} mode={mode} />
       </div>
       <details className="border-t border-slate-200 bg-slate-100 px-4 py-2 text-sm">
         <summary className="cursor-pointer font-medium">
@@ -107,6 +107,33 @@ function CatalogPlayer({ puzzle, mode }: { puzzle: Puzzle; mode: Mode }) {
 }
 
 type Mode = 'scrambled' | 'next-pieces'
+
+/** The playable board for a template, a picture and game settings. */
+function Board({ settings, template, photo, mode }: { settings: GameConfig; template: Partial<JigsawTemplateParams>; photo?: string; mode: Mode }) {
+  const jigsaw = useMemo(() => new JigsawVectorizer().vectorize(new JigsawTemplateGenerator(template).generate()), [template])
+  const cols = template.cols!
+  const rows = template.rows!
+  const spec: PuzzleSpec = { cols, rows, seed: template.seed! + settings.seed }
+  return mode === 'next-pieces' ? (
+    <NextPiecesGame spec={spec} jigsaw={jigsaw} photo={photo} config={{ ...settings, type: 'next-pieces' }} />
+  ) : (
+    <Game
+      spec={spec}
+      jigsaw={jigsaw}
+      photo={photo}
+      showGuide
+      zoomOrientation={settings.zoomOrientation}
+      freeBuild={settings.freeBuild}
+      scatter={{
+        cell: { width: template.width! / cols, height: template.height! / rows },
+        viewPercent: settings.viewPercent,
+        side: settings.startSide,
+        spread: settings.spread,
+        count: settings.looseCount > 0 ? settings.looseCount : undefined,
+      }}
+    />
+  )
+}
 
 export function Game({
   spec,

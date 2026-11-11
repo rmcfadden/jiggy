@@ -30,7 +30,6 @@ use super::super::Phone;
 use super::super::PhoneAttribute;
 use super::super::PhoneLabel;
 use super::super::PhoneType;
-use super::super::PuzzleGame;
 use super::super::Resource;
 use super::super::Review;
 use super::super::Role;
@@ -240,12 +239,6 @@ pub fn register(factory: &RepositoryFactory) {
         |connection| Arc::new(super::phoneTypesRepository::PhoneTypesRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<PhoneType>>,
     );
     factory.register_named(
-        "PuzzleGame",
-        "puzzle_games",
-        |connection| Ok(Arc::new(super::puzzleGamesRepository::PuzzleGamesRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<PuzzleGame>>),
-        |connection| Arc::new(super::puzzleGamesRepository::PuzzleGamesRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<PuzzleGame>>,
-    );
-    factory.register_named(
         "Resource",
         "resources",
         |connection| Ok(Arc::new(super::resourcesRepository::ResourcesRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<Resource>>),
@@ -395,7 +388,6 @@ pub trait Repositories {
     fn phone_attributes(&self) -> Arc<super::phoneAttributesRepository::PhoneAttributesRepository>;
     fn phone_labels(&self) -> Arc<super::phoneLabelsRepository::PhoneLabelsRepository>;
     fn phone_types(&self) -> Arc<super::phoneTypesRepository::PhoneTypesRepository>;
-    fn puzzle_games(&self) -> Arc<super::puzzleGamesRepository::PuzzleGamesRepository>;
     fn resources(&self) -> Arc<super::resourcesRepository::ResourcesRepository>;
     fn reviews(&self) -> Arc<super::reviewsRepository::ReviewsRepository>;
     fn roles(&self) -> Arc<super::rolesRepository::RolesRepository>;
@@ -510,9 +502,6 @@ impl Repositories for Arc<dyn Datasource> {
     }
     fn phone_types(&self) -> Arc<super::phoneTypesRepository::PhoneTypesRepository> {
         Arc::new(super::phoneTypesRepository::PhoneTypesRepository::new(self.bind_connection(None)).expect("phone_types"))
-    }
-    fn puzzle_games(&self) -> Arc<super::puzzleGamesRepository::PuzzleGamesRepository> {
-        Arc::new(super::puzzleGamesRepository::PuzzleGamesRepository::new(self.bind_connection(None)).expect("puzzle_games"))
     }
     fn resources(&self) -> Arc<super::resourcesRepository::ResourcesRepository> {
         Arc::new(super::resourcesRepository::ResourcesRepository::new(self.bind_connection(None)).expect("resources"))

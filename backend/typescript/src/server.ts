@@ -11,7 +11,6 @@ import { GameParentsService } from './services/gameParents.ts'
 import type { TemplateBase } from '../generated/types/datasource/templateBase.ts'
 import type { TemplateType } from '../generated/types/datasource/templateType.ts'
 import type { Game } from '../generated/types/view/game.ts'
-import type { PuzzleGame } from '../generated/types/datasource/puzzleGame.ts'
 import type { GameCategory } from '../generated/types/datasource/gameCategory.ts'
 import type { MimeType } from '../generated/types/datasource/mimeType.ts'
 import type { Resource } from '../generated/types/view/resource.ts'
@@ -46,7 +45,6 @@ import { signupRouter } from './routes/signup.ts'
 const ds = Datasource.default as Datasource & {
   categories: ICRUDRepository<Category>
   games: ICRUDRepository<Game>
-  puzzleGames: ICRUDRepository<PuzzleGame>
   gameCategories: ICRUDRepository<GameCategory>
   mimeTypes: ICRUDRepository<MimeType>
   resources: ICRUDRepository<Resource>
@@ -68,7 +66,7 @@ const categories = new CategoriesService(ds.categories)
 const gameParents = new GameParentsService(ds.gameParents)
 const templates = new TemplatesService(ds.templates, ds.templateTypes)
 const images = new ImagesService(ds.resources, ds.mimeTypes)
-const games = new GamesService(ds.games, ds.puzzleGames, ds.gameCategories, categories, gameParents, templates, images)
+const games = new GamesService(ds.games, ds.gameCategories, categories, gameParents, templates, images)
 
 const users = createUsersService()
 const tokenSettings = tokenSettingsFromEnv()
@@ -78,7 +76,7 @@ const signin = new SigninService(users, tokens, ds.contacts, ds.emails)
 const oauth = new OAuthService(users, tokens, sessions, tokenSettings)
 const signup = new SignupService(users, tokens, ds.contacts, ds.emails, ds.emailTypes, ds.genders)
 
-const summaries = new GameSummariesService(await ds.createConnection(), images)
+const summaries = new GameSummariesService(await ds.createConnection(), images, ds.games)
 
 const app = express()
 app.use(express.json())

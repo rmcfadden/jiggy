@@ -38,14 +38,13 @@ async fn main() {
     let images = Arc::new(ImagesService::new(ds.resources(), ds.mime_types()));
     let games = Arc::new(GamesService::new(
         ds.games(),
-        ds.puzzle_games(),
         ds.game_categories(),
         categories.clone(),
         game_parents.clone(),
         templates.clone(),
         images.clone(),
     ));
-    let summaries = Arc::new(GameSummariesService::new(ds.bind_connection(None), images.clone()).expect("game summaries"));
+    let summaries = Arc::new(GameSummariesService::new(ds.bind_connection(None), images.clone(), ds.games()).expect("game summaries"));
     let users = Arc::new(UsersService::new(ds.users(), ds.roles(), ds.groups(), ds.secrets(), ds.secret_types(), ds.user_secrets()));
     let settings = TokenSettings::from_env().expect("token settings");
     let tokens = Arc::new(TokenService::new(ds.tokens(), ds.user_tokens(), ds.token_types(), settings.clone()));

@@ -42,6 +42,15 @@ public class ImagesService(ICRUDRepository<Resource> repo, IReadonlyRepository<M
         return all.OrderBy(i => i.Id).ToList();
     }
 
+    /// <summary>Image id to the URL of the image itself.</summary>
+    public async Task<Dictionary<long, string>> Urls()
+    {
+        var urls = new Dictionary<long, string>();
+        await foreach (var row in repo.Read())
+            if (!row.IsDeleted) urls[row.Id] = row.Location;
+        return urls;
+    }
+
     /// <summary>Image id to the URL of its generated thumbnail; images without a thumbnail (svg, tiff, avif) are left out.</summary>
     public async Task<Dictionary<long, string>> ThumbnailUrls()
     {

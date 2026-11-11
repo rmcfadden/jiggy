@@ -750,31 +750,6 @@ BEGIN
   UPDATE "games" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "puzzle_games" (
-    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    "uuid" TEXT CONSTRAINT "puzzle_games_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
-    "created" TEXT CONSTRAINT "puzzle_games_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-    "updated" TEXT CONSTRAINT "puzzle_games_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-    "version" BLOB CONSTRAINT "puzzle_games_version_default_constraint" DEFAULT X'00' NOT NULL,
-    "game_id" INTEGER NOT NULL,
-    "template_id" INTEGER NOT NULL,
-    "image_id" INTEGER,
-    CONSTRAINT "puzzle_games_uuid_unique_constraint" UNIQUE ("uuid"),
-    CONSTRAINT "puzzle_games_game_id_foreign_key" FOREIGN KEY ("game_id") REFERENCES "games" ("id"),
-    CONSTRAINT "puzzle_games_template_id_foreign_key" FOREIGN KEY ("template_id") REFERENCES "templates" ("id"),
-    CONSTRAINT "puzzle_games_image_id_foreign_key" FOREIGN KEY ("image_id") REFERENCES "resources" ("id")
-);
-GO
-CREATE UNIQUE INDEX "puzzle_games_puzzle_game_game_id_index" ON "puzzle_games" ("game_id");
-GO
-CREATE TRIGGER "trg_puzzle_games_updated_at"
-AFTER UPDATE ON "puzzle_games"
-FOR EACH ROW
-WHEN NEW."updated" IS OLD."updated"
-BEGIN
-  UPDATE "puzzle_games" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
-END;
-GO
 CREATE TABLE "game_categories" (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     "uuid" TEXT CONSTRAINT "game_categories_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
