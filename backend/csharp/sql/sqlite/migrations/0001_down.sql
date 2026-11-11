@@ -1,6 +1,26 @@
 -- Rollback initial migration for sqlite
 
 -- DROP tables (reverse dependency order)
+DROP TABLE IF EXISTS "session_states_bases";
+GO
+DROP TABLE IF EXISTS "session_hits_bases";
+GO
+DROP TABLE IF EXISTS "sessions_bases";
+GO
+DROP TABLE IF EXISTS "session_types";
+GO
+DROP TABLE IF EXISTS "user_tokens";
+GO
+DROP TABLE IF EXISTS "tokens_bases";
+GO
+DROP TABLE IF EXISTS "token_types";
+GO
+DROP TABLE IF EXISTS "user_secrets";
+GO
+DROP TABLE IF EXISTS "secrets_bases";
+GO
+DROP TABLE IF EXISTS "secret_types";
+GO
 DROP TABLE IF EXISTS "reviews";
 GO
 DROP TABLE IF EXISTS "game_attributes";

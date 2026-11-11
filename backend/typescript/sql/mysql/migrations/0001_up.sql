@@ -776,6 +776,182 @@ GO
 CREATE TRIGGER trg_reviews_updated_at BEFORE UPDATE ON reviews
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
+CREATE TABLE secret_types (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    name VARCHAR(512) NOT NULL,
+    description TEXT,
+    CONSTRAINT secret_types_primary_key PRIMARY KEY (id),
+    CONSTRAINT secret_types_uuid_unique_constraint UNIQUE (uuid)
+);
+GO
+CREATE TRIGGER trg_secret_types_updated_at BEFORE UPDATE ON secret_types
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE secrets_bases (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    secret_type_id BIGINT NOT NULL,
+    value VARCHAR(512) NOT NULL,
+    expires DATETIME(3),
+    is_enabled TINYINT(1) DEFAULT 1 NOT NULL,
+    is_deleted TINYINT(1) DEFAULT 0 NOT NULL,
+    CONSTRAINT secrets_bases_primary_key PRIMARY KEY (id),
+    CONSTRAINT secrets_bases_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT secrets_bases_secret_type_id_foreign_key FOREIGN KEY (secret_type_id) REFERENCES secret_types (id)
+);
+GO
+CREATE TRIGGER trg_secrets_bases_updated_at BEFORE UPDATE ON secrets_bases
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE user_secrets (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    user_id BIGINT NOT NULL,
+    secret_id BIGINT NOT NULL,
+    CONSTRAINT user_secrets_primary_key PRIMARY KEY (id),
+    CONSTRAINT user_secrets_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT user_secrets_user_id_foreign_key FOREIGN KEY (user_id) REFERENCES users (id),
+    CONSTRAINT user_secrets_secret_id_foreign_key FOREIGN KEY (secret_id) REFERENCES secrets_bases (id)
+);
+GO
+CREATE TRIGGER trg_user_secrets_updated_at BEFORE UPDATE ON user_secrets
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE token_types (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    name VARCHAR(512) NOT NULL,
+    description TEXT NOT NULL,
+    CONSTRAINT token_types_primary_key PRIMARY KEY (id),
+    CONSTRAINT token_types_uuid_unique_constraint UNIQUE (uuid)
+);
+GO
+CREATE TRIGGER trg_token_types_updated_at BEFORE UPDATE ON token_types
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE tokens_bases (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    token_type_id BIGINT NOT NULL,
+    name VARCHAR(128) NOT NULL,
+    secret TEXT NOT NULL,
+    is_enabled TINYINT(1) DEFAULT 1 NOT NULL,
+    expires DATETIME(3) NOT NULL,
+    revoked DATETIME(3),
+    is_deleted TINYINT(1) DEFAULT 0 NOT NULL,
+    CONSTRAINT tokens_bases_primary_key PRIMARY KEY (id),
+    CONSTRAINT tokens_bases_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT tokens_bases_token_type_id_foreign_key FOREIGN KEY (token_type_id) REFERENCES token_types (id)
+);
+GO
+CREATE TRIGGER trg_tokens_bases_updated_at BEFORE UPDATE ON tokens_bases
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE user_tokens (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    user_id BIGINT NOT NULL,
+    token_id BIGINT NOT NULL,
+    CONSTRAINT user_tokens_primary_key PRIMARY KEY (id),
+    CONSTRAINT user_tokens_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT user_tokens_user_id_foreign_key FOREIGN KEY (user_id) REFERENCES users (id),
+    CONSTRAINT user_tokens_token_id_foreign_key FOREIGN KEY (token_id) REFERENCES tokens_bases (id)
+);
+GO
+CREATE TRIGGER trg_user_tokens_updated_at BEFORE UPDATE ON user_tokens
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE session_types (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    name VARCHAR(512) NOT NULL,
+    CONSTRAINT session_types_primary_key PRIMARY KEY (id),
+    CONSTRAINT session_types_uuid_unique_constraint UNIQUE (uuid)
+);
+GO
+CREATE TRIGGER trg_session_types_updated_at BEFORE UPDATE ON session_types
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE sessions_bases (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    session_type_id BIGINT NOT NULL,
+    user_id BIGINT,
+    relative_expiration INT,
+    absolute_expiration DATETIME(3),
+    revoked DATETIME(3),
+    expired DATETIME(3),
+    is_enabled TINYINT(1) DEFAULT 1 NOT NULL,
+    CONSTRAINT sessions_bases_primary_key PRIMARY KEY (id),
+    CONSTRAINT sessions_bases_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT sessions_bases_session_type_id_foreign_key FOREIGN KEY (session_type_id) REFERENCES session_types (id),
+    CONSTRAINT sessions_bases_user_id_foreign_key FOREIGN KEY (user_id) REFERENCES users (id)
+);
+GO
+CREATE TRIGGER trg_sessions_bases_updated_at BEFORE UPDATE ON sessions_bases
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE session_hits_bases (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    session_id BIGINT NOT NULL,
+    ip_address VARBINARY(16) NOT NULL,
+    CONSTRAINT session_hits_bases_primary_key PRIMARY KEY (id),
+    CONSTRAINT session_hits_bases_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT session_hits_bases_session_id_foreign_key FOREIGN KEY (session_id) REFERENCES sessions_bases (id)
+);
+GO
+CREATE TRIGGER trg_session_hits_bases_updated_at BEFORE UPDATE ON session_hits_bases
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE session_states_bases (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    session_id BIGINT NOT NULL,
+    state TEXT NOT NULL,
+    code_challenge TEXT,
+    code_challenge_method VARCHAR(256),
+    revoked DATETIME(3),
+    is_enabled TINYINT(1) DEFAULT 1 NOT NULL,
+    CONSTRAINT session_states_bases_primary_key PRIMARY KEY (id),
+    CONSTRAINT session_states_bases_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT session_states_bases_session_id_foreign_key FOREIGN KEY (session_id) REFERENCES sessions_bases (id)
+);
+GO
+CREATE TRIGGER trg_session_states_bases_updated_at BEFORE UPDATE ON session_states_bases
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
 -- Seed data
 -- Seeds: genders
 GO
@@ -1452,3 +1628,29 @@ GO
 -- Seeds: template_types
 GO
 INSERT INTO template_types (id, uuid, name, description) VALUES (1, '88ba1ed1-69f1-54cf-9b1f-0273aaa19012', 'jigsaw', 'Jigsaw template settings');
+GO
+-- Seeds: secret_types
+GO
+INSERT INTO secret_types (id, uuid, name) VALUES (1, '8848a159-86a5-519f-8289-e7493c905cc1', 'password_argon2id');
+GO
+INSERT INTO secret_types (id, uuid, name) VALUES (2, 'bb4eb707-a148-5a99-bcd3-0e978f80bc23', 'password_bcrypt');
+GO
+INSERT INTO secret_types (id, uuid, name) VALUES (3, 'c475da12-370e-5cef-bf85-e513866bb62a', 'pin_argon2id');
+GO
+INSERT INTO secret_types (id, uuid, name) VALUES (4, '2c0035c5-3510-5c56-87a8-689a0326e356', 'pin_bcrypt');
+GO
+-- Seeds: token_types
+GO
+INSERT INTO token_types (id, uuid, name) VALUES (1, '8b7ad845-911a-5d50-b42c-2c7462c2ad59', 'text');
+GO
+INSERT INTO token_types (id, uuid, name) VALUES (2, '75a005dc-5ddb-51e2-8bcc-3000f324d2ef', 'guid');
+GO
+INSERT INTO token_types (id, uuid, name) VALUES (3, 'aca707e1-3734-5144-9672-81729882b595', 'jwt_access_token');
+GO
+INSERT INTO token_types (id, uuid, name) VALUES (4, 'cd47f747-f368-5287-881a-8d7a030984f0', 'jwt_refresh_token');
+GO
+-- Seeds: session_types
+GO
+INSERT INTO session_types (id, uuid, name) VALUES (1, 'c188cb23-ccea-5a69-b437-43e991dd8230', 'Signin');
+GO
+INSERT INTO session_types (id, uuid, name) VALUES (2, '58e7aafa-edc0-5f83-8255-9807e133a93a', 'LocalApplication');

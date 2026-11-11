@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 axum = { version = "0.8.9", features = ["multipart"] }
+bcrypt = "0.19.3"
 datasources = "0.1.58"
 datasources-mysql = "0.1.58"
 datasources-postgres = "0.1.58"

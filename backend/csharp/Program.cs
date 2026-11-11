@@ -40,6 +40,22 @@ builder.Services.AddSingleton(sp =>
         sp.GetRequiredService<TemplatesService>(),
         sp.GetRequiredService<ImagesService>());
 });
+builder.Services.AddSingleton(sp =>
+{
+    var ds = sp.GetRequiredService<IDatasource>();
+    return new UserService(
+        ds.CreateRepository<User>("Users"),
+        ds.CreateRepository<Backend.Types.Datasource.Role>("Roles"),
+        ds.CreateRepository<Backend.Types.Datasource.Group>("Groups"),
+        ds.CreateRepository<Secret>("Secrets"),
+        ds.CreateReadonlyRepository<Backend.Types.Datasource.SecretType>("SecretTypes"),
+        ds.CreateRepository<Backend.Types.Datasource.UserSecret>("UserSecrets"));
+});
+builder.Services.AddSingleton(sp =>
+{
+    var ds = sp.GetRequiredService<IDatasource>();
+    return new SetupService(ds.CreateRepository<Backend.Types.Datasource.Role>("Roles"), ds.CreateRepository<Backend.Types.Datasource.Group>("Groups"), sp.GetRequiredService<UserService>());
+});
 builder.Services.AddSingleton(sp => new GameSummariesService(sp.GetRequiredService<IDatasource>().CreateConnection().GetAwaiter().GetResult(), sp.GetRequiredService<ImagesService>()));
 builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = builder.Configuration.GetValue("Images:MaxBytes", 10L * 1024 * 1024));
 var app = builder.Build();
@@ -62,6 +78,20 @@ if (args.FirstOrDefault() == "setup")
     Console.WriteLine(puzzles.Count > 0 ? $"added {puzzles.Count} puzzles" : "puzzles already present");
     var attributes = await app.Services.GetRequiredService<GamesService>().AddAttributes();
     Console.WriteLine(attributes.Count > 0 ? $"added attributes to {attributes.Count} games" : "game attributes already present");
+    var identity = app.Services.GetRequiredService<SetupService>();
+    var (roles, groups) = await identity.AddDefaults();
+    Console.WriteLine(roles.Count > 0 ? $"added roles: {string.Join(", ", roles)}" : "roles already present");
+    Console.WriteLine(groups.Count > 0 ? $"added groups: {string.Join(", ", groups)}" : "groups already present");
+    var admin = await identity.AddAdmin(Environment.GetEnvironmentVariable("ADMIN_PASSWORD"));
+    if (admin is null) Console.WriteLine("users already present, no admin added");
+    else if (admin.Value.Generated) Console.WriteLine($"added user admin with password {admin.Value.Password} (shown once; change it with update-user)");
+    else Console.WriteLine("added user admin with the password from ADMIN_PASSWORD");
+    return;
+}
+
+if (args.FirstOrDefault() is "add-user" or "update-user")
+{
+    Environment.ExitCode = await UserCommands.Run(app.Services.GetRequiredService<UserService>(), args);
     return;
 }
 

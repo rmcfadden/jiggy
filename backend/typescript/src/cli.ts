@@ -1,8 +1,9 @@
 import '../generated/repositories/repositoryRegistry.ts'
 import './datasources-register.ts'
 import { setup } from './cli/setup.ts'
+import { addUser, updateUser } from './cli/users.ts'
 
-const commands: Record<string, () => Promise<void>> = { setup }
+const commands: Record<string, () => Promise<void>> = { setup, 'add-user': addUser, 'update-user': updateUser }
 const name = process.argv[2]
 
 if (!name || !commands[name]) {

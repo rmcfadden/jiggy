@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="AWSSDK.S3" Version="4.0.104.11" />
+    <PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
     <PackageReference Include="Datasources" Version="0.1.58" />
     <PackageReference Include="Datasources.Mysql" Version="0.1.58" />
     <PackageReference Include="Datasources.Postgres" Version="0.1.58" />
