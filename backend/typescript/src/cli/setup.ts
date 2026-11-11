@@ -8,6 +8,7 @@ import { GameParentsService } from '../services/gameParents.ts'
 import { GamesService } from '../services/games.ts'
 import { ImagesService } from '../services/images.ts'
 import { TemplatesService } from '../services/templates.ts'
+import { createSetupService } from './users.ts'
 import type { Game } from '../../generated/types/view/game.ts'
 import type { PuzzleGame } from '../../generated/types/datasource/puzzleGame.ts'
 import type { GameCategory } from '../../generated/types/datasource/gameCategory.ts'
@@ -68,4 +69,12 @@ export async function setup(): Promise<void> {
   console.log(puzzles.length ? `added ${puzzles.length} puzzles` : 'puzzles already present')
   const attributes = await games.addAttributes()
   console.log(attributes.length ? `added attributes to ${attributes.length} games` : 'game attributes already present')
+  const identitySetup = createSetupService()
+  const identity = await identitySetup.addDefaults()
+  console.log(identity.roles.length ? `added roles: ${identity.roles.join(', ')}` : 'roles already present')
+  console.log(identity.groups.length ? `added groups: ${identity.groups.join(', ')}` : 'groups already present')
+  const admin = await identitySetup.addAdmin(process.env.ADMIN_PASSWORD)
+  if (!admin) console.log('users already present, no admin added')
+  else if (admin.generated) console.log(`added user admin with password ${admin.password} (shown once; change it with update-user)`)
+  else console.log('added user admin with the password from ADMIN_PASSWORD')
 }

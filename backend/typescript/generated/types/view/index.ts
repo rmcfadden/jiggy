@@ -11,4 +11,8 @@ export { template, Template } from "./template";
 export { category, Category } from "./category";
 export { game, Game } from "./game";
 export { gameParent, GameParent } from "./gameParent";
+export { secret, Secret } from "./secret";
+export { token, Token } from "./token";
+export { session, Session } from "./session";
+export { sessionHit, SessionHit } from "./sessionHit";
 export { gameSummary, GameSummary } from "./gameSummary";

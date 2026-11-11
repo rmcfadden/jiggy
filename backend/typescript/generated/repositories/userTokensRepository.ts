@@ -1,0 +1,20 @@
+import { UserToken } from "../types/datasource/userToken";
+import { CRUDRepository, CRUDRepositoryBuilder, DictionaryMapper, ReadonlyRepository, Schema, type IConnection } from "@deterministic-code/datasources";
+const options = (connection: IConnection) =>
+  new CRUDRepositoryBuilder<UserToken>()
+    .add({ type: UserToken, entity: "UserToken", entityMapper: new DictionaryMapper([["UserToken", "user_tokens"]]), propertyMappings: new DictionaryMapper([["userId", "user_id"], ["tokenId", "token_id"]]), ids: ["id"], createProperties: ["userId", "tokenId"], updateProperties: ["uuid", "userId", "tokenId"], readProperties: ["id", "uuid", "created", "updated", "version", "userId", "tokenId"], schema: new Schema({ id: { type: "biginteger", nullable: false, hasDefault: false, isId: true }, uuid: { type: "uuid", nullable: false, hasDefault: true }, created: { type: "datetime", nullable: false, hasDefault: true }, updated: { type: "datetime", nullable: false, hasDefault: true }, version: { type: "binary", nullable: false, hasDefault: true }, userId: { type: "biginteger", nullable: false, hasDefault: false }, tokenId: { type: "biginteger", nullable: false, hasDefault: false } }) })
+    .add("sqlite", { type: UserToken, entity: "UserToken", entityMapper: new DictionaryMapper([["UserToken", "user_tokens"]]), propertyMappings: new DictionaryMapper([["userId", "user_id"], ["tokenId", "token_id"]]), ids: ["id"], createProperties: ["uuid", "created", "version", "userId", "tokenId"], updateProperties: ["uuid", "created", "version", "userId", "tokenId"], readProperties: ["id", "uuid", "created", "updated", "version", "userId", "tokenId"], schema: new Schema({ id: { type: "biginteger", nullable: false, hasDefault: false, isId: true }, uuid: { type: "uuid", nullable: false, hasDefault: true }, created: { type: "datetime", nullable: false, hasDefault: true }, updated: { type: "datetime", nullable: false, hasDefault: true }, version: { type: "binary", nullable: false, hasDefault: true }, userId: { type: "biginteger", nullable: false, hasDefault: false }, tokenId: { type: "biginteger", nullable: false, hasDefault: false } }) })
+    .for(connection);
+
+const readonlyOptions = (connection: IConnection) =>
+  new CRUDRepositoryBuilder<UserToken>()
+    .add({ type: UserToken, entity: "UserToken", entityMapper: new DictionaryMapper([["UserToken", "user_tokens"]]), propertyMappings: new DictionaryMapper([["userId", "user_id"], ["tokenId", "token_id"]]), readProperties: ["id", "uuid", "created", "updated", "version", "userId", "tokenId"], schema: new Schema({ id: { type: "biginteger", nullable: false, hasDefault: false, isId: true }, uuid: { type: "uuid", nullable: false, hasDefault: true }, created: { type: "datetime", nullable: false, hasDefault: true }, updated: { type: "datetime", nullable: false, hasDefault: true }, version: { type: "binary", nullable: false, hasDefault: true }, userId: { type: "biginteger", nullable: false, hasDefault: false }, tokenId: { type: "biginteger", nullable: false, hasDefault: false } }) })
+    .add("sqlite", { type: UserToken, entity: "UserToken", entityMapper: new DictionaryMapper([["UserToken", "user_tokens"]]), propertyMappings: new DictionaryMapper([["userId", "user_id"], ["tokenId", "token_id"]]), readProperties: ["id", "uuid", "created", "updated", "version", "userId", "tokenId"], schema: new Schema({ id: { type: "biginteger", nullable: false, hasDefault: false, isId: true }, uuid: { type: "uuid", nullable: false, hasDefault: true }, created: { type: "datetime", nullable: false, hasDefault: true }, updated: { type: "datetime", nullable: false, hasDefault: true }, version: { type: "binary", nullable: false, hasDefault: true }, userId: { type: "biginteger", nullable: false, hasDefault: false }, tokenId: { type: "biginteger", nullable: false, hasDefault: false } }) })
+    .for(connection);
+
+export class UserTokensRepository extends CRUDRepository<UserToken> {
+  constructor(connection: IConnection) {
+    super(connection, options(connection));
+  }
+  static createReadonly = (connection: IConnection) => new ReadonlyRepository<UserToken>(connection, readonlyOptions(connection));
+}

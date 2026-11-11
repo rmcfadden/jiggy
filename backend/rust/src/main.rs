@@ -2,6 +2,7 @@ mod datasources_providers;
 mod generated;
 mod routes;
 mod services;
+mod users_cli;
 
 use axum::{routing::get, Json, Router};
 use datasources::default;
@@ -13,7 +14,9 @@ use services::game_parents::GameParentsService;
 use services::game_summaries::GameSummariesService;
 use services::games::GamesService;
 use services::images::ImagesService;
+use services::setup::SetupService;
 use services::templates::TemplatesService;
+use services::users::UsersService;
 use std::sync::Arc;
 
 async fn health() -> Json<Value> {
@@ -38,9 +41,16 @@ async fn main() {
         images.clone(),
     ));
     let summaries = Arc::new(GameSummariesService::new(ds.bind_connection(None), images.clone()).expect("game summaries"));
-    if std::env::args().nth(1).as_deref() == Some("setup") {
-        setup(&game_parents, &categories, &templates, &images, &games).await;
-        return;
+    let users = Arc::new(UsersService::new(ds.users(), ds.roles(), ds.groups(), ds.secrets(), ds.secret_types(), ds.user_secrets()));
+    let identity = SetupService::new(ds.roles(), ds.groups(), users.clone());
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    match args.first().map(String::as_str) {
+        Some("setup") => {
+            setup(&game_parents, &categories, &templates, &images, &games, &identity).await;
+            return;
+        }
+        Some(command @ ("add-user" | "update-user")) => std::process::exit(users_cli::run(command, &users, &args[1..]).await),
+        _ => {}
     }
 
     let app = Router::new()
@@ -67,7 +77,7 @@ fn report(added: &[String], what: &str, present: &str) {
 }
 
 /// Seeds the database; every step is idempotent and later steps need the earlier ones.
-async fn setup(game_parents: &GameParentsService, categories: &CategoriesService, templates: &TemplatesService, images: &ImagesService, games: &GamesService) {
+async fn setup(game_parents: &GameParentsService, categories: &CategoriesService, templates: &TemplatesService, images: &ImagesService, games: &GamesService, identity: &SetupService) {
     let added = game_parents.add_parent_games().await.expect("add parent games");
     report(&added, "parent games", "parent games");
     let added = categories.add_categories(&seed_path("CATEGORIES_SEED_PATH", "../data/categories.json")).await.expect("add categories");
@@ -80,4 +90,13 @@ async fn setup(game_parents: &GameParentsService, categories: &CategoriesService
     if added.is_empty() { println!("puzzles already present") } else { println!("added {} puzzles", added.len()) }
     let added = games.add_attributes().await.expect("add game attributes");
     if added.is_empty() { println!("game attributes already present") } else { println!("added attributes to {} games", added.len()) }
+    let (roles, groups) = identity.add_defaults().await.expect("add roles and groups");
+    report(&roles, "roles", "roles");
+    report(&groups, "groups", "groups");
+    let password = std::env::var("ADMIN_PASSWORD").ok().filter(|p| !p.is_empty());
+    match identity.add_admin(password).await.expect("add admin user") {
+        None => println!("users already present, no admin added"),
+        Some((password, true)) => println!("added user admin with password {password} (shown once; change it with update-user)"),
+        Some((_, false)) => println!("added user admin with the password from ADMIN_PASSWORD"),
+    }
 }

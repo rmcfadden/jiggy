@@ -43,11 +43,21 @@ public static class RepositoryRegistry
         factory.Register("Resource", "Resources", connection => new ResourcesRepository(connection), connection => ResourcesRepository.CreateReadonly(connection));
         factory.Register("Review", "Reviews", connection => new ReviewsRepository(connection), connection => ReviewsRepository.CreateReadonly(connection));
         factory.Register("Role", "Roles", connection => new RolesRepository(connection), connection => RolesRepository.CreateReadonly(connection));
+        factory.Register("Secret", "Secrets", connection => new SecretsRepository(connection), connection => SecretsRepository.CreateReadonly(connection));
+        factory.Register("SecretType", "SecretTypes", connection => new SecretTypesRepository(connection), connection => SecretTypesRepository.CreateReadonly(connection));
+        factory.Register("Session", "Sessions", connection => new SessionsRepository(connection), connection => SessionsRepository.CreateReadonly(connection));
+        factory.Register("SessionHit", "SessionHits", connection => new SessionHitsRepository(connection), connection => SessionHitsRepository.CreateReadonly(connection));
+        factory.Register("SessionStatesBase", "SessionStatesBases", connection => new SessionStatesBasesRepository(connection), connection => SessionStatesBasesRepository.CreateReadonly(connection));
+        factory.Register("SessionType", "SessionTypes", connection => new SessionTypesRepository(connection), connection => SessionTypesRepository.CreateReadonly(connection));
         factory.Register("Template", "Templates", connection => new TemplatesRepository(connection), connection => TemplatesRepository.CreateReadonly(connection));
         factory.Register("TemplateType", "TemplateTypes", connection => new TemplateTypesRepository(connection), connection => TemplateTypesRepository.CreateReadonly(connection));
+        factory.Register("Token", "Tokens", connection => new TokensRepository(connection), connection => TokensRepository.CreateReadonly(connection));
+        factory.Register("TokenType", "TokenTypes", connection => new TokenTypesRepository(connection), connection => TokenTypesRepository.CreateReadonly(connection));
         factory.Register("User", "Users", connection => new UsersRepository(connection), connection => UsersRepository.CreateReadonly(connection));
         factory.Register("UserGroup", "UserGroups", connection => new UserGroupsRepository(connection), connection => UserGroupsRepository.CreateReadonly(connection));
         factory.Register("UserRole", "UserRoles", connection => new UserRolesRepository(connection), connection => UserRolesRepository.CreateReadonly(connection));
+        factory.Register("UserSecret", "UserSecrets", connection => new UserSecretsRepository(connection), connection => UserSecretsRepository.CreateReadonly(connection));
         factory.Register("UserSetting", "UserSettings", connection => new UserSettingsRepository(connection), connection => UserSettingsRepository.CreateReadonly(connection));
+        factory.Register("UserToken", "UserTokens", connection => new UserTokensRepository(connection), connection => UserTokensRepository.CreateReadonly(connection));
     }
 }
