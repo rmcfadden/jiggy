@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useViewOnly } from './viewOnly'
 import {
   DEFAULT_GAME_CONFIG,
   JigsawTemplateGenerator,
@@ -42,6 +43,7 @@ export function NextPiecesGame({
     [customJigsaw, spec],
   )
   const total = jigsaw.pieces.length
+  const viewOnly = useViewOnly()
   const [config, setConfig] = useState<GameConfig>(initialConfig ?? { ...DEFAULT_GAME_CONFIG, type: 'next-pieces', seed: spec.seed })
   const [game, setGame] = useState(() => (play ? fromServer(play.state) : createGame(config, total)))
   const [selected, setSelected] = useState<number | null>(null)
@@ -67,7 +69,7 @@ export function NextPiecesGame({
           onSelect={setSelected}
           onPlace={(slot, dragged) => {
             const piece = dragged ?? selected
-            if (piece === null || play?.replay) return
+            if (piece === null || play?.replay || viewOnly) return
             if (play) {
               // The server decides whether the piece fits; its answer is the new state, a wrong slot included.
               setProblem(null)
