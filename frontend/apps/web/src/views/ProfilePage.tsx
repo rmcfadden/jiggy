@@ -4,12 +4,12 @@ import { primaryButton } from '../designer/controls'
 import ContinuePlaying from './ContinuePlaying'
 import PlayHistory from './PlayHistory'
 
-export default function Account() {
+export default function ProfilePage() {
   const session = useSession().data
   const signOut = useSignOut()
   return (
     <div className="p-4 md:p-6">
-      <h1 className="text-2xl font-semibold">Account</h1>
+      <h1 className="text-2xl font-semibold">Profile</h1>
       {session ? (
         <>
         <div className="mt-4 flex flex-col items-start gap-3">

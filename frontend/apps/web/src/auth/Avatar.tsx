@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { ColorsDialog, ModeToggle } from '../ThemeControls'
+import { PALETTES, loadPalette } from '../theme'
 import { useSession, useSignOut } from './hooks'
 
 /** The signed-in user's initial in a round button that opens a small menu; a Sign in link when signed out. */
@@ -9,6 +11,7 @@ export default function Avatar() {
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const [open, setOpen] = useState(false)
+  const [colorsOpen, setColorsOpen] = useState(false)
   const root = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -46,7 +49,7 @@ export default function Avatar() {
         {session.username.trim().charAt(0) || '?'}
       </button>
       {open && (
-        <div role="menu" aria-label="Account" className="absolute right-0 z-40 mt-2 w-52 rounded-lg border border-slate-200 bg-white p-1 text-slate-900 shadow-lg">
+        <div role="menu" aria-label="Profile" className="absolute right-0 z-40 mt-2 w-52 rounded-lg border border-slate-200 bg-white p-1 text-slate-900 shadow-lg">
           <div className="border-b border-slate-200 px-3 py-2">
             <p className="flex items-center gap-1.5 text-xs font-medium text-green-700">
               <span aria-hidden className="h-2 w-2 rounded-full bg-green-500" />
@@ -56,8 +59,22 @@ export default function Avatar() {
               as <strong>{session.username}</strong>
             </p>
           </div>
-          <Link role="menuitem" to="/account" className={item} onClick={() => setOpen(false)}>
-            Account
+          <div className="border-b border-slate-200 px-3 py-2">
+            <ModeToggle />
+          </div>
+          <button
+            role="menuitem"
+            className={`${item} flex items-center justify-between`}
+            onClick={() => {
+              setOpen(false)
+              setColorsOpen(true)
+            }}
+          >
+            Colors…
+            <span className="h-4 w-4 rounded-full" style={{ background: PALETTES.find((p) => p.id === loadPalette())?.swatch }} />
+          </button>
+          <Link role="menuitem" to="/profile" className={item} onClick={() => setOpen(false)}>
+            Profile
           </Link>
           <button
             role="menuitem"
@@ -72,6 +89,7 @@ export default function Avatar() {
           </button>
         </div>
       )}
+      {colorsOpen && <ColorsDialog onClose={() => setColorsOpen(false)} />}
     </div>
   )
 }

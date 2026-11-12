@@ -12,6 +12,7 @@ use generated::Repositories;
 use services::categories::CategoriesService;
 use services::game_parents::GameParentsService;
 use services::game_plays::GamePlaysService;
+use services::reviews::ReviewsService;
 use services::game_summaries::GameSummariesService;
 use services::games::GamesService;
 use services::images::ImagesService;
@@ -54,6 +55,7 @@ async fn main() {
     let signup = Arc::new(SignupService::new(users.clone(), tokens.clone(), ds.contacts(), ds.emails(), ds.email_types(), ds.genders()));
     let oauth = Arc::new(OAuthService::new(users.clone(), tokens.clone(), sessions, settings));
     let game_plays = Arc::new(GamePlaysService::new(ds.game_plays(), ds.game_play_states(), ds.game_play_actions(), ds.game_play_users(), games.clone(), templates.clone()));
+    let reviews = Arc::new(ReviewsService::new(ds.reviews(), ds.game_reviews(), games.clone(), users.clone()));
     let identity = SetupService::new(ds.roles(), ds.groups(), users.clone());
     let args: Vec<String> = std::env::args().skip(1).collect();
     match args.first().map(String::as_str) {
@@ -76,6 +78,7 @@ async fn main() {
         .merge(routes::signin::router(signin))
         .merge(routes::signup::router(signup))
         .merge(routes::oauth::router(oauth))
+        .merge(routes::reviews::router(reviews, tokens.clone()))
         .merge(routes::game_plays::router(game_plays, tokens));
     let port = std::env::var("PORT").unwrap_or_else(|_| "3000".into());
     let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{port}")).await.unwrap();

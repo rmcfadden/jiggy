@@ -28,20 +28,21 @@ export default function PlayHistory() {
             const game = games.find((g) => g.id === play.gameId)
             const dims = ICON_DIMENSIONS.medium
             return (
-              <Link
-                key={play.id}
-                to={`/puzzle?id=${play.gameId}&play=${play.id}`}
-                className={`flex shrink-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm hover:border-amber-500 ${dims.card}`}
-              >
-                {game && <img src={game.thumbnameLocation} alt={game.name} loading="lazy" className={`${dims.image} w-full object-cover`} />}
-                <div className="flex flex-col gap-1 p-3 text-sm">
-                  <span className="truncate font-medium">{game?.name ?? `Puzzle ${play.gameId}`}</span>
-                  {game && <GameMeta game={game} />}
-                  <time dateTime={play.finished} className="text-xs text-slate-500">
-                    Finished {when(play.finished)}
-                  </time>
-                </div>
-              </Link>
+              <div key={play.id} className={`flex shrink-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm hover:border-amber-500 ${dims.card}`}>
+                <Link to={`/puzzle?id=${play.gameId}&play=${play.id}`} className="flex flex-col">
+                  {game && <img src={game.thumbnameLocation} alt={game.name} loading="lazy" className={`${dims.image} w-full object-cover`} />}
+                  <div className="flex flex-col gap-1 p-3 pb-1 text-sm">
+                    <span className="truncate font-medium">{game?.name ?? `Puzzle ${play.gameId}`}</span>
+                    {game && <GameMeta game={game} />}
+                    <time dateTime={play.finished} className="text-xs text-slate-500">
+                      Finished {when(play.finished)}
+                    </time>
+                  </div>
+                </Link>
+                <Link to={`/reviews?game=${play.gameId}`} className="px-3 pb-3 text-xs font-medium text-amber-600 hover:underline">
+                  Reviews
+                </Link>
+              </div>
             )
           })}
         </div>

@@ -2,9 +2,10 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import RequireAuth from './auth/RequireAuth'
 import Layout from './Layout'
 import Designer from './designer/Designer'
-import Account from './views/Account'
+import ProfilePage from './views/ProfilePage'
 import Explorer from './views/Explorer'
 import Player from './views/Player'
+import ReviewsPage from './views/ReviewsPage'
 import SignIn from './views/SignIn'
 import SignUp from './views/SignUp'
 
@@ -18,7 +19,8 @@ export default function App() {
           <Route path="puzzle" element={<Player />} />
           <Route path="designer" element={<Designer />} />
         </Route>
-        <Route path="account" element={<Account />} />
+        <Route path="reviews" element={<ReviewsPage />} />
+        <Route path="profile" element={<ProfilePage />} />
         <Route path="signin" element={<SignIn />} />
         <Route path="signup" element={<SignUp />} />
       </Route>

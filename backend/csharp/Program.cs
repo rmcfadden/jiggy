@@ -106,6 +106,15 @@ builder.Services.AddSingleton(sp =>
         sp.GetRequiredService<TemplatesService>(),
         new Backend.Services.Gameplay.GameServiceRegistry());
 });
+builder.Services.AddSingleton(sp =>
+{
+    var ds = sp.GetRequiredService<IDatasource>();
+    return new ReviewsService(
+        ds.CreateRepository<Backend.Types.Datasource.Review>("Reviews"),
+        ds.CreateRepository<Backend.Types.Datasource.GameReview>("GameReviews"),
+        sp.GetRequiredService<GamesService>(),
+        sp.GetRequiredService<UserService>());
+});
 builder.Services.AddSingleton(sp => new OAuthService(
     sp.GetRequiredService<UserService>(), sp.GetRequiredService<TokenService>(), sp.GetRequiredService<SessionService>(), sp.GetRequiredService<TokenSettings>()));
 builder.Services.AddSingleton(sp => new GameSummariesService(sp.GetRequiredService<IDatasource>().CreateConnection().GetAwaiter().GetResult(), sp.GetRequiredService<ImagesService>(), sp.GetRequiredService<IDatasource>().CreateRepository<Backend.Types.View.Game>("Games")));
@@ -164,6 +173,7 @@ app.MapImages();
 app.MapSignin();
 app.MapSignup();
 app.MapOAuth();
+app.MapReviews();
 app.MapGamePlays();
 
 app.Run();

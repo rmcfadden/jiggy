@@ -44,7 +44,7 @@ it('shows a Sign in link in the header when signed out and an avatar menu with S
   renderAt('/puzzles')
   await screen.findByRole('heading', { name: 'Puzzles' })
   expect(screen.getByRole('link', { name: 'Sign in' })).toBeTruthy()
-  expect(screen.queryByRole('link', { name: 'Account' })).toBeNull() // gone from the sidebar
+  expect(screen.queryByRole('link', { name: 'Profile' })).toBeNull() // gone from the sidebar
   cleanup()
 
   localStorage.setItem('jiggy.auth', JSON.stringify({ username: 'ann', accessToken: 'a', refreshToken: 'r', expiresAt: Date.now() + 60_000 }))
@@ -52,7 +52,7 @@ it('shows a Sign in link in the header when signed out and an avatar menu with S
   fireEvent.click(await screen.findByRole('button', { name: 'Account menu' }))
   expect(screen.getByText('Signed in')).toBeTruthy()
   expect(screen.getByText('ann', { selector: 'strong' })).toBeTruthy()
-  expect(screen.getByRole('menuitem', { name: 'Account' }).getAttribute('href')).toBe('/account')
+  expect(screen.getByRole('menuitem', { name: 'Profile' }).getAttribute('href')).toBe('/profile')
   fireEvent.click(screen.getByRole('menuitem', { name: 'Sign out' }))
   await screen.findByRole('heading', { name: 'Sign in' })
   expect(localStorage.getItem('jiggy.auth')).toBeNull()
