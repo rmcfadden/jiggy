@@ -1,6 +1,7 @@
 import type { Session } from './session'
 
 const TOKEN_EXCHANGE = 'urn:ietf:params:oauth:grant-type:token-exchange'
+const REFRESH_GRANT = 'refresh_token'
 
 export type SignupInput = { username?: string; email?: string; password: string }
 
@@ -27,6 +28,12 @@ async function exchange(signinToken: string, username: string): Promise<Session>
 }
 
 export const authApi = {
+  /** Trades the refresh token for a new access token and refresh token (RFC 6749 refresh grant); the refresh token is single use. */
+  refresh: async (session: Session): Promise<Session> => {
+    const tokens = await post<Tokens>('/api/oauth/token', { grant_type: REFRESH_GRANT, refresh_token: session.refreshToken })
+    if (typeof tokens?.access_token !== 'string' || typeof tokens.refresh_token !== 'string' || typeof tokens.expires_in !== 'number') throw new Error('the token endpoint sent no tokens')
+    return { username: session.username, accessToken: tokens.access_token, refreshToken: tokens.refresh_token, expiresAt: Date.now() + tokens.expires_in * 1000 }
+  },
   signin: async (username: string, password: string): Promise<Session> => {
     const issued = await post<Issued>('/api/signin', { username, password })
     return exchange(issued.signin_token, username)

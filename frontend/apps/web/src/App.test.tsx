@@ -7,7 +7,7 @@ import { stubApi, stubFetch } from './views/stubApi'
 
 beforeEach(() => {
   vi.stubGlobal('fetch', stubFetch)
-  localStorage.setItem('jiggy.auth', JSON.stringify({ username: 'ann', accessToken: 'a', refreshToken: 'r', expiresAt: Date.now() + 60_000 }))
+  localStorage.setItem('jiggy.auth', JSON.stringify({ username: 'ann', accessToken: 'a', refreshToken: 'r', expiresAt: Date.now() + 86_400_000 }))
 })
 
 afterEach(() => {

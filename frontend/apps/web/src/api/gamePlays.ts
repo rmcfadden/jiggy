@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
-import { getAccessToken } from '../auth/session'
+import { freshAccessToken } from '../auth/refresh'
 
 export type PlayOffset = { x: number; y: number }
 
@@ -48,7 +48,7 @@ export class UnauthorizedError extends Error {}
 
 /** Sends an authenticated request to the plays API; 401 is an {@link UnauthorizedError}, any other failure carries the server's message. */
 async function playRequest<T>(method: 'GET' | 'POST', path: string, body?: unknown): Promise<T> {
-  const token = getAccessToken()
+  const token = await freshAccessToken()
   const res = await fetch(`/api/game_plays${path}`, {
     method,
     headers: { ...(body === undefined ? {} : { 'Content-Type': 'application/json' }), ...(token ? { Authorization: `Bearer ${token}` } : {}) },

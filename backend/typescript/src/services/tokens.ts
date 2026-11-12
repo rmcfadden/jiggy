@@ -24,7 +24,7 @@ export function tokenSettingsFromEnv(env: NodeJS.ProcessEnv = process.env): Toke
   const jwtSecret = env.JWT_SECRET
   if (!jwtSecret || jwtSecret.length < 32) throw new Error('JWT_SECRET must be set to at least 32 characters')
   const seconds = (name: string, fallback: number) => (env[name] ? Number(env[name]) : fallback)
-  return { jwtSecret, signinTtl: seconds('SIGNIN_TOKEN_TTL', 300), accessTtl: seconds('JWT_ACCESS_TTL', 900), refreshTtl: seconds('JWT_REFRESH_TTL', 2_592_000) }
+  return { jwtSecret, signinTtl: seconds('SIGNIN_TOKEN_TTL', 300), accessTtl: seconds('JWT_ACCESS_TTL', 86_400), refreshTtl: seconds('JWT_REFRESH_TTL', 86_400) }
 }
 
 const sha256 = (value: string) => createHash('sha256').update(value).digest('hex')
