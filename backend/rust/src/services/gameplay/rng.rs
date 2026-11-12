@@ -23,3 +23,26 @@ pub fn shuffle<T: Clone>(items: &[T], rng: &mut Rng) -> Vec<T> {
     }
     a
 }
+
+/// Makes piece GUIDs. The default is a random (CSPRNG) v4 UUID per call; tests use [`Ids::counter`] to know every GUID.
+#[derive(Clone)]
+pub struct Ids(std::sync::Arc<dyn Fn() -> String + Send + Sync>);
+
+impl Ids {
+    pub fn next(&self) -> String {
+        (self.0)()
+    }
+
+    /// `00000000-0000-4000-8000-000000000001`, `...2`, and so on.
+    #[cfg(test)]
+    pub fn counter() -> Self {
+        let n = std::sync::atomic::AtomicU64::new(0);
+        Self(std::sync::Arc::new(move || format!("00000000-0000-4000-8000-{:012}", n.fetch_add(1, std::sync::atomic::Ordering::Relaxed) + 1)))
+    }
+}
+
+impl Default for Ids {
+    fn default() -> Self {
+        Self(std::sync::Arc::new(|| uuid::Uuid::new_v4().to_string()))
+    }
+}

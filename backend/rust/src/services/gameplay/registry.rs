@@ -11,7 +11,10 @@ pub struct GameServiceRegistry {
 
 impl GameServiceRegistry {
     pub fn new() -> Self {
-        let all: Vec<Box<dyn PuzzleGameService>> = vec![Box::new(ScrambledGameService), Box::new(NextPiecesGameService), Box::new(LastXGameService)];
+        Self::with(vec![Box::new(ScrambledGameService::default()), Box::new(NextPiecesGameService::default()), Box::new(LastXGameService::default())])
+    }
+
+    pub fn with(all: Vec<Box<dyn PuzzleGameService>>) -> Self {
         Self { services: all.into_iter().map(|s| (s.kind(), s)).collect() }
     }
 

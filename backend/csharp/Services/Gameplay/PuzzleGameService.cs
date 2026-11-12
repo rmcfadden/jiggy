@@ -8,10 +8,12 @@ namespace Backend.Services.Gameplay;
 /// starting layout and the rules of one move kind. The state is never taken from a client: it is the result of
 /// <see cref="Start"/> plus every accepted <see cref="Action"/>.
 /// </summary>
-public abstract class PuzzleGameService
+public abstract class PuzzleGameService(Func<string>? newId = null)
 {
     /// <summary>Biggest puzzle the server will start; a guard against absurd templates.</summary>
     const long MaxPieces = 2_500;
+
+    readonly Func<string> newId = newId ?? (() => Guid.NewGuid().ToString("D"));
 
     public abstract string Type { get; }
     protected abstract PuzzleState Initial(GameSetup setup, Grid grid);
@@ -23,7 +25,8 @@ public abstract class PuzzleGameService
     {
         if (setup.Cols < 1 || setup.Rows < 1 || setup.Cols * setup.Rows > MaxPieces)
             throw new GameException(422, $"the game's template has no usable grid ({setup.Cols}x{setup.Rows})");
-        var grid = new Grid((int)setup.Cols, (int)setup.Rows, (int)(setup.Cols * setup.Rows), unchecked((uint)(long)setup.Number("seed", 1)));
+        var grid = new Grid((int)setup.Cols, (int)setup.Rows, (int)(setup.Cols * setup.Rows), unchecked((uint)(long)setup.Number("seed", 1)),
+            Enumerable.Range(0, (int)(setup.Cols * setup.Rows)).Select(_ => newId()).ToArray());
         var state = Initial(setup, grid);
         state.Solved = IsSolved(state);
         return state;
@@ -34,9 +37,7 @@ public abstract class PuzzleGameService
     {
         if (state.Solved) throw new GameException(409, "the game is already solved");
         var result = Apply(state, action);
-        var solved = IsSolved(result.State);
-        result.State.Solved = solved;
-        if (solved) result.Delta["solved"] = true;
+        result.State.Solved = IsSolved(result.State);
         return result;
     }
 
@@ -45,26 +46,18 @@ public abstract class PuzzleGameService
 
     protected GameException Unsupported(GameAction action) => new(400, $"a {Type} game has no \"{action.Kind}\" action");
 
-    /// <summary>
-    /// Rebuilds a state from its stored changes: the first row is the full state and each later row replaces the keys it
-    /// names. <c>offsets</c> is the exception, it is stored sparsely as <c>{ pieceIndex: {x, y} }</c> and patched in place.
-    /// </summary>
-    public static PuzzleState Fold(IReadOnlyList<JsonObject> changes)
+    /// <summary>Rebuilds a state from its stored rows: the first is the full state, each later one is <c>{ events, mistakes, solved }</c>.</summary>
+    public static PuzzleState Fold(IReadOnlyList<JsonObject> rows)
     {
-        if (changes.Count == 0) throw new GameException(404, "the play has no state");
-        var state = (JsonObject)changes[0].DeepClone();
-        foreach (var change in changes.Skip(1))
-            foreach (var (key, value) in change.ToList())
-            {
-                if (key == "offsets" && value is JsonObject sparse)
-                {
-                    var offsets = state["offsets"] as JsonArray ?? [];
-                    foreach (var (index, offset) in sparse)
-                        if (int.TryParse(index, out var i) && i < offsets.Count) offsets[i] = offset?.DeepClone();
-                    state["offsets"] = offsets;
-                }
-                else state[key] = value?.DeepClone();
-            }
-        return PuzzleState.FromJson(state);
+        if (rows.Count == 0) throw new GameException(404, "the play has no state");
+        var state = PuzzleState.FromJson(rows[0]);
+        foreach (var row in rows.Skip(1))
+        {
+            var events = row["events"]?.AsArray().Select(StateEvent.FromJson).ToList() ?? throw new GameException(500, "stored game state is corrupt");
+            state = state.Apply(events);
+            state.Mistakes = row["mistakes"]?.GetValue<long>() ?? state.Mistakes;
+            state.Solved = row["solved"]?.GetValue<bool>() ?? state.Solved;
+        }
+        return state;
     }
 }

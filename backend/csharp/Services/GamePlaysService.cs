@@ -54,12 +54,24 @@ public class GamePlaysService(
         var state = StateOf(play);
         var result = registry.ForParent(state.Type).Action(state, action);
         // The state row goes first: it is the truth. A failure before the action row leaves a state with no log entry, never a logged move that did not happen.
-        await states.Create(new PlayState { GamePlayId = playId, StateChange = result.Delta.ToJsonString() });
+        await states.Create(new PlayState { GamePlayId = playId, StateChange = StateRow(result) });
         await actions.Create(new PlayAction { GamePlayId = playId, UserId = userId, Action = action.ToJson().ToJsonString() });
         // Solving the puzzle ends the play: `finished` is set by the game, not by the client.
         var finished = result.State.Solved ? await MarkFinished(playId) : play.Finished;
-        return new { accepted = true, correct = result.Correct, solved = result.State.Solved, finished, state = result.State.ToJson() };
+        return new
+        {
+            accepted = result.Result != MoveResult.Denied, result = result.Result, reason = result.Reason, correct = result.Correct,
+            solved = result.State.Solved, finished, events = result.Events.Select(e => e.ToJson()).ToList(), state = result.State.ToJson(),
+        };
     }
+
+    /// <summary>One stored state row after the first: the events plus the counters they leave behind.</summary>
+    static string StateRow(ActionResult r) => new JsonObject
+    {
+        ["events"] = new JsonArray(r.Events.Select(e => (JsonNode)e.ToJson()).ToArray()),
+        ["mistakes"] = r.State.Mistakes,
+        ["solved"] = r.State.Solved,
+    }.ToJsonString();
 
     public async Task<object> State(long playId, long userId)
     {
