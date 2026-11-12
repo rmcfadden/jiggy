@@ -30,10 +30,10 @@ it('opens the designer for a signed-in user', async () => {
   await screen.findByRole('tab', { name: /game/i })
 })
 
-it('sends a signed-out visitor from /puzzle to sign in, but leaves the puzzle list open', async () => {
+it('lets a signed-out visitor view /puzzle with a banner saying play is disabled, and leaves the puzzle list open', async () => {
   mockAuthApi(okHandlers())
   renderAt('/puzzle?id=puffin')
-  await screen.findByRole('heading', { name: 'Sign in' })
+  await screen.findByText(/live game play is disabled until you/i)
   cleanup()
   renderAt('/puzzles')
   await screen.findByRole('heading', { name: 'Puzzles' })

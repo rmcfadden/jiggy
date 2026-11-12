@@ -7,12 +7,13 @@ import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-do
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { gameQuery } from '../api/games'
 import { FINISHED_PLAYS_KEY, UNFINISHED_PLAYS_KEY, UnauthorizedError, playStateQuery, playStatesQuery, sendPlayAction, type PlayHandle, type PlayState } from '../api/gamePlays'
-import { useSignOut } from '../auth/hooks'
+import { useSession, useSignOut } from '../auth/hooks'
 import { primaryButton } from '../designer/controls'
 import { useImage } from '../api/images'
 import { useTemplate } from '../api/templates'
 import { normalizeSetup } from '../designer/library'
 import { NextPiecesGame } from './NextPiecesGame'
+import { ViewOnlyContext, useViewOnly } from './viewOnly'
 import { templateParams } from '../designer/gameAssets'
 import {
   CATALOG,
@@ -44,6 +45,25 @@ import {
 const DEFAULT_SPEC: PuzzleSpec = { cols: 4, rows: 3, seed: 1 }
 
 export default function Player() {
+  const signedIn = Boolean(useSession().data)
+  return (
+    <div className="flex h-full flex-col">
+      {!signedIn && (
+        <div role="status" className="border-b border-amber-300 bg-amber-100 px-4 py-2 text-sm text-amber-900">
+          Live game play is disabled until you <Link to="/signin" state={{ from: '/puzzles' }} className="font-medium underline">sign in</Link>. You can look at this puzzle, but not play it.
+        </div>
+      )}
+      {/* Signed-out visitors get a view-only board: zoom and the preview still work, moves are ignored. */}
+      <div className="min-h-0 flex-1">
+        <ViewOnlyContext.Provider value={!signedIn}>
+          <PlayerContent />
+        </ViewOnlyContext.Provider>
+      </div>
+    </div>
+  )
+}
+
+function PlayerContent() {
   const [params] = useSearchParams()
   const savedId = /^\d+$/.test(params.get('id') ?? '') ? Number(params.get('id')) : null
   const catalogPuzzle = savedId === null ? findPuzzle(CATALOG, params.get('id')) : undefined
@@ -299,6 +319,7 @@ export function Game({
   /** A server-owned play: the pieces start where its state puts them and each drop is sent to the server, which answers with the new positions. */
   play?: PlayHandle
 }) {
+  const viewOnly = useViewOnly()
   const puzzle = useMemo(() => jigsaw ?? buildPuzzle(spec), [jigsaw, spec])
   const served = play?.state.pieces ? play : undefined
   // The server lays pieces out in 100-unit cells; the board draws them in the template's cell size.
@@ -375,7 +396,7 @@ export function Game({
   }
 
   const onDown = (index: number) => (e: React.PointerEvent) => {
-    if (play?.replay) return
+    if (play?.replay || viewOnly) return
     if (offsets[index].x === 0 && offsets[index].y === 0) return
     if (busy.current) return // one move at a time: wait for the server's answer to the last drop
     touched.current = true

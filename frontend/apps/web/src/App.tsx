@@ -15,8 +15,8 @@ export default function App() {
       <Route element={<Layout />}>
         <Route index element={<Navigate to="/puzzles" replace />} />
         <Route path="puzzles" element={<Explorer />} />
+        <Route path="puzzle" element={<Player />} />
         <Route element={<RequireAuth />}>
-          <Route path="puzzle" element={<Player />} />
           <Route path="designer" element={<Designer />} />
         </Route>
         <Route path="reviews" element={<ReviewsPage />} />
