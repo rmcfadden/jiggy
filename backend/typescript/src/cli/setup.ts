@@ -76,3 +76,7 @@ export async function setup(): Promise<void> {
   else if (admin.generated) console.log(`added user admin with password ${admin.password} (shown once; change it with update-user)`)
   else console.log('added user admin with the password from ADMIN_PASSWORD')
 }
+  const user = await identitySetup.addUser(process.env.USER_PASSWORD)
+  if (!user) console.log('user already present, no user added')
+  else if (user.generated) console.log(`added user user (no admin role) with password ${user.password} (shown once; change it with update-user)`)
+  else console.log('added user user (no admin role) with the password from USER_PASSWORD')

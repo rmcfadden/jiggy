@@ -140,6 +140,10 @@ if (args.FirstOrDefault() == "setup")
     else Console.WriteLine("added user admin with the password from ADMIN_PASSWORD");
     return;
 }
+    var user = await identity.AddUser(Environment.GetEnvironmentVariable("USER_PASSWORD"));
+    if (user is null) Console.WriteLine("user already present, no user added");
+    else if (user.Value.Generated) Console.WriteLine($"added user user (no admin role) with password {user.Value.Password} (shown once; change it with update-user)");
+    else Console.WriteLine("added user user (no admin role) with the password from USER_PASSWORD");
 
 if (args.FirstOrDefault() is "add-user" or "update-user")
 {

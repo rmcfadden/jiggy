@@ -115,4 +115,10 @@ async fn setup(game_parents: &GameParentsService, categories: &CategoriesService
         Some((password, true)) => println!("added user admin with password {password} (shown once; change it with update-user)"),
         Some((_, false)) => println!("added user admin with the password from ADMIN_PASSWORD"),
     }
+    let user_password = std::env::var("USER_PASSWORD").ok().filter(|p| !p.is_empty());
+    match identity.add_user(user_password).await.expect("add user") {
+        None => println!("user already present, no user added"),
+        Some((password, true)) => println!("added user user (no admin role) with password {password} (shown once; change it with update-user)"),
+        Some((_, false)) => println!("added user user (no admin role) with the password from USER_PASSWORD"),
+    }
 }

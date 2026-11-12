@@ -12,6 +12,7 @@ type Result<T> = std::result::Result<T, UserError>;
 const DEFAULT_ROLES: [&str; 2] = ["admin", "editor"];
 const DEFAULT_GROUPS: [&str; 2] = ["admin", "support"];
 const ADMIN_USERNAME: &str = "admin";
+const USER_USERNAME: &str = "user";
 
 /// Seeds the identity data `setup` needs: default roles and groups, and a first admin user.
 pub struct SetupService {
@@ -62,6 +63,20 @@ impl SetupService {
         let chosen = password.unwrap_or_else(|| datasources::uuid::Uuid::new_v4().simple().to_string());
         self.users
             .create(CreateUser { username: ADMIN_USERNAME.into(), password: chosen.clone(), roles: vec!["admin".into()], groups: vec!["admin".into()], is_enabled: None })
+            .await?;
+        Ok(Some((chosen, generated)))
+    }
+
+    /// Creates the plain `user` account (no roles, no groups) when it does not exist yet.
+    /// Uses `password` when given, otherwise a random one; returns (password, generated).
+    pub async fn add_user(&self, password: Option<String>) -> Result<Option<(String, bool)>> {
+        if self.users.find(USER_USERNAME).await?.is_some() {
+            return Ok(None);
+        }
+        let generated = password.is_none();
+        let chosen = password.unwrap_or_else(|| datasources::uuid::Uuid::new_v4().simple().to_string());
+        self.users
+            .create(CreateUser { username: USER_USERNAME.into(), password: chosen.clone(), roles: vec![], groups: vec![], is_enabled: None })
             .await?;
         Ok(Some((chosen, generated)))
     }
