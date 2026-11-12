@@ -73,6 +73,22 @@ public class GamePlaysService(
         ["solved"] = r.State.Solved,
     }.ToJsonString();
 
+    /// <summary>The user's plays that are not finished, newest activity first: plays they are a participant of (<c>game_play_user</c>). <c>lastPlayed</c> is the newest state change.</summary>
+    public async Task<object> Unfinished(long userId)
+    {
+        var ids = new HashSet<long>();
+        await foreach (var row in users.Read()) if (row.UserId == userId) ids.Add(row.GamePlayId);
+        var found = new List<(long Id, long GameId, DateTime LastPlayed)>();
+        foreach (var id in ids)
+        {
+            var play = await plays.ReadSingleById(id);
+            if (play is null || play.Finished is not null) continue;
+            found.Add((id, play.GameId, play.States.Select(s => s.Created).Append(play.Created).Max()));
+        }
+        return found.OrderByDescending(f => f.LastPlayed).ThenByDescending(f => f.Id)
+            .Select(f => new { id = f.Id, gameId = f.GameId, lastPlayed = f.LastPlayed }).ToList();
+    }
+
     public async Task<object> State(long playId, long userId)
     {
         var play = await Load(playId, userId);

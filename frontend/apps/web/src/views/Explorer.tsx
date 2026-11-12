@@ -22,7 +22,8 @@ import {
   type BrowsePrefs,
   type IconSize,
 } from './browsePrefs'
-import { recordPlayed, useProfile } from './profile'
+import ContinuePlaying from './ContinuePlaying'
+import { useProfile } from './profile'
 
 const pieceCount = (p: Puzzle) => {
   const size = TEMPLATE_SIZES.find((t) => t.id === p.template.size)
@@ -74,7 +75,6 @@ function Card({ puzzle, size, inList, onToggleList, className = '' }: {
     <div className={`relative ${className}`}>
       <PlayLink
         gameId={puzzle.id}
-        onClick={() => recordPlayed(puzzle.id)}
         className="flex flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm hover:border-amber-500"
       >
         <img src={puzzle.image.location} alt={puzzle.image.name} loading="lazy" className={`${dims.image} w-full object-cover`} />
@@ -166,7 +166,7 @@ function ClassicView({ prefs, catalog, ...profile }: { prefs: BrowsePrefs; catal
   )
 }
 
-type ProfileProps = { list: string[]; recent: string[]; toggle: (id: string) => void }
+type ProfileProps = { list: string[]; toggle: (id: string) => void }
 
 function Row({ title, puzzles, size, profile }: { title: string; puzzles: Puzzle[]; size: IconSize; profile: ProfileProps }) {
   if (puzzles.length === 0) return null
@@ -205,13 +205,11 @@ function NetflixView({
   const featured = topRated[0]
   const find = (id: string) => findPuzzle(catalog, id)
   const mine = profile.list.map(find).filter((p): p is Puzzle => !!p)
-  const recent = profile.recent.map(find).filter((p): p is Puzzle => !!p)
   return (
     <div className="min-w-0 flex-1 overflow-y-auto p-4 md:p-6">
       {featured && (
         <PlayLink
           gameId={featured.id}
-          onClick={() => recordPlayed(featured.id)}
           className="relative mb-6 block h-48 overflow-hidden rounded-xl bg-[#0f172a] md:h-64"
         >
           <img src={featured.image.location} alt="" className="h-full w-full object-cover opacity-70" />
@@ -241,7 +239,7 @@ function NetflixView({
           </button>
         ))}
       </div>
-      <Row title="Continue playing" puzzles={recent} size={prefs.iconSize} profile={profile} />
+      <ContinuePlaying size={prefs.iconSize} />
       <Row title="My List" puzzles={mine} size={prefs.iconSize} profile={profile} />
       <Row title="Top rated" puzzles={topRated.slice(0, 10)} size={prefs.iconSize} profile={profile} />
       {topLevel

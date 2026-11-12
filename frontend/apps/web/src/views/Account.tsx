@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useSession, useSignOut } from '../auth/hooks'
 import { primaryButton } from '../designer/controls'
+import ContinuePlaying from './ContinuePlaying'
 
 export default function Account() {
   const session = useSession().data
@@ -9,6 +10,7 @@ export default function Account() {
     <div className="p-4 md:p-6">
       <h1 className="text-2xl font-semibold">Account</h1>
       {session ? (
+        <>
         <div className="mt-4 flex flex-col items-start gap-3">
           <p className="text-sm">
             Signed in as <strong>{session.username}</strong>
@@ -17,6 +19,10 @@ export default function Account() {
             Sign out
           </button>
         </div>
+        <div className="mt-6">
+          <ContinuePlaying />
+        </div>
+        </>
       ) : (
         <p className="mt-2 text-sm text-slate-600">
           You're not signed in.{' '}

@@ -20,6 +20,11 @@ public static class GamePlaysRoutes
                 throw new GameException(400, "game_id must be an integer");
             return Results.Json(await service.Start(gameId, User(http)), statusCode: StatusCodes.Status201Created);
         });
+        group.MapGet("/", async (string? finished, HttpContext http, GamePlaysService service) =>
+        {
+            if (finished != "false") throw new GameException(400, "only finished=false is supported");
+            return Results.Ok(await service.Unfinished(User(http)));
+        });
         group.MapPost("/{id:long}/action", async (long id, JsonElement? body, HttpContext http, GamePlaysService service) =>
             Results.Ok(await service.Action(id, User(http), body)));
         group.MapGet("/{id:long}/state", async (long id, HttpContext http, GamePlaysService service) =>

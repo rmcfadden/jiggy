@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { freshAccessToken } from '../auth/refresh'
 
 export type PlayOffset = { x: number; y: number }
@@ -80,6 +80,32 @@ export const playStateQuery = (playId: number) => ({
   retry: false,
 })
 
+/** A play the signed-in user has not finished; `lastPlayed` is when its newest move was stored. */
+export type UnfinishedPlay = { id: number; gameId: number; lastPlayed: string }
+
+/** The signed-in user's unfinished plays (they are a player of, `finished` is null), newest first. */
+export const fetchUnfinishedPlays = () => playRequest<UnfinishedPlay[]>('GET', '?finished=false')
+
+export const UNFINISHED_PLAYS_KEY = ['gamePlay', 'unfinished']
+
+/** The unfinished plays to continue; only asked for while `signedIn`, and refetched whenever a page showing them mounts. */
+export const useUnfinishedPlays = (signedIn: boolean) =>
+  useQuery({ queryKey: UNFINISHED_PLAYS_KEY, queryFn: fetchUnfinishedPlays, enabled: signedIn, retry: false })
+
+/**
+ * Opens a play of the game: the user's unfinished play of it when they have one, otherwise a new one. A failure to
+ * look (other than an expired session) starts a new play rather than blocking the click.
+ */
+export async function resumeOrStartGamePlay(gameId: number): Promise<{ id: number }> {
+  try {
+    const open = (await fetchUnfinishedPlays()).find((p) => p.gameId === gameId)
+    if (open) return open
+  } catch (error) {
+    if (error instanceof UnauthorizedError) throw error
+  }
+  return startGamePlay(gameId)
+}
+
 export const START_PLAY_KEY = ['startGamePlay']
 
-export const useStartGamePlay = () => useMutation({ mutationKey: START_PLAY_KEY, mutationFn: startGamePlay })
+export const useStartGamePlay = () => useMutation({ mutationKey: START_PLAY_KEY, mutationFn: resumeOrStartGamePlay })

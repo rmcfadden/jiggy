@@ -3,9 +3,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import Explorer from './Explorer'
+import { resumeOrStartGamePlay } from '../api/gamePlays'
 import { stubFetch } from './stubApi'
 import { parsePrefs } from './browsePrefs'
-import { parseProfile, pushRecent, toggleInList } from './profile'
+import { parseProfile, toggleInList } from './profile'
 
 beforeEach(() => {
   vi.stubGlobal('fetch', stubFetch)
@@ -69,24 +70,58 @@ it('shows Netflix rows with category selection and a profile list', async () => 
   expect(screen.getByRole('region', { name: 'My List' })).toBeTruthy()
 })
 
-it('lists a puzzle as recently played once opened', async () => {
+const signIn = () => localStorage.setItem('jiggy.auth', JSON.stringify({ username: 'ann', accessToken: 'a', refreshToken: 'r', expiresAt: Date.now() + 86_400_000 }))
+
+/** The sample server plus the user's unfinished plays: game 2 twice (play 8 is newer), game 3 once. */
+const serveUnfinished = () =>
+  vi.stubGlobal('fetch', (url: RequestInfo | URL, init?: RequestInit) =>
+    String(url) === '/api/game_plays?finished=false'
+      ? Promise.resolve(new Response(JSON.stringify([
+          { id: 8, gameId: 2, lastPlayed: '2026-11-12T10:00:00Z' },
+          { id: 5, gameId: 3, lastPlayed: '2026-11-11T10:00:00Z' },
+          { id: 3, gameId: 2, lastPlayed: '2026-11-10T10:00:00Z' },
+        ])))
+      : stubFetch(url, init))
+
+it("continues the signed-in user's unfinished plays, one per game, each opening its play", async () => {
+  signIn()
+  serveUnfinished()
   await renderExplorer()
   fireEvent.click(pressed('Layout', 'Netflix'))
-  expect(screen.queryByRole('region', { name: 'Continue playing' })).toBeNull()
-  fireEvent.click(within(screen.getByRole('region', { name: 'Animals' })).getAllByRole('link')[0])
-  cleanup()
+  const row = await screen.findByRole('region', { name: 'Continue playing' })
+  const hrefs = within(row).getAllByRole('link').map((a) => a.getAttribute('href'))
+  expect(hrefs).toEqual(['/puzzle?id=2&play=8', '/puzzle?id=3&play=5'])
+})
+
+it('shows no Continue playing row when signed out or with nothing unfinished', async () => {
+  serveUnfinished()
   await renderExplorer()
-  expect(screen.getByRole('region', { name: 'Continue playing' })).toBeTruthy()
+  fireEvent.click(pressed('Layout', 'Netflix'))
+  await screen.findByRole('region', { name: 'Animals' })
+  expect(screen.queryByRole('region', { name: 'Continue playing' })).toBeNull()
+})
+
+it('resumes an unfinished play of the clicked game instead of starting another', async () => {
+  signIn()
+  const starts: unknown[] = []
+  vi.stubGlobal('fetch', (url: RequestInfo | URL, init?: RequestInit) => {
+    if (String(url) === '/api/game_plays?finished=false') return Promise.resolve(new Response(JSON.stringify([{ id: 8, gameId: 1, lastPlayed: '' }])))
+    if (String(url) === '/api/game_plays' && init?.method === 'POST') starts.push(init.body)
+    return stubFetch(url, init)
+  })
+  await resumeOrStartGamePlay(1).then((play) => expect(play.id).toBe(8))
+  expect(starts).toEqual([])
+  expect((await resumeOrStartGamePlay(2)).id).toBe(77) // no unfinished play of game 2: a new one is started
+  expect(starts).toHaveLength(1)
 })
 
 it('falls back to defaults for bad stored data', async () => {
   expect(parsePrefs('nope')).toMatchObject({ layout: 'classic', side: 'left', iconSize: 'medium' })
   expect(parsePrefs('{"side":"right","iconSize":"huge"}')).toMatchObject({ side: 'right', iconSize: 'medium' })
-  expect(parseProfile('nope')).toEqual({ list: [], recent: [] })
+  expect(parseProfile('nope')).toEqual({ list: [] })
 })
 
-it('keeps the profile list and recents tidy', async () => {
+it('keeps the profile list tidy', async () => {
   expect(toggleInList(['a'], 'b')).toEqual(['a', 'b'])
   expect(toggleInList(['a', 'b'], 'a')).toEqual(['b'])
-  expect(pushRecent(['a', 'b'], 'b')).toEqual(['b', 'a'])
 })
