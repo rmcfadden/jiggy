@@ -8,11 +8,10 @@ pub struct Review {
     pub created: datasources::chrono::DateTime<datasources::chrono::Utc>,
     pub updated: datasources::chrono::DateTime<datasources::chrono::Utc>,
     pub version: Vec<u8>,
-    pub game_id: i64,
     pub user_id: i64,
-    pub description: String,
+    pub comment: String,
     pub rating: datasources::rust_decimal::Decimal,
-    pub is_approved: bool,
+    pub is_moderated: bool,
 }
 impl Default for Review {
     fn default() -> Self {
@@ -22,11 +21,10 @@ impl Default for Review {
             created: datasources::chrono::Utc::now(),
             updated: datasources::chrono::Utc::now(),
             version: vec![0],
-            game_id: 0,
             user_id: 0,
-            description: String::new(),
+            comment: String::new(),
             rating: datasources::rust_decimal::Decimal::ZERO,
-            is_approved: false,
+            is_moderated: false,
         }
     }
 }

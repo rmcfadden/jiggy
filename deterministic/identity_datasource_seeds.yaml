@@ -1,5 +1,27 @@
 version: 1.0.0
 seeds:
+  - oauth_grant_type:
+      - id1:
+          name: authorization_code
+          description: The Authorization Code grant type lets confidential and public clients exchange an authorization code for an access token after the user is redirected back to the client.
+      - id2:
+          name: refresh_token
+          description: The Refresh Token grant type lets clients exchange a refresh token for a new access token once the original has expired, allowing them to maintain valid access without requiring further user interaction.
+      - id3:
+          name: urn:ietf:params:oauth:grant-type:device_code
+          description: The Device Code grant type enables browserless or input-constrained devices to exchange a previously obtained device code for an access token.
+      - id4:
+          name: client_credentials
+          description: To authenticate this request, the client can either include client_id and client_secret as additional request parameters, or pass them via the HTTP Basic auth header.
+      - id5:
+          name: implicit
+          description: The Implicit flow was a simplified OAuth flow previously recommended for native and JavaScript apps that returned an access token immediately, bypassing the authorization code exchange step.
+          is_legacy: true
+      - id6:
+          name: password
+          description: The Password grant type is a legacy method for exchanging a user's credentials directly for an access token. Since this requires the client to collect and transmit the user's password to the authorization server, it is no longer recommended.
+          is_legacy: true
+          
   - secret_type:
       - id1:
           name: password_argon2id

@@ -7,9 +7,8 @@ export class Review {
   created: Date = new Date();
   updated: Date = new Date();
   version: string = Buffer.from([0]).toString("base64");
-  gameId!: number;
   userId!: number;
-  description: string = "";
+  comment: string = "";
   rating: string = "";
-  isApproved: boolean = false;
+  isModerated: boolean = false;
 }

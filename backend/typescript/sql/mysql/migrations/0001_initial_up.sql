@@ -101,6 +101,42 @@ GO
 CREATE TRIGGER trg_user_settings_updated_at BEFORE UPDATE ON user_settings
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
+CREATE TABLE reviews (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    user_id BIGINT NOT NULL,
+    comment TEXT NOT NULL,
+    rating DECIMAL(10, 2) NOT NULL,
+    is_moderated TINYINT(1) DEFAULT 0 NOT NULL,
+    CONSTRAINT reviews_primary_key PRIMARY KEY (id),
+    CONSTRAINT reviews_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT reviews_user_id_foreign_key FOREIGN KEY (user_id) REFERENCES users (id)
+);
+GO
+CREATE TRIGGER trg_reviews_updated_at BEFORE UPDATE ON reviews
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE review_feedbacks (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    review_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    is_positive TINYINT(1) NOT NULL,
+    CONSTRAINT review_feedbacks_primary_key PRIMARY KEY (id),
+    CONSTRAINT review_feedbacks_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT review_feedbacks_review_id_foreign_key FOREIGN KEY (review_id) REFERENCES reviews (id),
+    CONSTRAINT review_feedbacks_user_id_foreign_key FOREIGN KEY (user_id) REFERENCES users (id)
+);
+GO
+CREATE TRIGGER trg_review_feedbacks_updated_at BEFORE UPDATE ON review_feedbacks
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
 CREATE TABLE genders (
     id BIGINT AUTO_INCREMENT NOT NULL,
     uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
@@ -792,24 +828,39 @@ GO
 CREATE TRIGGER trg_game_attributes_updated_at BEFORE UPDATE ON game_attributes
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
-CREATE TABLE reviews (
+CREATE TABLE game_reviews (
     id BIGINT AUTO_INCREMENT NOT NULL,
     uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
     created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
     updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
     version BLOB DEFAULT (X'00') NOT NULL,
     game_id BIGINT NOT NULL,
-    user_id BIGINT NOT NULL,
-    description TEXT NOT NULL,
-    rating DECIMAL(10, 2) NOT NULL,
-    is_approved TINYINT(1) DEFAULT 0 NOT NULL,
-    CONSTRAINT reviews_primary_key PRIMARY KEY (id),
-    CONSTRAINT reviews_uuid_unique_constraint UNIQUE (uuid),
-    CONSTRAINT reviews_game_id_foreign_key FOREIGN KEY (game_id) REFERENCES games (id),
-    CONSTRAINT reviews_user_id_foreign_key FOREIGN KEY (user_id) REFERENCES users (id)
+    review_id BIGINT NOT NULL,
+    CONSTRAINT game_reviews_primary_key PRIMARY KEY (id),
+    CONSTRAINT game_reviews_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT game_reviews_game_id_foreign_key FOREIGN KEY (game_id) REFERENCES games (id),
+    CONSTRAINT game_reviews_review_id_foreign_key FOREIGN KEY (review_id) REFERENCES reviews (id)
 );
 GO
-CREATE TRIGGER trg_reviews_updated_at BEFORE UPDATE ON reviews
+CREATE TRIGGER trg_game_reviews_updated_at BEFORE UPDATE ON game_reviews
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE oauth_grant_types (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    name VARCHAR(256) NOT NULL,
+    description VARCHAR(512) NOT NULL,
+    is_custom TINYINT(1) DEFAULT 0 NOT NULL,
+    is_enabled TINYINT(1) DEFAULT 1 NOT NULL,
+    is_legacy TINYINT(1) DEFAULT 0 NOT NULL,
+    CONSTRAINT oauth_grant_types_primary_key PRIMARY KEY (id),
+    CONSTRAINT oauth_grant_types_uuid_unique_constraint UNIQUE (uuid)
+);
+GO
+CREATE TRIGGER trg_oauth_grant_types_updated_at BEFORE UPDATE ON oauth_grant_types
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
 CREATE TABLE secret_types (
@@ -916,6 +967,109 @@ GO
 CREATE TRIGGER trg_user_tokens_updated_at BEFORE UPDATE ON user_tokens
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
+CREATE TABLE authentication_methods_bases (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    name VARCHAR(256) NOT NULL,
+    description VARCHAR(256),
+    is_default TINYINT(1) DEFAULT 1 NOT NULL,
+    is_enabled TINYINT(1) DEFAULT 1 NOT NULL,
+    CONSTRAINT authentication_methods_bases_primary_key PRIMARY KEY (id),
+    CONSTRAINT authentication_methods_bases_uuid_unique_constraint UNIQUE (uuid)
+);
+GO
+CREATE TRIGGER trg_authentication_methods_bases_updated_at BEFORE UPDATE ON authentication_methods_bases
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE identity_provider_types (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    name VARCHAR(256) NOT NULL,
+    description TEXT,
+    CONSTRAINT identity_provider_types_primary_key PRIMARY KEY (id),
+    CONSTRAINT identity_provider_types_uuid_unique_constraint UNIQUE (uuid)
+);
+GO
+CREATE TRIGGER trg_identity_provider_types_updated_at BEFORE UPDATE ON identity_provider_types
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE identity_providers_bases (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    identity_provider_type_id BIGINT NOT NULL,
+    name VARCHAR(256) NOT NULL,
+    description TEXT,
+    is_enabled TINYINT(1) DEFAULT 1 NOT NULL,
+    is_builtin TINYINT(1) DEFAULT 0 NOT NULL,
+    is_deleted TINYINT(1) DEFAULT 0 NOT NULL,
+    CONSTRAINT identity_providers_bases_primary_key PRIMARY KEY (id),
+    CONSTRAINT identity_providers_bases_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT identity_providers_bases_identity_provider_type_id_foreign_key FOREIGN KEY (identity_provider_type_id) REFERENCES identity_provider_types (id)
+);
+GO
+CREATE TRIGGER trg_identity_providers_bases_updated_at BEFORE UPDATE ON identity_providers_bases
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE identity_provider_settings_bases (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    identity_provider_id BIGINT NOT NULL,
+    name VARCHAR(256) NOT NULL,
+    value TEXT NOT NULL,
+    CONSTRAINT identity_provider_settings_bases_primary_key PRIMARY KEY (id),
+    CONSTRAINT identity_provider_settings_bases_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT identity_provider_settings_bases_identity_provider_id_foreign_key FOREIGN KEY (identity_provider_id) REFERENCES identity_providers_bases (id)
+);
+GO
+CREATE TRIGGER trg_identity_provider_settings_bases_updated_at BEFORE UPDATE ON identity_provider_settings_bases
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE identity_provider_linked_user_field_types (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    name VARCHAR(256) NOT NULL,
+    CONSTRAINT identity_provider_linked_user_field_types_primary_key PRIMARY KEY (id),
+    CONSTRAINT identity_provider_linked_user_field_types_uuid_unique_constraint UNIQUE (uuid)
+);
+GO
+CREATE TRIGGER trg_identity_provider_linked_user_field_types_updated_at BEFORE UPDATE ON identity_provider_linked_user_field_types
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE identity_provider_linked_users_bases (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    identity_provider_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    identity_provider_linked_user_field_type_id BIGINT NOT NULL,
+    value TEXT NOT NULL,
+    CONSTRAINT identity_provider_linked_users_bases_primary_key PRIMARY KEY (id),
+    CONSTRAINT identity_provider_linked_users_bases_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT identity_provider_linked_users_bases_identity_provider_id_foreign_key FOREIGN KEY (identity_provider_id) REFERENCES identity_providers_bases (id),
+    CONSTRAINT identity_provider_linked_users_bases_user_id_foreign_key FOREIGN KEY (user_id) REFERENCES users (id),
+    CONSTRAINT identity_provider_linked_users_bases_identity_provider_linked_user_field_type_id_foreign_key FOREIGN KEY (identity_provider_linked_user_field_type_id) REFERENCES identity_provider_linked_user_field_types (id)
+);
+GO
+CREATE TRIGGER trg_identity_provider_linked_users_bases_updated_at BEFORE UPDATE ON identity_provider_linked_users_bases
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
 CREATE TABLE session_types (
     id BIGINT AUTO_INCREMENT NOT NULL,
     uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
@@ -950,6 +1104,68 @@ CREATE TABLE sessions_bases (
 );
 GO
 CREATE TRIGGER trg_sessions_bases_updated_at BEFORE UPDATE ON sessions_bases
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE authorization_codes_bases (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    session_id BIGINT,
+    code VARCHAR(512) NOT NULL,
+    is_used TINYINT(1) DEFAULT 1 NOT NULL,
+    is_deleted TINYINT(1) DEFAULT 0 NOT NULL,
+    CONSTRAINT authorization_codes_bases_primary_key PRIMARY KEY (id),
+    CONSTRAINT authorization_codes_bases_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT authorization_codes_bases_session_id_foreign_key FOREIGN KEY (session_id) REFERENCES sessions_bases (id)
+);
+GO
+CREATE TRIGGER trg_authorization_codes_bases_updated_at BEFORE UPDATE ON authorization_codes_bases
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE identity_provider_authorize_sessions_bases (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    identity_provider_id BIGINT NOT NULL,
+    session_id BIGINT NOT NULL,
+    redirect_uri TEXT NOT NULL,
+    state TEXT NOT NULL,
+    code_challenge TEXT NOT NULL,
+    code_challenge_method VARCHAR(128) NOT NULL,
+    revoked DATETIME(3),
+    finished DATETIME(3),
+    is_deleted TINYINT(1) DEFAULT 0 NOT NULL,
+    CONSTRAINT identity_provider_authorize_sessions_bases_primary_key PRIMARY KEY (id),
+    CONSTRAINT identity_provider_authorize_sessions_bases_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT identity_provider_authorize_sessions_bases_identity_provider_id_foreign_key FOREIGN KEY (identity_provider_id) REFERENCES identity_providers_bases (id),
+    CONSTRAINT identity_provider_authorize_sessions_bases_session_id_foreign_key FOREIGN KEY (session_id) REFERENCES sessions_bases (id)
+);
+GO
+CREATE TRIGGER trg_identity_provider_authorize_sessions_bases_updated_at BEFORE UPDATE ON identity_provider_authorize_sessions_bases
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE identity_provider_signin_attempts_bases (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    identity_provider_id BIGINT NOT NULL,
+    session_id BIGINT NOT NULL,
+    authentication_method_id BIGINT NOT NULL,
+    is_success TINYINT(1) NOT NULL,
+    CONSTRAINT identity_provider_signin_attempts_bases_primary_key PRIMARY KEY (id),
+    CONSTRAINT identity_provider_signin_attempts_bases_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT identity_provider_signin_attempts_bases_identity_provider_id_foreign_key FOREIGN KEY (identity_provider_id) REFERENCES identity_providers_bases (id),
+    CONSTRAINT identity_provider_signin_attempts_bases_session_id_foreign_key FOREIGN KEY (session_id) REFERENCES sessions_bases (id),
+    CONSTRAINT identity_provider_signin_attempts_bases_authentication_method_id_foreign_key FOREIGN KEY (authentication_method_id) REFERENCES authentication_methods_bases (id)
+);
+GO
+CREATE TRIGGER trg_identity_provider_signin_attempts_bases_updated_at BEFORE UPDATE ON identity_provider_signin_attempts_bases
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
 CREATE TABLE session_hits_bases (
@@ -1664,6 +1880,20 @@ GO
 -- Seeds: template_types
 GO
 INSERT INTO template_types (id, uuid, name, description) VALUES (1, '88ba1ed1-69f1-54cf-9b1f-0273aaa19012', 'jigsaw', 'Jigsaw template settings');
+GO
+-- Seeds: oauth_grant_types
+GO
+INSERT INTO oauth_grant_types (id, uuid, name, description) VALUES (1, '28ac257b-2eb0-544f-ad7a-059baa8a0022', 'authorization_code', 'The Authorization Code grant type lets confidential and public clients exchange an authorization code for an access token after the user is redirected back to the client.');
+GO
+INSERT INTO oauth_grant_types (id, uuid, name, description) VALUES (2, '87dcd7de-44c1-5a22-8842-b102df36e651', 'refresh_token', 'The Refresh Token grant type lets clients exchange a refresh token for a new access token once the original has expired, allowing them to maintain valid access without requiring further user interaction.');
+GO
+INSERT INTO oauth_grant_types (id, uuid, name, description) VALUES (3, '202c534d-968d-58b1-a5e3-40a0ccfd0100', 'urn:ietf:params:oauth:grant-type:device_code', 'The Device Code grant type enables browserless or input-constrained devices to exchange a previously obtained device code for an access token.');
+GO
+INSERT INTO oauth_grant_types (id, uuid, name, description) VALUES (4, '9ede56b9-bf7e-582f-acf4-4e72d91fe9cd', 'client_credentials', 'To authenticate this request, the client can either include client_id and client_secret as additional request parameters, or pass them via the HTTP Basic auth header.');
+GO
+INSERT INTO oauth_grant_types (id, uuid, name, description, is_legacy) VALUES (5, '88ea1e58-c478-53a1-b7ad-2992705a254c', 'implicit', 'The Implicit flow was a simplified OAuth flow previously recommended for native and JavaScript apps that returned an access token immediately, bypassing the authorization code exchange step.', 1);
+GO
+INSERT INTO oauth_grant_types (id, uuid, name, description, is_legacy) VALUES (6, '21f39a2d-5223-53fe-9133-aff10c0feb20', 'password', 'The Password grant type is a legacy method for exchanging a user''s credentials directly for an access token. Since this requires the client to collect and transmit the user''s password to the authorization server, it is no longer recommended.', 1);
 GO
 -- Seeds: secret_types
 GO

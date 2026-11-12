@@ -111,11 +111,10 @@ types:
         name: mime_type_name
 
   - template_type:
-      tags: [datasource_type, readonly_lookup]
+      tags: [datasource_type]
       inherits: base
       fields:
         - name:
-            # e.g. jigsaw
             type: string
             size: 128
         - description:

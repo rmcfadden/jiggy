@@ -2,6 +2,8 @@ use datasources::{Datasource, DatasourceError, ICRUDRepository, IReadonlyReposit
 use super::super::Address;
 use super::super::AddressAttribute;
 use super::super::AddressLabel;
+use super::super::AuthenticationMethod;
+use super::super::AuthorizationCode;
 use super::super::Category;
 use super::super::Contact;
 use super::super::ContactAttribute;
@@ -21,20 +23,30 @@ use super::super::GamePlay;
 use super::super::GamePlayAction;
 use super::super::GamePlayState;
 use super::super::GamePlayUser;
+use super::super::GameReview;
 use super::super::GameSetting;
 use super::super::Gender;
 use super::super::Group;
+use super::super::IdentityProvider;
+use super::super::IdentityProviderAuthorizeSession;
+use super::super::IdentityProviderLinkedUser;
+use super::super::IdentityProviderLinkedUserFieldType;
+use super::super::IdentityProviderSetting;
+use super::super::IdentityProviderSigninAttempt;
+use super::super::IdentityProviderType;
 use super::super::Label;
 use super::super::Language;
 use super::super::LocalizedString;
 use super::super::LocalizedStringName;
 use super::super::MimeType;
+use super::super::OauthGrantType;
 use super::super::Phone;
 use super::super::PhoneAttribute;
 use super::super::PhoneLabel;
 use super::super::PhoneType;
 use super::super::Resource;
 use super::super::Review;
+use super::super::ReviewFeedback;
 use super::super::Role;
 use super::super::Secret;
 use super::super::SecretType;
@@ -72,6 +84,18 @@ pub fn register(factory: &RepositoryFactory) {
         "address_labels",
         |connection| Ok(Arc::new(super::addressLabelsRepository::AddressLabelsRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<AddressLabel>>),
         |connection| Arc::new(super::addressLabelsRepository::AddressLabelsRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<AddressLabel>>,
+    );
+    factory.register_named(
+        "AuthenticationMethod",
+        "authentication_methods",
+        |connection| Ok(Arc::new(super::authenticationMethodsRepository::AuthenticationMethodsRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<AuthenticationMethod>>),
+        |connection| Arc::new(super::authenticationMethodsRepository::AuthenticationMethodsRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<AuthenticationMethod>>,
+    );
+    factory.register_named(
+        "AuthorizationCode",
+        "authorization_codes",
+        |connection| Ok(Arc::new(super::authorizationCodesRepository::AuthorizationCodesRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<AuthorizationCode>>),
+        |connection| Arc::new(super::authorizationCodesRepository::AuthorizationCodesRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<AuthorizationCode>>,
     );
     factory.register_named(
         "Category",
@@ -188,6 +212,12 @@ pub fn register(factory: &RepositoryFactory) {
         |connection| Arc::new(super::gamePlayUsersRepository::GamePlayUsersRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<GamePlayUser>>,
     );
     factory.register_named(
+        "GameReview",
+        "game_reviews",
+        |connection| Ok(Arc::new(super::gameReviewsRepository::GameReviewsRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<GameReview>>),
+        |connection| Arc::new(super::gameReviewsRepository::GameReviewsRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<GameReview>>,
+    );
+    factory.register_named(
         "GameSetting",
         "game_settings",
         |connection| Ok(Arc::new(super::gameSettingsRepository::GameSettingsRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<GameSetting>>),
@@ -204,6 +234,48 @@ pub fn register(factory: &RepositoryFactory) {
         "groups",
         |connection| Ok(Arc::new(super::groupsRepository::GroupsRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<Group>>),
         |connection| Arc::new(super::groupsRepository::GroupsRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<Group>>,
+    );
+    factory.register_named(
+        "IdentityProvider",
+        "identity_providers",
+        |connection| Ok(Arc::new(super::identityProvidersRepository::IdentityProvidersRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<IdentityProvider>>),
+        |connection| Arc::new(super::identityProvidersRepository::IdentityProvidersRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<IdentityProvider>>,
+    );
+    factory.register_named(
+        "IdentityProviderAuthorizeSession",
+        "identity_provider_authorize_sessions",
+        |connection| Ok(Arc::new(super::identityProviderAuthorizeSessionsRepository::IdentityProviderAuthorizeSessionsRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<IdentityProviderAuthorizeSession>>),
+        |connection| Arc::new(super::identityProviderAuthorizeSessionsRepository::IdentityProviderAuthorizeSessionsRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<IdentityProviderAuthorizeSession>>,
+    );
+    factory.register_named(
+        "IdentityProviderLinkedUser",
+        "identity_provider_linked_users",
+        |connection| Ok(Arc::new(super::identityProviderLinkedUsersRepository::IdentityProviderLinkedUsersRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<IdentityProviderLinkedUser>>),
+        |connection| Arc::new(super::identityProviderLinkedUsersRepository::IdentityProviderLinkedUsersRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<IdentityProviderLinkedUser>>,
+    );
+    factory.register_named(
+        "IdentityProviderLinkedUserFieldType",
+        "identity_provider_linked_user_field_types",
+        |_connection| Err(DatasourceError::message("IdentityProviderLinkedUserFieldType is a readonly lookup")),
+        |connection| Arc::new(super::identityProviderLinkedUserFieldTypesRepository::IdentityProviderLinkedUserFieldTypesRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<IdentityProviderLinkedUserFieldType>>,
+    );
+    factory.register_named(
+        "IdentityProviderSetting",
+        "identity_provider_settings",
+        |connection| Ok(Arc::new(super::identityProviderSettingsRepository::IdentityProviderSettingsRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<IdentityProviderSetting>>),
+        |connection| Arc::new(super::identityProviderSettingsRepository::IdentityProviderSettingsRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<IdentityProviderSetting>>,
+    );
+    factory.register_named(
+        "IdentityProviderSigninAttempt",
+        "identity_provider_signin_attempts",
+        |connection| Ok(Arc::new(super::identityProviderSigninAttemptsRepository::IdentityProviderSigninAttemptsRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<IdentityProviderSigninAttempt>>),
+        |connection| Arc::new(super::identityProviderSigninAttemptsRepository::IdentityProviderSigninAttemptsRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<IdentityProviderSigninAttempt>>,
+    );
+    factory.register_named(
+        "IdentityProviderType",
+        "identity_provider_types",
+        |_connection| Err(DatasourceError::message("IdentityProviderType is a readonly lookup")),
+        |connection| Arc::new(super::identityProviderTypesRepository::IdentityProviderTypesRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<IdentityProviderType>>,
     );
     factory.register_named(
         "Label",
@@ -234,6 +306,12 @@ pub fn register(factory: &RepositoryFactory) {
         "mime_types",
         |_connection| Err(DatasourceError::message("MimeType is a readonly lookup")),
         |connection| Arc::new(super::mimeTypesRepository::MimeTypesRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<MimeType>>,
+    );
+    factory.register_named(
+        "OauthGrantType",
+        "oauth_grant_types",
+        |_connection| Err(DatasourceError::message("OauthGrantType is a readonly lookup")),
+        |connection| Arc::new(super::oauthGrantTypesRepository::OauthGrantTypesRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<OauthGrantType>>,
     );
     factory.register_named(
         "Phone",
@@ -270,6 +348,12 @@ pub fn register(factory: &RepositoryFactory) {
         "reviews",
         |connection| Ok(Arc::new(super::reviewsRepository::ReviewsRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<Review>>),
         |connection| Arc::new(super::reviewsRepository::ReviewsRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<Review>>,
+    );
+    factory.register_named(
+        "ReviewFeedback",
+        "review_feedbacks",
+        |connection| Ok(Arc::new(super::reviewFeedbacksRepository::ReviewFeedbacksRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<ReviewFeedback>>),
+        |connection| Arc::new(super::reviewFeedbacksRepository::ReviewFeedbacksRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<ReviewFeedback>>,
     );
     factory.register_named(
         "Role",
@@ -322,7 +406,7 @@ pub fn register(factory: &RepositoryFactory) {
     factory.register_named(
         "TemplateType",
         "template_types",
-        |_connection| Err(DatasourceError::message("TemplateType is a readonly lookup")),
+        |connection| Ok(Arc::new(super::templateTypesRepository::TemplateTypesRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<TemplateType>>),
         |connection| Arc::new(super::templateTypesRepository::TemplateTypesRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<TemplateType>>,
     );
     factory.register_named(
@@ -381,6 +465,8 @@ pub trait Repositories {
     fn addresses(&self) -> Arc<super::addressesRepository::AddressesRepository>;
     fn address_attributes(&self) -> Arc<super::addressAttributesRepository::AddressAttributesRepository>;
     fn address_labels(&self) -> Arc<super::addressLabelsRepository::AddressLabelsRepository>;
+    fn authentication_methods(&self) -> Arc<super::authenticationMethodsRepository::AuthenticationMethodsRepository>;
+    fn authorization_codes(&self) -> Arc<super::authorizationCodesRepository::AuthorizationCodesRepository>;
     fn categories(&self) -> Arc<super::categoriesRepository::CategoriesRepository>;
     fn contacts(&self) -> Arc<super::contactsRepository::ContactsRepository>;
     fn contact_attributes(&self) -> Arc<super::contactAttributesRepository::ContactAttributesRepository>;
@@ -400,20 +486,30 @@ pub trait Repositories {
     fn game_play_actions(&self) -> Arc<super::gamePlayActionsRepository::GamePlayActionsRepository>;
     fn game_play_states(&self) -> Arc<super::gamePlayStatesRepository::GamePlayStatesRepository>;
     fn game_play_users(&self) -> Arc<super::gamePlayUsersRepository::GamePlayUsersRepository>;
+    fn game_reviews(&self) -> Arc<super::gameReviewsRepository::GameReviewsRepository>;
     fn game_settings(&self) -> Arc<super::gameSettingsRepository::GameSettingsRepository>;
     fn genders(&self) -> Arc<super::gendersRepository::GendersRepository>;
     fn groups(&self) -> Arc<super::groupsRepository::GroupsRepository>;
+    fn identity_providers(&self) -> Arc<super::identityProvidersRepository::IdentityProvidersRepository>;
+    fn identity_provider_authorize_sessions(&self) -> Arc<super::identityProviderAuthorizeSessionsRepository::IdentityProviderAuthorizeSessionsRepository>;
+    fn identity_provider_linked_users(&self) -> Arc<super::identityProviderLinkedUsersRepository::IdentityProviderLinkedUsersRepository>;
+    fn identity_provider_linked_user_field_types(&self) -> Arc<super::identityProviderLinkedUserFieldTypesRepository::IdentityProviderLinkedUserFieldTypesRepository>;
+    fn identity_provider_settings(&self) -> Arc<super::identityProviderSettingsRepository::IdentityProviderSettingsRepository>;
+    fn identity_provider_signin_attempts(&self) -> Arc<super::identityProviderSigninAttemptsRepository::IdentityProviderSigninAttemptsRepository>;
+    fn identity_provider_types(&self) -> Arc<super::identityProviderTypesRepository::IdentityProviderTypesRepository>;
     fn labels(&self) -> Arc<super::labelsRepository::LabelsRepository>;
     fn languages(&self) -> Arc<super::languagesRepository::LanguagesRepository>;
     fn localized_strings(&self) -> Arc<super::localizedStringsRepository::LocalizedStringsRepository>;
     fn localized_string_names(&self) -> Arc<super::localizedStringNamesRepository::LocalizedStringNamesRepository>;
     fn mime_types(&self) -> Arc<super::mimeTypesRepository::MimeTypesRepository>;
+    fn oauth_grant_types(&self) -> Arc<super::oauthGrantTypesRepository::OauthGrantTypesRepository>;
     fn phones(&self) -> Arc<super::phonesRepository::PhonesRepository>;
     fn phone_attributes(&self) -> Arc<super::phoneAttributesRepository::PhoneAttributesRepository>;
     fn phone_labels(&self) -> Arc<super::phoneLabelsRepository::PhoneLabelsRepository>;
     fn phone_types(&self) -> Arc<super::phoneTypesRepository::PhoneTypesRepository>;
     fn resources(&self) -> Arc<super::resourcesRepository::ResourcesRepository>;
     fn reviews(&self) -> Arc<super::reviewsRepository::ReviewsRepository>;
+    fn review_feedbacks(&self) -> Arc<super::reviewFeedbacksRepository::ReviewFeedbacksRepository>;
     fn roles(&self) -> Arc<super::rolesRepository::RolesRepository>;
     fn secrets(&self) -> Arc<super::secretsRepository::SecretsRepository>;
     fn secret_types(&self) -> Arc<super::secretTypesRepository::SecretTypesRepository>;
@@ -442,6 +538,12 @@ impl Repositories for Arc<dyn Datasource> {
     }
     fn address_labels(&self) -> Arc<super::addressLabelsRepository::AddressLabelsRepository> {
         Arc::new(super::addressLabelsRepository::AddressLabelsRepository::new(self.bind_connection(None)).expect("address_labels"))
+    }
+    fn authentication_methods(&self) -> Arc<super::authenticationMethodsRepository::AuthenticationMethodsRepository> {
+        Arc::new(super::authenticationMethodsRepository::AuthenticationMethodsRepository::new(self.bind_connection(None)).expect("authentication_methods"))
+    }
+    fn authorization_codes(&self) -> Arc<super::authorizationCodesRepository::AuthorizationCodesRepository> {
+        Arc::new(super::authorizationCodesRepository::AuthorizationCodesRepository::new(self.bind_connection(None)).expect("authorization_codes"))
     }
     fn categories(&self) -> Arc<super::categoriesRepository::CategoriesRepository> {
         Arc::new(super::categoriesRepository::CategoriesRepository::new(self.bind_connection(None)).expect("categories"))
@@ -500,6 +602,9 @@ impl Repositories for Arc<dyn Datasource> {
     fn game_play_users(&self) -> Arc<super::gamePlayUsersRepository::GamePlayUsersRepository> {
         Arc::new(super::gamePlayUsersRepository::GamePlayUsersRepository::new(self.bind_connection(None)).expect("game_play_users"))
     }
+    fn game_reviews(&self) -> Arc<super::gameReviewsRepository::GameReviewsRepository> {
+        Arc::new(super::gameReviewsRepository::GameReviewsRepository::new(self.bind_connection(None)).expect("game_reviews"))
+    }
     fn game_settings(&self) -> Arc<super::gameSettingsRepository::GameSettingsRepository> {
         Arc::new(super::gameSettingsRepository::GameSettingsRepository::new(self.bind_connection(None)).expect("game_settings"))
     }
@@ -508,6 +613,27 @@ impl Repositories for Arc<dyn Datasource> {
     }
     fn groups(&self) -> Arc<super::groupsRepository::GroupsRepository> {
         Arc::new(super::groupsRepository::GroupsRepository::new(self.bind_connection(None)).expect("groups"))
+    }
+    fn identity_providers(&self) -> Arc<super::identityProvidersRepository::IdentityProvidersRepository> {
+        Arc::new(super::identityProvidersRepository::IdentityProvidersRepository::new(self.bind_connection(None)).expect("identity_providers"))
+    }
+    fn identity_provider_authorize_sessions(&self) -> Arc<super::identityProviderAuthorizeSessionsRepository::IdentityProviderAuthorizeSessionsRepository> {
+        Arc::new(super::identityProviderAuthorizeSessionsRepository::IdentityProviderAuthorizeSessionsRepository::new(self.bind_connection(None)).expect("identity_provider_authorize_sessions"))
+    }
+    fn identity_provider_linked_users(&self) -> Arc<super::identityProviderLinkedUsersRepository::IdentityProviderLinkedUsersRepository> {
+        Arc::new(super::identityProviderLinkedUsersRepository::IdentityProviderLinkedUsersRepository::new(self.bind_connection(None)).expect("identity_provider_linked_users"))
+    }
+    fn identity_provider_linked_user_field_types(&self) -> Arc<super::identityProviderLinkedUserFieldTypesRepository::IdentityProviderLinkedUserFieldTypesRepository> {
+        Arc::new(super::identityProviderLinkedUserFieldTypesRepository::IdentityProviderLinkedUserFieldTypesRepository::new(self.bind_connection(None)).expect("identity_provider_linked_user_field_types"))
+    }
+    fn identity_provider_settings(&self) -> Arc<super::identityProviderSettingsRepository::IdentityProviderSettingsRepository> {
+        Arc::new(super::identityProviderSettingsRepository::IdentityProviderSettingsRepository::new(self.bind_connection(None)).expect("identity_provider_settings"))
+    }
+    fn identity_provider_signin_attempts(&self) -> Arc<super::identityProviderSigninAttemptsRepository::IdentityProviderSigninAttemptsRepository> {
+        Arc::new(super::identityProviderSigninAttemptsRepository::IdentityProviderSigninAttemptsRepository::new(self.bind_connection(None)).expect("identity_provider_signin_attempts"))
+    }
+    fn identity_provider_types(&self) -> Arc<super::identityProviderTypesRepository::IdentityProviderTypesRepository> {
+        Arc::new(super::identityProviderTypesRepository::IdentityProviderTypesRepository::new(self.bind_connection(None)).expect("identity_provider_types"))
     }
     fn labels(&self) -> Arc<super::labelsRepository::LabelsRepository> {
         Arc::new(super::labelsRepository::LabelsRepository::new(self.bind_connection(None)).expect("labels"))
@@ -523,6 +649,9 @@ impl Repositories for Arc<dyn Datasource> {
     }
     fn mime_types(&self) -> Arc<super::mimeTypesRepository::MimeTypesRepository> {
         Arc::new(super::mimeTypesRepository::MimeTypesRepository::new(self.bind_connection(None)).expect("mime_types"))
+    }
+    fn oauth_grant_types(&self) -> Arc<super::oauthGrantTypesRepository::OauthGrantTypesRepository> {
+        Arc::new(super::oauthGrantTypesRepository::OauthGrantTypesRepository::new(self.bind_connection(None)).expect("oauth_grant_types"))
     }
     fn phones(&self) -> Arc<super::phonesRepository::PhonesRepository> {
         Arc::new(super::phonesRepository::PhonesRepository::new(self.bind_connection(None)).expect("phones"))
@@ -541,6 +670,9 @@ impl Repositories for Arc<dyn Datasource> {
     }
     fn reviews(&self) -> Arc<super::reviewsRepository::ReviewsRepository> {
         Arc::new(super::reviewsRepository::ReviewsRepository::new(self.bind_connection(None)).expect("reviews"))
+    }
+    fn review_feedbacks(&self) -> Arc<super::reviewFeedbacksRepository::ReviewFeedbacksRepository> {
+        Arc::new(super::reviewFeedbacksRepository::ReviewFeedbacksRepository::new(self.bind_connection(None)).expect("review_feedbacks"))
     }
     fn roles(&self) -> Arc<super::rolesRepository::RolesRepository> {
         Arc::new(super::rolesRepository::RolesRepository::new(self.bind_connection(None)).expect("roles"))

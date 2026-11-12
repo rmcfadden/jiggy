@@ -1,5 +1,31 @@
 version: 1.0.0
+includes:
+  - file: base.yaml
+  - file: user-roles.yaml
 types:
+  - oauth_grant_type:
+      tags:
+        - datasource_type
+        - readonly_lookup
+      inherits: base
+      fields:
+        - name:
+            type: string
+            size: 256
+            min_size: 1
+        - description:
+            type: string
+            size: 512
+        - is_custom:
+            type: boolean
+            default_value: false
+        - is_enabled:
+            type: boolean
+            default_value: true
+        - is_legacy:
+            type: boolean
+            default_value: false
+
   - secret_type:
       tags:
         - datasource_type
@@ -121,3 +147,215 @@ types:
             references: user_base.id
         - token_id:
             references: tokens_base.id
+
+  - authorization_codes_base:
+      tags:
+        - datasource_type
+      inherits: base
+      fields:
+        - session_id:
+            is_nullable: true
+            references: sessions_base.id
+        - code:
+            type: string
+            size: 512
+            min_size: 1
+        - is_used:
+            type: boolean
+            default_value: true
+        - is_deleted:
+            type: boolean
+            default_value: false
+  - authorization_code:
+      tags:
+        - view_type
+      inherits: authorization_codes_base
+      fields: []
+  - authentication_methods_base:
+      tags:
+        - datasource_type
+      inherits: base
+      fields:
+        - name:
+            type: string
+            size: 256
+            min_size: 1
+        - description:
+            type: string
+            size: 256
+            is_nullable: true
+        - is_default:
+            type: boolean
+            default_value: true
+        - is_enabled:
+            type: boolean
+            default_value: true
+  - authentication_method:
+      tags:
+        - view_type
+      inherits: authentication_methods_base
+      fields: []
+  - identity_provider_type:
+      tags:
+        - datasource_type
+        - readonly_lookup
+      inherits: base
+      fields:
+        - name:
+            type: string
+            size: 256
+            min_size: 1
+        - description:
+            type: string
+            size: unlimited
+            is_nullable: true
+  - identity_providers_base:
+      tags:
+        - datasource_type
+      inherits: base
+      fields:
+        - identity_provider_type_id:
+            references: identity_provider_type.id
+        - name:
+            type: string
+            size: 256
+            min_size: 1
+        - description:
+            type: string
+            size: unlimited
+            is_nullable: true
+        - is_enabled:
+            type: boolean
+            default_value: true
+        - is_builtin:
+            type: boolean
+            default_value: false
+        - is_deleted:
+            type: boolean
+            default_value: false
+  - identity_provider:
+      tags:
+        - view_type
+      inherits: identity_providers_base
+      remove_fields:
+        - identity_provider_type_id
+      union:
+        - identity_provider_type
+      extract:
+        - identity_provider_type.name
+      mapping:
+        identity_provider_type.name: identity_provider_type_name
+  - identity_provider_settings_base:
+      tags:
+        - datasource_type
+      inherits: base
+      fields:
+        - identity_provider_id:
+            references: identity_providers_base.id
+        - name:
+            type: string
+            size: 256
+            min_size: 1
+        - value:
+            type: string
+            size: unlimited
+            min_size: 1
+  - identity_provider_setting:
+      tags:
+        - view_type
+      inherits: identity_provider_settings_base
+      fields: []
+  - identity_provider_linked_user_field_type:
+      tags:
+        - datasource_type
+        - readonly_lookup
+      inherits: base
+      fields:
+        - name:
+            type: string
+            size: 256
+            min_size: 1
+  - identity_provider_linked_users_base:
+      tags:
+        - datasource_type
+      inherits: base
+      fields:
+        - identity_provider_id:
+            references: identity_providers_base.id
+        - user_id:
+            references: user_base.id
+        - identity_provider_linked_user_field_type_id:
+            references: identity_provider_linked_user_field_type.id
+        - value:
+            type: string
+            size: unlimited
+            min_size: 1
+  - identity_provider_linked_user:
+      tags:
+        - view_type
+      inherits: identity_provider_linked_users_base
+      fields: []
+      union:
+        - identity_provider_linked_user_field_type
+      mapping:
+        name: identity_provider_linked_user_field_type_name
+      remove_fields:
+        - identity_provider_linked_user_field_type.id
+        - identity_provider_linked_user_field_type.uuid
+        - identity_provider_linked_user_field_type.created
+        - identity_provider_linked_user_field_type.updated
+        - identity_provider_linked_user_field_type.version
+  - identity_provider_authorize_sessions_base:
+      tags:
+        - datasource_type
+      inherits: base
+      fields:
+        - identity_provider_id:
+            references: identity_providers_base.id
+        - session_id:
+            references: sessions_base.id
+        - redirect_uri:
+            type: string
+            size: unlimited
+        - state:
+            type: string
+            size: unlimited
+        - code_challenge:
+            type: string
+            size: unlimited
+            min_size: 1
+        - code_challenge_method:
+            type: string
+            size: 128
+        - revoked:
+            type: datetime
+            is_nullable: true
+        - finished:
+            type: datetime
+            is_nullable: true
+        - is_deleted:
+            type: boolean
+            default_value: false
+  - identity_provider_authorize_session:
+      tags:
+        - view_type
+      inherits: identity_provider_authorize_sessions_base
+      fields: []
+  - identity_provider_signin_attempts_base:
+      tags:
+        - datasource_type
+      inherits: base
+      fields:
+        - identity_provider_id:
+            references: identity_providers_base.id
+        - session_id:
+            references: sessions_base.id
+        - authentication_method_id:
+            references: authentication_methods_base.id
+        - is_success:
+            type: boolean
+  - identity_provider_signin_attempt:
+      tags:
+        - view_type
+      inherits: identity_provider_signin_attempts_base
+      fields: []

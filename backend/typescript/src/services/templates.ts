@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import type { ICRUDRepository } from '@deterministic-code/datasources'
 import { templateBase, type TemplateBase } from '../../generated/types/datasource/templateBase.ts'
-import type { TemplateType } from '../../generated/types/datasource/templateType.ts'
+import { templateType, type TemplateType } from '../../generated/types/datasource/templateType.ts'
 
 /** What the API exchanges: `content` is the template's settings as JSON, stored as text. */
 export type TemplateDto = { id: number; uuid: string; type: string; name: string; content: unknown; created: Date; updated: Date }
@@ -11,6 +11,9 @@ export type TemplateInput = { type: string; name: string; content: unknown }
 
 /** One entry of `backend/data/templates.json`. */
 export type TemplateSeed = { type: string; name: string; content: unknown }
+
+/** The template types the designer ships with. */
+export const TEMPLATE_TYPES = [{ name: 'jigsaw', description: 'Jigsaw template settings' }]
 
 export class UnknownTemplateTypeError extends Error {}
 
@@ -66,6 +69,18 @@ export class TemplatesService {
    * Creates the templates in the seed file at `path` that are missing, matching on (type, name); existing rows are
    * never changed. Returns the names added.
    */
+  /** Adds the built-in template types that are not there yet; returns the names it added. */
+  async addTypes(): Promise<string[]> {
+    const have = new Set((await this.typeNames()).values())
+    const added: string[] = []
+    for (const t of TEMPLATE_TYPES) {
+      if (have.has(t.name)) continue
+      await this.types.create(templateType(t))
+      added.push(t.name)
+    }
+    return added
+  }
+
   async addTemplates(path: string): Promise<string[]> {
     const seeds = JSON.parse(await readFile(path, 'utf8')) as TemplateSeed[]
     const present = new Set((await this.list()).map((t) => `${t.type}\u0000${t.name}`))
