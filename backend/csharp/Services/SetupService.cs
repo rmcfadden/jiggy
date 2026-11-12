@@ -10,6 +10,7 @@ public class SetupService(ICRUDRepository<Role> roles, ICRUDRepository<Group> gr
     static readonly string[] DefaultRoles = ["admin", "editor"];
     static readonly string[] DefaultGroups = ["admin", "support"];
     const string AdminUsername = "admin";
+    const string UserUsername = "user";
 
     /// <summary>Adds the default roles and groups that are missing; returns what it added.</summary>
     public async Task<(List<string> Roles, List<string> Groups)> AddDefaults()
@@ -43,6 +44,19 @@ public class SetupService(ICRUDRepository<Role> roles, ICRUDRepository<Group> gr
         var generated = string.IsNullOrEmpty(password);
         var chosen = generated ? System.Buffers.Text.Base64Url.EncodeToString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(15)) : password!;
         await users.Create(new CreateUserInput(AdminUsername, chosen, ["admin"], ["admin"], null));
+        return (chosen, generated);
+    }
+
+    /// <summary>
+    /// Creates the plain <c>user</c> account (no roles, no groups) when it does not exist yet.
+    /// Uses <paramref name="password"/> when given, otherwise a random one that is returned so the caller can show it once.
+    /// </summary>
+    public async Task<(string Password, bool Generated)?> AddUser(string? password)
+    {
+        if (await users.Find(UserUsername) is not null) return null;
+        var generated = string.IsNullOrEmpty(password);
+        var chosen = generated ? System.Buffers.Text.Base64Url.EncodeToString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(15)) : password!;
+        await users.Create(new CreateUserInput(UserUsername, chosen, [], [], null));
         return (chosen, generated);
     }
 }

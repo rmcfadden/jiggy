@@ -8,6 +8,7 @@ import type { UsersService } from './users.ts'
 export const DEFAULT_ROLES = ['admin', 'editor']
 export const DEFAULT_GROUPS = ['admin', 'support']
 export const ADMIN_USERNAME = 'admin'
+export const USER_USERNAME = 'user'
 
 /** Seeds the identity data `setup` needs: default roles and groups, and a first admin user. */
 export class SetupService {
@@ -34,6 +35,18 @@ export class SetupService {
     const generated = !password
     const chosen = password || randomBytes(15).toString('base64url')
     await this.users.create({ username: ADMIN_USERNAME, password: chosen, roles: ['admin'], groups: ['admin'] })
+    return { password: chosen, generated }
+  }
+
+  /**
+   * Creates the plain `user` account (no roles, no groups) when it does not exist yet.
+   * Uses `password` when given, otherwise a random one that is returned so the caller can show it once.
+   */
+  async addUser(password?: string): Promise<{ password: string; generated: boolean } | undefined> {
+    if (await this.users.find(USER_USERNAME)) return undefined
+    const generated = !password
+    const chosen = password || randomBytes(15).toString('base64url')
+    await this.users.create({ username: USER_USERNAME, password: chosen, roles: [], groups: [] })
     return { password: chosen, generated }
   }
 
