@@ -73,20 +73,20 @@ public class GamePlaysService(
         ["solved"] = r.State.Solved,
     }.ToJsonString();
 
-    /// <summary>The user's plays that are not finished, newest activity first: plays they are a participant of (<c>game_play_user</c>). <c>lastPlayed</c> is the newest state change.</summary>
-    public async Task<object> Unfinished(long userId)
+    /// <summary>The user's finished (or, when <paramref name="finished"/> is false, unfinished) plays, newest activity first: plays they are a participant of (<c>game_play_user</c>). <c>lastPlayed</c> is the newest state change.</summary>
+    public async Task<object> List(long userId, bool finished)
     {
         var ids = new HashSet<long>();
         await foreach (var row in users.Read()) if (row.UserId == userId) ids.Add(row.GamePlayId);
-        var found = new List<(long Id, long GameId, DateTime LastPlayed)>();
+        var found = new List<(long Id, long GameId, DateTime LastPlayed, DateTime? Finished)>();
         foreach (var id in ids)
         {
             var play = await plays.ReadSingleById(id);
-            if (play is null || play.Finished is not null) continue;
-            found.Add((id, play.GameId, play.States.Select(s => s.Created).Append(play.Created).Max()));
+            if (play is null || (play.Finished is not null) != finished) continue;
+            found.Add((id, play.GameId, play.States.Select(s => s.Created).Append(play.Created).Max(), play.Finished));
         }
         return found.OrderByDescending(f => f.LastPlayed).ThenByDescending(f => f.Id)
-            .Select(f => new { id = f.Id, gameId = f.GameId, lastPlayed = f.LastPlayed }).ToList();
+            .Select(f => new { id = f.Id, gameId = f.GameId, lastPlayed = f.LastPlayed, finished = f.Finished }).ToList();
     }
 
     public async Task<object> State(long playId, long userId)

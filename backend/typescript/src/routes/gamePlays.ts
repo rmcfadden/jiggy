@@ -19,8 +19,8 @@ export function gamePlaysRouter(service: GamePlaysService): Router {
 
   router.get('/', async (req, res, next) => {
     try {
-      if (req.query.finished !== 'false') throw new GameError(400, 'only finished=false is supported')
-      res.json(await service.unfinished(user(res)))
+      if (req.query.finished !== 'false' && req.query.finished !== 'true') throw new GameError(400, 'finished must be true or false')
+      res.json(await service.list(user(res), req.query.finished === 'true'))
     } catch (err) {
       next(err)
     }

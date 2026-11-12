@@ -136,22 +136,22 @@ impl GamePlaysService {
         }))
     }
 
-    /// The user's plays that are not finished, newest activity first: plays they are a participant of (`game_play_user`).
+    /// The user's finished (or, with `finished` false, unfinished) plays, newest activity first: plays they are a participant of (`game_play_user`).
     /// `lastPlayed` is the newest state change (the start, when nothing was played yet).
-    pub async fn unfinished(&self, user_id: i64) -> Result<Value> {
+    pub async fn list(&self, user_id: i64, finished: bool) -> Result<Value> {
         let links: Vec<GamePlayUser> = self.users.read(None, None).try_collect().await?;
         let ids: std::collections::BTreeSet<i64> = links.iter().filter(|l| l.user_id == user_id).map(|l| l.game_play_id).collect();
-        let mut found: Vec<(DateTime<Utc>, i64, i64)> = Vec::new();
+        let mut found: Vec<(DateTime<Utc>, i64, i64, Option<DateTime<Utc>>)> = Vec::new();
         for id in ids {
             let Some(play) = self.plays.read_single_by_id(&datasources::Value::Int(id)).await? else { continue };
-            if play.finished.is_some() {
+            if play.finished.is_some() != finished {
                 continue;
             }
             let last = play.states.iter().map(|s| s.created).chain([play.created]).max().unwrap_or(play.created);
-            found.push((last, id, play.game_id));
+            found.push((last, id, play.game_id, play.finished));
         }
         found.sort_by(|a, b| b.cmp(a));
-        Ok(Value::Array(found.into_iter().map(|(last, id, game_id)| json!({ "id": id, "gameId": game_id, "lastPlayed": stamp(last) })).collect()))
+        Ok(Value::Array(found.into_iter().map(|(last, id, game_id, done)| json!({ "id": id, "gameId": game_id, "lastPlayed": stamp(last), "finished": done.map(stamp) })).collect()))
     }
 
     pub async fn state(&self, play_id: i64, user_id: i64) -> Result<Value> {

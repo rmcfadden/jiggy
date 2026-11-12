@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useSession, useSignOut } from '../auth/hooks'
 import { primaryButton } from '../designer/controls'
 import ContinuePlaying from './ContinuePlaying'
+import PlayHistory from './PlayHistory'
 
 export default function Account() {
   const session = useSession().data
@@ -21,6 +22,7 @@ export default function Account() {
         </div>
         <div className="mt-6">
           <ContinuePlaying />
+          <PlayHistory />
         </div>
         </>
       ) : (

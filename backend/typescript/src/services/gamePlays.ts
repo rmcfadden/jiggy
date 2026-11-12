@@ -10,8 +10,8 @@ import type { GameServiceRegistry } from './gameplay/registry.ts'
 import { GameError, parseAction, type PuzzleState, type StateRow } from './gameplay/types.ts'
 
 export type PlayDto = { id: number; gameId: number; finished: Date | null; state: PuzzleState }
-/** An unfinished play to carry on with: `lastPlayed` is its newest state change (the start, when nothing was played yet). */
-export type UnfinishedPlayDto = { id: number; gameId: number; lastPlayed: Date }
+/** A play in a list: `lastPlayed` is its newest state change (the start, when nothing was played yet); `finished` is null while it is open. */
+export type PlaySummaryDto = { id: number; gameId: number; lastPlayed: Date; finished: Date | null }
 export type ActionDto = { id: number; userId: number; action: unknown; created: Date }
 
 /**
@@ -69,16 +69,16 @@ export class GamePlaysService {
     })
   }
 
-  /** The user's plays that are not finished, newest activity first: plays they are a participant of (`game_play_user`). */
-  async unfinished(userId: number): Promise<UnfinishedPlayDto[]> {
+  /** The user's finished (or, with `finished` false, unfinished) plays, newest activity first: plays they are a participant of (`game_play_user`). */
+  async list(userId: number, finished: boolean): Promise<PlaySummaryDto[]> {
     const ids = new Set<number>()
     for await (const row of this.users.read()) if (Number(row.userId) === userId) ids.add(Number(row.gamePlayId))
-    const found: UnfinishedPlayDto[] = []
+    const found: PlaySummaryDto[] = []
     for (const id of ids) {
       const play = await this.plays.readSingleById(id)
-      if (!play || play.finished) continue
+      if (!play || !!play.finished !== finished) continue
       const times = play.states.map((s) => new Date(s.created).getTime())
-      found.push({ id, gameId: Number(play.gameId), lastPlayed: new Date(Math.max(new Date(play.created).getTime(), ...times)) })
+      found.push({ id, gameId: Number(play.gameId), lastPlayed: new Date(Math.max(new Date(play.created).getTime(), ...times)), finished: play.finished ? new Date(play.finished) : null })
     }
     return found.sort((a, b) => b.lastPlayed.getTime() - a.lastPlayed.getTime() || b.id - a.id)
   }

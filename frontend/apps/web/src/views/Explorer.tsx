@@ -114,7 +114,7 @@ function Segmented<T extends string>({ label, options, value, onChange }: {
             key={o.id}
             aria-pressed={value === o.id}
             className={`h-6 rounded px-2 text-xs font-medium ${
-              value === o.id ? 'bg-amber-500 text-slate-900' : 'text-slate-600 hover:bg-slate-100'
+              value === o.id ? 'bg-amber-700 text-white dark:bg-amber-500 dark:text-[#0f172a]' : 'text-slate-600 hover:bg-slate-100'
             }`}
             onClick={() => onChange(o.id)}
           >

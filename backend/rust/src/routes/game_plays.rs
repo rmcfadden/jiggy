@@ -45,10 +45,12 @@ async fn start(State(service): Service, Extension(UserId(user)): Extension<UserI
 }
 
 async fn unfinished(State(service): Service, Extension(UserId(user)): Extension<UserId>, Query(query): Query<std::collections::HashMap<String, String>>) -> Reply {
-    if query.get("finished").map(String::as_str) != Some("false") {
-        return Err((StatusCode::BAD_REQUEST, Json(json!({ "error": "only finished=false is supported" }))));
-    }
-    Ok(Json(service.unfinished(user).await.map_err(fail)?))
+    let finished = match query.get("finished").map(String::as_str) {
+        Some("true") => true,
+        Some("false") => false,
+        _ => return Err((StatusCode::BAD_REQUEST, Json(json!({ "error": "finished must be true or false" })))),
+    };
+    Ok(Json(service.list(user, finished).await.map_err(fail)?))
 }
 
 async fn action(State(service): Service, Extension(UserId(user)): Extension<UserId>, Path(id): Path<i64>, Json(body): Json<Value>) -> Reply {
