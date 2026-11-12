@@ -12,7 +12,7 @@ public sealed class IdentityProviderAuthorizeSessionsRepository : CRUDRepository
             .Add(new()
             {
                 Entity = "IdentityProviderAuthorizeSession",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["IdentityProviderAuthorizeSession"] = "identity_provider_authorize_sessions_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["IdentityProviderAuthorizeSession"] = "identity_provider_authorize_sessions" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",
@@ -55,7 +55,7 @@ public sealed class IdentityProviderAuthorizeSessionsRepository : CRUDRepository
             .Add("sqlite", new()
             {
                 Entity = "IdentityProviderAuthorizeSession",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["IdentityProviderAuthorizeSession"] = "identity_provider_authorize_sessions_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["IdentityProviderAuthorizeSession"] = "identity_provider_authorize_sessions" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",

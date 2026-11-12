@@ -19,7 +19,7 @@ impl TokensRepository {
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "Token".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("Token".into(), "tokens_bases".into()),
+            ("Token".into(), "tokens".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -47,7 +47,7 @@ impl TokensRepository {
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "Token".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("Token".into(), "tokens_bases".into()),
+            ("Token".into(), "tokens".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -84,7 +84,7 @@ impl TokensRepository {
         let mut options = ReadonlyRepositoryMappingOptions::default();
         options.entity = "Token".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("Token".into(), "tokens_bases".into()),
+            ("Token".into(), "tokens".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -214,7 +214,7 @@ pub fn tokens_row_repository(connection: Arc<dyn Connection>) -> Result<CRUDRepo
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "Token".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("Token".into(), "tokens_bases".into()),
+            ("Token".into(), "tokens".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -242,7 +242,7 @@ pub fn tokens_row_repository(connection: Arc<dyn Connection>) -> Result<CRUDRepo
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "Token".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("Token".into(), "tokens_bases".into()),
+            ("Token".into(), "tokens".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),

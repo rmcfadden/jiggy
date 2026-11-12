@@ -17,7 +17,7 @@ impl SessionHitsRepository {
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "SessionHit".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("SessionHit".into(), "session_hits_bases".into()),
+            ("SessionHit".into(), "session_hits".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -38,7 +38,7 @@ impl SessionHitsRepository {
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "SessionHit".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("SessionHit".into(), "session_hits_bases".into()),
+            ("SessionHit".into(), "session_hits".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -65,7 +65,7 @@ impl SessionHitsRepository {
         let mut options = ReadonlyRepositoryMappingOptions::default();
         options.entity = "SessionHit".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("SessionHit".into(), "session_hits_bases".into()),
+            ("SessionHit".into(), "session_hits".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -185,7 +185,7 @@ pub fn session_hits_row_repository(connection: Arc<dyn Connection>) -> Result<CR
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "SessionHit".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("SessionHit".into(), "session_hits_bases".into()),
+            ("SessionHit".into(), "session_hits".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -206,7 +206,7 @@ pub fn session_hits_row_repository(connection: Arc<dyn Connection>) -> Result<CR
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "SessionHit".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("SessionHit".into(), "session_hits_bases".into()),
+            ("SessionHit".into(), "session_hits".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),

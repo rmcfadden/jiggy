@@ -23,7 +23,7 @@ public sealed class IdentityProviderLinkedUsersRepository : CRUDRepository<Backe
             .Add(new()
             {
                 Entity = "IdentityProviderLinkedUser",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["IdentityProviderLinkedUser"] = "identity_provider_linked_users_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["IdentityProviderLinkedUser"] = "identity_provider_linked_users" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",
@@ -57,7 +57,7 @@ public sealed class IdentityProviderLinkedUsersRepository : CRUDRepository<Backe
             .Add("sqlite", new()
             {
                 Entity = "IdentityProviderLinkedUser",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["IdentityProviderLinkedUser"] = "identity_provider_linked_users_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["IdentityProviderLinkedUser"] = "identity_provider_linked_users" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",

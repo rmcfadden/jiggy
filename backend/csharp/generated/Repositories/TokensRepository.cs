@@ -25,7 +25,7 @@ public sealed class TokensRepository : CRUDRepository<Backend.Types.View.Token>
             .Add(new()
             {
                 Entity = "Token",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["Token"] = "tokens_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["Token"] = "tokens" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",
@@ -66,7 +66,7 @@ public sealed class TokensRepository : CRUDRepository<Backend.Types.View.Token>
             .Add("sqlite", new()
             {
                 Entity = "Token",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["Token"] = "tokens_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["Token"] = "tokens" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",

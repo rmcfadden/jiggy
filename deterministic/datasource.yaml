@@ -4,6 +4,7 @@ includes:
       filter: tag == "datasource_type"
   - file: datasource_base.yaml
   - file: datasource_identity.yaml
+  - file: datasource_sessions.yaml
   - file: datasource_games.yaml
   - file: datasource_templates.yaml
   - file: datasource_contacts.yaml

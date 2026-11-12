@@ -17,7 +17,7 @@ impl AuthorizationCodesRepository {
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "AuthorizationCode".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("AuthorizationCode".into(), "authorization_codes_bases".into()),
+            ("AuthorizationCode".into(), "authorization_codes".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -40,7 +40,7 @@ impl AuthorizationCodesRepository {
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "AuthorizationCode".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("AuthorizationCode".into(), "authorization_codes_bases".into()),
+            ("AuthorizationCode".into(), "authorization_codes".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -69,7 +69,7 @@ impl AuthorizationCodesRepository {
         let mut options = ReadonlyRepositoryMappingOptions::default();
         options.entity = "AuthorizationCode".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("AuthorizationCode".into(), "authorization_codes_bases".into()),
+            ("AuthorizationCode".into(), "authorization_codes".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -191,7 +191,7 @@ pub fn authorization_codes_row_repository(connection: Arc<dyn Connection>) -> Re
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "AuthorizationCode".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("AuthorizationCode".into(), "authorization_codes_bases".into()),
+            ("AuthorizationCode".into(), "authorization_codes".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -214,7 +214,7 @@ pub fn authorization_codes_row_repository(connection: Arc<dyn Connection>) -> Re
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "AuthorizationCode".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("AuthorizationCode".into(), "authorization_codes_bases".into()),
+            ("AuthorizationCode".into(), "authorization_codes".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),

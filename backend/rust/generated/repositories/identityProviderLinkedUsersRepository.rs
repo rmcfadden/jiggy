@@ -19,7 +19,7 @@ impl IdentityProviderLinkedUsersRepository {
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "IdentityProviderLinkedUser".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("IdentityProviderLinkedUser".into(), "identity_provider_linked_users_bases".into()),
+            ("IdentityProviderLinkedUser".into(), "identity_provider_linked_users".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -43,7 +43,7 @@ impl IdentityProviderLinkedUsersRepository {
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "IdentityProviderLinkedUser".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("IdentityProviderLinkedUser".into(), "identity_provider_linked_users_bases".into()),
+            ("IdentityProviderLinkedUser".into(), "identity_provider_linked_users".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -75,7 +75,7 @@ impl IdentityProviderLinkedUsersRepository {
         let mut options = ReadonlyRepositoryMappingOptions::default();
         options.entity = "IdentityProviderLinkedUser".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("IdentityProviderLinkedUser".into(), "identity_provider_linked_users_bases".into()),
+            ("IdentityProviderLinkedUser".into(), "identity_provider_linked_users".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -200,7 +200,7 @@ pub fn identity_provider_linked_users_row_repository(connection: Arc<dyn Connect
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "IdentityProviderLinkedUser".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("IdentityProviderLinkedUser".into(), "identity_provider_linked_users_bases".into()),
+            ("IdentityProviderLinkedUser".into(), "identity_provider_linked_users".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -224,7 +224,7 @@ pub fn identity_provider_linked_users_row_repository(connection: Arc<dyn Connect
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "IdentityProviderLinkedUser".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("IdentityProviderLinkedUser".into(), "identity_provider_linked_users_bases".into()),
+            ("IdentityProviderLinkedUser".into(), "identity_provider_linked_users".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),

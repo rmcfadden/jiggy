@@ -23,7 +23,7 @@ public sealed class IdentityProvidersRepository : CRUDRepository<Backend.Types.V
             .Add(new()
             {
                 Entity = "IdentityProvider",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["IdentityProvider"] = "identity_providers_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["IdentityProvider"] = "identity_providers" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",
@@ -60,7 +60,7 @@ public sealed class IdentityProvidersRepository : CRUDRepository<Backend.Types.V
             .Add("sqlite", new()
             {
                 Entity = "IdentityProvider",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["IdentityProvider"] = "identity_providers_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["IdentityProvider"] = "identity_providers" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",

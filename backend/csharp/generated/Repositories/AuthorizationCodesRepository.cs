@@ -12,7 +12,7 @@ public sealed class AuthorizationCodesRepository : CRUDRepository<Backend.Types.
             .Add(new()
             {
                 Entity = "AuthorizationCode",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["AuthorizationCode"] = "authorization_codes_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["AuthorizationCode"] = "authorization_codes" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",
@@ -45,7 +45,7 @@ public sealed class AuthorizationCodesRepository : CRUDRepository<Backend.Types.
             .Add("sqlite", new()
             {
                 Entity = "AuthorizationCode",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["AuthorizationCode"] = "authorization_codes_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["AuthorizationCode"] = "authorization_codes" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",

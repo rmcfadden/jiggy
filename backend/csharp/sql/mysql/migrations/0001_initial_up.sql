@@ -878,7 +878,7 @@ GO
 CREATE TRIGGER trg_secret_types_updated_at BEFORE UPDATE ON secret_types
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
-CREATE TABLE secrets_bases (
+CREATE TABLE secrets (
     id BIGINT AUTO_INCREMENT NOT NULL,
     uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
     created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
@@ -889,12 +889,12 @@ CREATE TABLE secrets_bases (
     expires DATETIME(3),
     is_enabled TINYINT(1) DEFAULT 1 NOT NULL,
     is_deleted TINYINT(1) DEFAULT 0 NOT NULL,
-    CONSTRAINT secrets_bases_primary_key PRIMARY KEY (id),
-    CONSTRAINT secrets_bases_uuid_unique_constraint UNIQUE (uuid),
-    CONSTRAINT secrets_bases_secret_type_id_foreign_key FOREIGN KEY (secret_type_id) REFERENCES secret_types (id)
+    CONSTRAINT secrets_primary_key PRIMARY KEY (id),
+    CONSTRAINT secrets_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT secrets_secret_type_id_foreign_key FOREIGN KEY (secret_type_id) REFERENCES secret_types (id)
 );
 GO
-CREATE TRIGGER trg_secrets_bases_updated_at BEFORE UPDATE ON secrets_bases
+CREATE TRIGGER trg_secrets_updated_at BEFORE UPDATE ON secrets
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
 CREATE TABLE user_secrets (
@@ -908,7 +908,7 @@ CREATE TABLE user_secrets (
     CONSTRAINT user_secrets_primary_key PRIMARY KEY (id),
     CONSTRAINT user_secrets_uuid_unique_constraint UNIQUE (uuid),
     CONSTRAINT user_secrets_user_id_foreign_key FOREIGN KEY (user_id) REFERENCES users (id),
-    CONSTRAINT user_secrets_secret_id_foreign_key FOREIGN KEY (secret_id) REFERENCES secrets_bases (id)
+    CONSTRAINT user_secrets_secret_id_foreign_key FOREIGN KEY (secret_id) REFERENCES secrets (id)
 );
 GO
 CREATE TRIGGER trg_user_secrets_updated_at BEFORE UPDATE ON user_secrets
@@ -929,7 +929,7 @@ GO
 CREATE TRIGGER trg_token_types_updated_at BEFORE UPDATE ON token_types
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
-CREATE TABLE tokens_bases (
+CREATE TABLE tokens (
     id BIGINT AUTO_INCREMENT NOT NULL,
     uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
     created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
@@ -942,12 +942,12 @@ CREATE TABLE tokens_bases (
     expires DATETIME(3) NOT NULL,
     revoked DATETIME(3),
     is_deleted TINYINT(1) DEFAULT 0 NOT NULL,
-    CONSTRAINT tokens_bases_primary_key PRIMARY KEY (id),
-    CONSTRAINT tokens_bases_uuid_unique_constraint UNIQUE (uuid),
-    CONSTRAINT tokens_bases_token_type_id_foreign_key FOREIGN KEY (token_type_id) REFERENCES token_types (id)
+    CONSTRAINT tokens_primary_key PRIMARY KEY (id),
+    CONSTRAINT tokens_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT tokens_token_type_id_foreign_key FOREIGN KEY (token_type_id) REFERENCES token_types (id)
 );
 GO
-CREATE TRIGGER trg_tokens_bases_updated_at BEFORE UPDATE ON tokens_bases
+CREATE TRIGGER trg_tokens_updated_at BEFORE UPDATE ON tokens
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
 CREATE TABLE user_tokens (
@@ -961,13 +961,13 @@ CREATE TABLE user_tokens (
     CONSTRAINT user_tokens_primary_key PRIMARY KEY (id),
     CONSTRAINT user_tokens_uuid_unique_constraint UNIQUE (uuid),
     CONSTRAINT user_tokens_user_id_foreign_key FOREIGN KEY (user_id) REFERENCES users (id),
-    CONSTRAINT user_tokens_token_id_foreign_key FOREIGN KEY (token_id) REFERENCES tokens_bases (id)
+    CONSTRAINT user_tokens_token_id_foreign_key FOREIGN KEY (token_id) REFERENCES tokens (id)
 );
 GO
 CREATE TRIGGER trg_user_tokens_updated_at BEFORE UPDATE ON user_tokens
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
-CREATE TABLE authentication_methods_bases (
+CREATE TABLE authentication_methods (
     id BIGINT AUTO_INCREMENT NOT NULL,
     uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
     created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
@@ -977,11 +977,11 @@ CREATE TABLE authentication_methods_bases (
     description VARCHAR(256),
     is_default TINYINT(1) DEFAULT 1 NOT NULL,
     is_enabled TINYINT(1) DEFAULT 1 NOT NULL,
-    CONSTRAINT authentication_methods_bases_primary_key PRIMARY KEY (id),
-    CONSTRAINT authentication_methods_bases_uuid_unique_constraint UNIQUE (uuid)
+    CONSTRAINT authentication_methods_primary_key PRIMARY KEY (id),
+    CONSTRAINT authentication_methods_uuid_unique_constraint UNIQUE (uuid)
 );
 GO
-CREATE TRIGGER trg_authentication_methods_bases_updated_at BEFORE UPDATE ON authentication_methods_bases
+CREATE TRIGGER trg_authentication_methods_updated_at BEFORE UPDATE ON authentication_methods
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
 CREATE TABLE identity_provider_types (
@@ -999,7 +999,7 @@ GO
 CREATE TRIGGER trg_identity_provider_types_updated_at BEFORE UPDATE ON identity_provider_types
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
-CREATE TABLE identity_providers_bases (
+CREATE TABLE identity_providers (
     id BIGINT AUTO_INCREMENT NOT NULL,
     uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
     created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
@@ -1011,15 +1011,15 @@ CREATE TABLE identity_providers_bases (
     is_enabled TINYINT(1) DEFAULT 1 NOT NULL,
     is_builtin TINYINT(1) DEFAULT 0 NOT NULL,
     is_deleted TINYINT(1) DEFAULT 0 NOT NULL,
-    CONSTRAINT identity_providers_bases_primary_key PRIMARY KEY (id),
-    CONSTRAINT identity_providers_bases_uuid_unique_constraint UNIQUE (uuid),
-    CONSTRAINT identity_providers_bases_identity_provider_type_id_foreign_key FOREIGN KEY (identity_provider_type_id) REFERENCES identity_provider_types (id)
+    CONSTRAINT identity_providers_primary_key PRIMARY KEY (id),
+    CONSTRAINT identity_providers_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT identity_providers_identity_provider_type_id_foreign_key FOREIGN KEY (identity_provider_type_id) REFERENCES identity_provider_types (id)
 );
 GO
-CREATE TRIGGER trg_identity_providers_bases_updated_at BEFORE UPDATE ON identity_providers_bases
+CREATE TRIGGER trg_identity_providers_updated_at BEFORE UPDATE ON identity_providers
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
-CREATE TABLE identity_provider_settings_bases (
+CREATE TABLE identity_provider_settings (
     id BIGINT AUTO_INCREMENT NOT NULL,
     uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
     created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
@@ -1028,12 +1028,12 @@ CREATE TABLE identity_provider_settings_bases (
     identity_provider_id BIGINT NOT NULL,
     name VARCHAR(256) NOT NULL,
     value TEXT NOT NULL,
-    CONSTRAINT identity_provider_settings_bases_primary_key PRIMARY KEY (id),
-    CONSTRAINT identity_provider_settings_bases_uuid_unique_constraint UNIQUE (uuid),
-    CONSTRAINT identity_provider_settings_bases_identity_provider_id_foreign_key FOREIGN KEY (identity_provider_id) REFERENCES identity_providers_bases (id)
+    CONSTRAINT identity_provider_settings_primary_key PRIMARY KEY (id),
+    CONSTRAINT identity_provider_settings_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT identity_provider_settings_identity_provider_id_foreign_key FOREIGN KEY (identity_provider_id) REFERENCES identity_providers (id)
 );
 GO
-CREATE TRIGGER trg_identity_provider_settings_bases_updated_at BEFORE UPDATE ON identity_provider_settings_bases
+CREATE TRIGGER trg_identity_provider_settings_updated_at BEFORE UPDATE ON identity_provider_settings
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
 CREATE TABLE identity_provider_linked_user_field_types (
@@ -1050,7 +1050,7 @@ GO
 CREATE TRIGGER trg_identity_provider_linked_user_field_types_updated_at BEFORE UPDATE ON identity_provider_linked_user_field_types
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
-CREATE TABLE identity_provider_linked_users_bases (
+CREATE TABLE identity_provider_linked_users (
     id BIGINT AUTO_INCREMENT NOT NULL,
     uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
     created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
@@ -1060,14 +1060,14 @@ CREATE TABLE identity_provider_linked_users_bases (
     user_id BIGINT NOT NULL,
     identity_provider_linked_user_field_type_id BIGINT NOT NULL,
     value TEXT NOT NULL,
-    CONSTRAINT identity_provider_linked_users_bases_primary_key PRIMARY KEY (id),
-    CONSTRAINT identity_provider_linked_users_bases_uuid_unique_constraint UNIQUE (uuid),
-    CONSTRAINT identity_provider_linked_users_bases_identity_provider_id_foreign_key FOREIGN KEY (identity_provider_id) REFERENCES identity_providers_bases (id),
-    CONSTRAINT identity_provider_linked_users_bases_user_id_foreign_key FOREIGN KEY (user_id) REFERENCES users (id),
-    CONSTRAINT identity_provider_linked_users_bases_identity_provider_linked_user_field_type_id_foreign_key FOREIGN KEY (identity_provider_linked_user_field_type_id) REFERENCES identity_provider_linked_user_field_types (id)
+    CONSTRAINT identity_provider_linked_users_primary_key PRIMARY KEY (id),
+    CONSTRAINT identity_provider_linked_users_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT identity_provider_linked_users_identity_provider_id_foreign_key FOREIGN KEY (identity_provider_id) REFERENCES identity_providers (id),
+    CONSTRAINT identity_provider_linked_users_user_id_foreign_key FOREIGN KEY (user_id) REFERENCES users (id),
+    CONSTRAINT identity_provider_linked_users_identity_provider_linked_user_field_type_id_foreign_key FOREIGN KEY (identity_provider_linked_user_field_type_id) REFERENCES identity_provider_linked_user_field_types (id)
 );
 GO
-CREATE TRIGGER trg_identity_provider_linked_users_bases_updated_at BEFORE UPDATE ON identity_provider_linked_users_bases
+CREATE TRIGGER trg_identity_provider_linked_users_updated_at BEFORE UPDATE ON identity_provider_linked_users
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
 CREATE TABLE session_types (
@@ -1084,7 +1084,7 @@ GO
 CREATE TRIGGER trg_session_types_updated_at BEFORE UPDATE ON session_types
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
-CREATE TABLE sessions_bases (
+CREATE TABLE sessions (
     id BIGINT AUTO_INCREMENT NOT NULL,
     uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
     created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
@@ -1097,16 +1097,16 @@ CREATE TABLE sessions_bases (
     revoked DATETIME(3),
     expired DATETIME(3),
     is_enabled TINYINT(1) DEFAULT 1 NOT NULL,
-    CONSTRAINT sessions_bases_primary_key PRIMARY KEY (id),
-    CONSTRAINT sessions_bases_uuid_unique_constraint UNIQUE (uuid),
-    CONSTRAINT sessions_bases_session_type_id_foreign_key FOREIGN KEY (session_type_id) REFERENCES session_types (id),
-    CONSTRAINT sessions_bases_user_id_foreign_key FOREIGN KEY (user_id) REFERENCES users (id)
+    CONSTRAINT sessions_primary_key PRIMARY KEY (id),
+    CONSTRAINT sessions_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT sessions_session_type_id_foreign_key FOREIGN KEY (session_type_id) REFERENCES session_types (id),
+    CONSTRAINT sessions_user_id_foreign_key FOREIGN KEY (user_id) REFERENCES users (id)
 );
 GO
-CREATE TRIGGER trg_sessions_bases_updated_at BEFORE UPDATE ON sessions_bases
+CREATE TRIGGER trg_sessions_updated_at BEFORE UPDATE ON sessions
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
-CREATE TABLE authorization_codes_bases (
+CREATE TABLE authorization_codes (
     id BIGINT AUTO_INCREMENT NOT NULL,
     uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
     created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
@@ -1116,15 +1116,15 @@ CREATE TABLE authorization_codes_bases (
     code VARCHAR(512) NOT NULL,
     is_used TINYINT(1) DEFAULT 1 NOT NULL,
     is_deleted TINYINT(1) DEFAULT 0 NOT NULL,
-    CONSTRAINT authorization_codes_bases_primary_key PRIMARY KEY (id),
-    CONSTRAINT authorization_codes_bases_uuid_unique_constraint UNIQUE (uuid),
-    CONSTRAINT authorization_codes_bases_session_id_foreign_key FOREIGN KEY (session_id) REFERENCES sessions_bases (id)
+    CONSTRAINT authorization_codes_primary_key PRIMARY KEY (id),
+    CONSTRAINT authorization_codes_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT authorization_codes_session_id_foreign_key FOREIGN KEY (session_id) REFERENCES sessions (id)
 );
 GO
-CREATE TRIGGER trg_authorization_codes_bases_updated_at BEFORE UPDATE ON authorization_codes_bases
+CREATE TRIGGER trg_authorization_codes_updated_at BEFORE UPDATE ON authorization_codes
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
-CREATE TABLE identity_provider_authorize_sessions_bases (
+CREATE TABLE identity_provider_authorize_sessions (
     id BIGINT AUTO_INCREMENT NOT NULL,
     uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
     created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
@@ -1139,16 +1139,16 @@ CREATE TABLE identity_provider_authorize_sessions_bases (
     revoked DATETIME(3),
     finished DATETIME(3),
     is_deleted TINYINT(1) DEFAULT 0 NOT NULL,
-    CONSTRAINT identity_provider_authorize_sessions_bases_primary_key PRIMARY KEY (id),
-    CONSTRAINT identity_provider_authorize_sessions_bases_uuid_unique_constraint UNIQUE (uuid),
-    CONSTRAINT identity_provider_authorize_sessions_bases_identity_provider_id_foreign_key FOREIGN KEY (identity_provider_id) REFERENCES identity_providers_bases (id),
-    CONSTRAINT identity_provider_authorize_sessions_bases_session_id_foreign_key FOREIGN KEY (session_id) REFERENCES sessions_bases (id)
+    CONSTRAINT identity_provider_authorize_sessions_primary_key PRIMARY KEY (id),
+    CONSTRAINT identity_provider_authorize_sessions_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT identity_provider_authorize_sessions_identity_provider_id_foreign_key FOREIGN KEY (identity_provider_id) REFERENCES identity_providers (id),
+    CONSTRAINT identity_provider_authorize_sessions_session_id_foreign_key FOREIGN KEY (session_id) REFERENCES sessions (id)
 );
 GO
-CREATE TRIGGER trg_identity_provider_authorize_sessions_bases_updated_at BEFORE UPDATE ON identity_provider_authorize_sessions_bases
+CREATE TRIGGER trg_identity_provider_authorize_sessions_updated_at BEFORE UPDATE ON identity_provider_authorize_sessions
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
-CREATE TABLE identity_provider_signin_attempts_bases (
+CREATE TABLE identity_provider_signin_attempts (
     id BIGINT AUTO_INCREMENT NOT NULL,
     uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
     created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
@@ -1158,17 +1158,17 @@ CREATE TABLE identity_provider_signin_attempts_bases (
     session_id BIGINT NOT NULL,
     authentication_method_id BIGINT NOT NULL,
     is_success TINYINT(1) NOT NULL,
-    CONSTRAINT identity_provider_signin_attempts_bases_primary_key PRIMARY KEY (id),
-    CONSTRAINT identity_provider_signin_attempts_bases_uuid_unique_constraint UNIQUE (uuid),
-    CONSTRAINT identity_provider_signin_attempts_bases_identity_provider_id_foreign_key FOREIGN KEY (identity_provider_id) REFERENCES identity_providers_bases (id),
-    CONSTRAINT identity_provider_signin_attempts_bases_session_id_foreign_key FOREIGN KEY (session_id) REFERENCES sessions_bases (id),
-    CONSTRAINT identity_provider_signin_attempts_bases_authentication_method_id_foreign_key FOREIGN KEY (authentication_method_id) REFERENCES authentication_methods_bases (id)
+    CONSTRAINT identity_provider_signin_attempts_primary_key PRIMARY KEY (id),
+    CONSTRAINT identity_provider_signin_attempts_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT identity_provider_signin_attempts_identity_provider_id_foreign_key FOREIGN KEY (identity_provider_id) REFERENCES identity_providers (id),
+    CONSTRAINT identity_provider_signin_attempts_session_id_foreign_key FOREIGN KEY (session_id) REFERENCES sessions (id),
+    CONSTRAINT identity_provider_signin_attempts_authentication_method_id_foreign_key FOREIGN KEY (authentication_method_id) REFERENCES authentication_methods (id)
 );
 GO
-CREATE TRIGGER trg_identity_provider_signin_attempts_bases_updated_at BEFORE UPDATE ON identity_provider_signin_attempts_bases
+CREATE TRIGGER trg_identity_provider_signin_attempts_updated_at BEFORE UPDATE ON identity_provider_signin_attempts
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
-CREATE TABLE session_hits_bases (
+CREATE TABLE session_hits (
     id BIGINT AUTO_INCREMENT NOT NULL,
     uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
     created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
@@ -1176,15 +1176,15 @@ CREATE TABLE session_hits_bases (
     version BLOB DEFAULT (X'00') NOT NULL,
     session_id BIGINT NOT NULL,
     ip_address VARBINARY(16) NOT NULL,
-    CONSTRAINT session_hits_bases_primary_key PRIMARY KEY (id),
-    CONSTRAINT session_hits_bases_uuid_unique_constraint UNIQUE (uuid),
-    CONSTRAINT session_hits_bases_session_id_foreign_key FOREIGN KEY (session_id) REFERENCES sessions_bases (id)
+    CONSTRAINT session_hits_primary_key PRIMARY KEY (id),
+    CONSTRAINT session_hits_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT session_hits_session_id_foreign_key FOREIGN KEY (session_id) REFERENCES sessions (id)
 );
 GO
-CREATE TRIGGER trg_session_hits_bases_updated_at BEFORE UPDATE ON session_hits_bases
+CREATE TRIGGER trg_session_hits_updated_at BEFORE UPDATE ON session_hits
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
-CREATE TABLE session_states_bases (
+CREATE TABLE session_states (
     id BIGINT AUTO_INCREMENT NOT NULL,
     uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
     created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
@@ -1196,12 +1196,12 @@ CREATE TABLE session_states_bases (
     code_challenge_method VARCHAR(256),
     revoked DATETIME(3),
     is_enabled TINYINT(1) DEFAULT 1 NOT NULL,
-    CONSTRAINT session_states_bases_primary_key PRIMARY KEY (id),
-    CONSTRAINT session_states_bases_uuid_unique_constraint UNIQUE (uuid),
-    CONSTRAINT session_states_bases_session_id_foreign_key FOREIGN KEY (session_id) REFERENCES sessions_bases (id)
+    CONSTRAINT session_states_primary_key PRIMARY KEY (id),
+    CONSTRAINT session_states_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT session_states_session_id_foreign_key FOREIGN KEY (session_id) REFERENCES sessions (id)
 );
 GO
-CREATE TRIGGER trg_session_states_bases_updated_at BEFORE UPDATE ON session_states_bases
+CREATE TRIGGER trg_session_states_updated_at BEFORE UPDATE ON session_states
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
 -- Seed data

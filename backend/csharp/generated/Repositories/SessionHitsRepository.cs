@@ -12,7 +12,7 @@ public sealed class SessionHitsRepository : CRUDRepository<Backend.Types.View.Se
             .Add(new()
             {
                 Entity = "SessionHit",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["SessionHit"] = "session_hits_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["SessionHit"] = "session_hits" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",
@@ -41,7 +41,7 @@ public sealed class SessionHitsRepository : CRUDRepository<Backend.Types.View.Se
             .Add("sqlite", new()
             {
                 Entity = "SessionHit",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["SessionHit"] = "session_hits_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["SessionHit"] = "session_hits" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",

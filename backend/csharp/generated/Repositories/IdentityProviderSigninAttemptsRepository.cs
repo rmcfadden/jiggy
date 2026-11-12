@@ -12,7 +12,7 @@ public sealed class IdentityProviderSigninAttemptsRepository : CRUDRepository<Ba
             .Add(new()
             {
                 Entity = "IdentityProviderSigninAttempt",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["IdentityProviderSigninAttempt"] = "identity_provider_signin_attempts_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["IdentityProviderSigninAttempt"] = "identity_provider_signin_attempts" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",
@@ -45,7 +45,7 @@ public sealed class IdentityProviderSigninAttemptsRepository : CRUDRepository<Ba
             .Add("sqlite", new()
             {
                 Entity = "IdentityProviderSigninAttempt",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["IdentityProviderSigninAttempt"] = "identity_provider_signin_attempts_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["IdentityProviderSigninAttempt"] = "identity_provider_signin_attempts" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",
