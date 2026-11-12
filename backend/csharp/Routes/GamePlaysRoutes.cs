@@ -22,8 +22,8 @@ public static class GamePlaysRoutes
         });
         group.MapGet("/", async (string? finished, HttpContext http, GamePlaysService service) =>
         {
-            if (finished != "false") throw new GameException(400, "only finished=false is supported");
-            return Results.Ok(await service.Unfinished(User(http)));
+            if (finished != "false" && finished != "true") throw new GameException(400, "finished must be true or false");
+            return Results.Ok(await service.List(User(http), finished == "true"));
         });
         group.MapPost("/{id:long}/action", async (long id, JsonElement? body, HttpContext http, GamePlaysService service) =>
             Results.Ok(await service.Action(id, User(http), body)));

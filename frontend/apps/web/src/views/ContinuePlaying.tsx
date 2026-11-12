@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useUnfinishedPlays } from '../api/gamePlays'
 import { useGameSummaries } from '../api/gameSummaries'
 import { useSession } from '../auth/hooks'
+import GameMeta from './GameMeta'
 import { ICON_DIMENSIONS, type IconSize } from './browsePrefs'
 
 /**
@@ -33,7 +34,10 @@ export default function ContinuePlaying({ size = 'medium' }: { size?: IconSize }
             className={`flex shrink-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm hover:border-amber-500 ${dims.card}`}
           >
             <img src={game.thumbnameLocation} alt={game.name} loading="lazy" className={`${dims.image} w-full object-cover`} />
-            <span className={`truncate font-medium ${size === 'small' ? 'p-2 text-xs' : 'p-3 text-sm'}`}>{game.name}</span>
+            <div className={`flex flex-col gap-1 ${size === 'small' ? 'p-2 text-xs' : 'p-3 text-sm'}`}>
+              <span className="truncate font-medium">{game.name}</span>
+              <GameMeta game={game} compact={size === 'small'} />
+            </div>
           </Link>
         ))}
       </div>

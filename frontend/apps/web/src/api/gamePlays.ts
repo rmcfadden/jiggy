@@ -92,6 +92,18 @@ export const UNFINISHED_PLAYS_KEY = ['gamePlay', 'unfinished']
 export const useUnfinishedPlays = (signedIn: boolean) =>
   useQuery({ queryKey: UNFINISHED_PLAYS_KEY, queryFn: fetchUnfinishedPlays, enabled: signedIn, retry: false })
 
+/** A play the signed-in user finished; `finished` is when it ended and `lastPlayed` when its newest move was stored. */
+export type FinishedPlay = { id: number; gameId: number; lastPlayed: string; finished: string }
+
+/** The signed-in user's finished plays, most recent activity first. */
+export const fetchFinishedPlays = () => playRequest<FinishedPlay[]>('GET', '?finished=true')
+
+export const FINISHED_PLAYS_KEY = ['gamePlay', 'finished']
+
+/** The finished plays for the history; only asked for while `signedIn`, and refetched whenever a page showing them mounts. */
+export const useFinishedPlays = (signedIn: boolean) =>
+  useQuery({ queryKey: FINISHED_PLAYS_KEY, queryFn: fetchFinishedPlays, enabled: signedIn, retry: false })
+
 /**
  * Opens a play of the game: the user's unfinished play of it when they have one, otherwise a new one. A failure to
  * look (other than an expired session) starts a new play rather than blocking the click.

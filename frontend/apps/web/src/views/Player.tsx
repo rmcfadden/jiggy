@@ -3,11 +3,12 @@ import { PieceSparkles } from '../designer/sparkles'
 import { NEAR_COLOR, DEFAULT_EFFECTS, effectClass, sparklePieces, useFlash, type PieceEffects } from '../designer/effects'
 import { DEFAULT_PIECE_BORDERS, PieceBorderPath, SET_ALPHA, type PieceBorders } from '../designer/controls'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { gameQuery } from '../api/games'
-import { UnauthorizedError, playStateQuery, sendPlayAction, type PlayHandle, type PlayState } from '../api/gamePlays'
+import { FINISHED_PLAYS_KEY, UNFINISHED_PLAYS_KEY, UnauthorizedError, playStateQuery, sendPlayAction, type PlayHandle, type PlayState } from '../api/gamePlays'
 import { useSignOut } from '../auth/hooks'
+import { primaryButton } from '../designer/controls'
 import { useImage } from '../api/images'
 import { useTemplate } from '../api/templates'
 import { normalizeSetup } from '../designer/library'
@@ -76,6 +77,8 @@ function SavedPlayer({ id, playId, requested }: { id: number; playId: number | n
   const navigate = useNavigate()
   const location = useLocation()
   const signOut = useSignOut()
+  const client = useQueryClient()
+  const [congratulating, setCongratulating] = useState(false)
   const toSignIn = useCallback(() => {
     signOut()
     navigate('/signin', { state: { from: location.pathname + location.search } })
@@ -87,13 +90,24 @@ function SavedPlayer({ id, playId, requested }: { id: number; playId: number | n
             id: playId,
             state: playState.data.state,
             send: (action) =>
-              sendPlayAction(playId, action).catch((error: unknown) => {
-                if (error instanceof UnauthorizedError) toSignIn()
-                throw error
-              }),
+              sendPlayAction(playId, action).then(
+                (reply) => {
+                  // The move that solves the puzzle finishes the play on the server: refresh the lists and celebrate.
+                  if (reply.finished) {
+                    void client.invalidateQueries({ queryKey: FINISHED_PLAYS_KEY })
+                    void client.invalidateQueries({ queryKey: UNFINISHED_PLAYS_KEY })
+                    setCongratulating(true)
+                  }
+                  return reply
+                },
+                (error: unknown) => {
+                  if (error instanceof UnauthorizedError) toSignIn()
+                  throw error
+                },
+              ),
           }
         : undefined,
-    [playId, playState.data, toSignIn],
+    [playId, playState.data, toSignIn, client],
   )
   const unauthorized = playState.error instanceof UnauthorizedError
   useEffect(() => {
@@ -118,6 +132,36 @@ function SavedPlayer({ id, playId, requested }: { id: number; playId: number | n
   return (
     <div className="h-full">
       <Board key={`${id}-${mode}`} settings={settings} template={params} photo={photo} mode={mode} play={play} />
+      {congratulating && <Congratulations name={g.name} onClose={() => setCongratulating(false)} />}
+    </div>
+  )
+}
+
+/** Shown when a move finishes the puzzle. */
+function Congratulations({ name, onClose }: { name?: string; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Puzzle complete"
+        className="w-full max-w-sm rounded-lg bg-white p-6 text-center text-slate-900 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="text-5xl" aria-hidden>🎉</div>
+        <h2 className="mt-2 text-xl font-semibold">Congratulations!</h2>
+        <p className="mt-1 text-sm text-slate-600">You finished{name ? ` ${name}` : ' the puzzle'}. It's saved in your history.</p>
+        <div className="mt-5 flex flex-col gap-2">
+          <Link to="/account" className={`${primaryButton} text-center`}>View history</Link>
+          <Link to="/puzzles" className="flex h-9 items-center justify-center rounded text-sm font-medium hover:bg-slate-100">More puzzles</Link>
+          <button className="h-9 rounded text-sm font-medium text-slate-600 hover:bg-slate-100" onClick={onClose}>Close</button>
+        </div>
+      </div>
     </div>
   )
 }

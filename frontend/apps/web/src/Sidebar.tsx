@@ -80,14 +80,14 @@ export default function Sidebar() {
   return (
     <nav
       aria-label="Main"
-      className={`flex shrink-0 gap-1 bg-[#0f172a] p-2 text-[#e2e8f0] max-md:items-center max-md:justify-between md:flex-col md:transition-[width] ${
+      className={`flex shrink-0 gap-1 bg-slate-100 p-2 text-slate-800 max-md:items-center max-md:justify-between md:flex-col md:transition-[width] ${
         collapsed ? 'md:w-14' : 'md:w-56'
       }`}
     >
       <button
         aria-label="Toggle sidebar"
         aria-expanded={!collapsed}
-        className="mb-2 flex h-9 max-md:hidden items-center justify-center rounded text-lg hover:bg-[#334155]"
+        className="mb-2 flex h-9 max-md:hidden items-center justify-center rounded text-lg hover:bg-slate-200"
         onClick={toggle}
       >
         {collapsed ? '»' : '«'}
@@ -101,7 +101,7 @@ export default function Sidebar() {
           className={({ isActive }) =>
             `flex h-9 items-center rounded px-3 text-sm font-medium max-md:flex-1 max-md:justify-center ${
               collapsed ? 'md:justify-center md:px-0' : ''
-            } ${isActive ? 'bg-amber-500 text-[#0f172a]' : 'hover:bg-[#334155]'}`
+            } ${isActive ? 'bg-amber-700 text-white dark:bg-amber-500 dark:text-[#0f172a]' : 'hover:bg-slate-200'}`
           }
         >
           {collapsed ? (
@@ -120,7 +120,7 @@ export default function Sidebar() {
             <button
               aria-label={`Color mode: ${mode}`}
               title={`Color mode: ${mode} (click to change)`}
-              className="flex h-9 w-9 items-center justify-center rounded text-sm font-medium hover:bg-[#334155] md:w-auto"
+              className="flex h-9 w-9 items-center justify-center rounded text-sm font-medium hover:bg-slate-200 md:w-auto"
               onClick={() => chooseMode(cycle(MODES, MODES.findIndex((m) => m.id === mode)).id)}
             >
               {mode === 'light' ? '☀' : mode === 'dark' ? '☾' : 'A'}
@@ -128,7 +128,7 @@ export default function Sidebar() {
             <button
               aria-label="Colors"
               title="Colors"
-              className="flex h-9 w-9 items-center justify-center rounded hover:bg-[#334155] md:w-auto"
+              className="flex h-9 w-9 items-center justify-center rounded hover:bg-slate-200 md:w-auto"
               onClick={() => setColorsOpen(true)}
             >
               <span
@@ -139,13 +139,13 @@ export default function Sidebar() {
           </>
         ) : (
           <>
-            <div role="group" aria-label="Color mode" className="flex rounded bg-[#1e293b] p-0.5">
+            <div role="group" aria-label="Color mode" className="flex rounded bg-slate-200 p-0.5">
               {MODES.map((m) => (
                 <button
                   key={m.id}
                   aria-pressed={mode === m.id}
                   className={`h-7 flex-1 rounded text-xs font-medium ${
-                    mode === m.id ? 'bg-[#475569] text-white' : 'hover:bg-[#334155]'
+                    mode === m.id ? 'bg-white text-slate-900 shadow-sm' : 'hover:bg-slate-300'
                   }`}
                   onClick={() => chooseMode(m.id)}
                 >
@@ -154,7 +154,7 @@ export default function Sidebar() {
               ))}
             </div>
             <button
-              className="flex h-8 items-center justify-center gap-2 rounded bg-[#1e293b] text-xs font-medium hover:bg-[#334155]"
+              className="flex h-8 items-center justify-center gap-2 rounded bg-slate-200 text-xs font-medium hover:bg-slate-300"
               onClick={() => setColorsOpen(true)}
             >
               <span
