@@ -2,9 +2,9 @@ version: 1.0.0
 includes:
   - types:
       filter: tag == "datasource_type"
-  - file: datasource_base.yaml
-  - file: datasource_identity.yaml
-  - file: datasource_sessions.yaml
-  - file: datasource_games.yaml
-  - file: datasource_templates.yaml
-  - file: datasource_contacts.yaml
+  - file: base_datasource.yaml
+  - file: identity_datasource.yaml
+  - file: sessions_datasource.yaml
+  - file: games_datasource.yaml
+  - file: templates_datasource.yaml
+  - file: contacts_datasource.yaml
