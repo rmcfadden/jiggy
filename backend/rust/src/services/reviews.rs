@@ -64,6 +64,21 @@ impl ReviewsService {
         Ok(json!({ "gameId": game_id, "count": reviews.len(), "average": average, "reviews": reviews.into_iter().map(|r| r.2).collect::<Vec<_>>() }))
     }
 
+    /// Review count and average rating (one decimal) for every game that has reviews, by game id.
+    pub async fn stats(&self) -> Result<HashMap<i64, (usize, f64)>> {
+        let links: Vec<GameReview> = self.game_reviews.read(None, None).try_collect().await?;
+        let game_of: HashMap<i64, i64> = links.iter().map(|l| (l.review_id, l.game_id)).collect();
+        let rows: Vec<Review> = self.reviews.read(None, None).try_collect().await?;
+        let mut sums: HashMap<i64, (usize, f64)> = HashMap::new();
+        for row in &rows {
+            let Some(game_id) = game_of.get(&row.id) else { continue };
+            let sum = sums.entry(*game_id).or_default();
+            sum.0 += 1;
+            sum.1 += rating_of(&row.rating);
+        }
+        Ok(sums.into_iter().map(|(game, (count, total))| (game, (count, (total / count as f64 * 10.0).round() / 10.0))).collect())
+    }
+
     /// Adds `user_id`'s review of the game; 400 for a bad rating or comment, 404 for an unknown game, 409 for a second review.
     pub async fn add(&self, game_id: i64, user_id: i64, body: &Value) -> Result<Value> {
         let rating = match body.get("rating") {

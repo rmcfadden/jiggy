@@ -30,6 +30,21 @@ public class ReviewsService(ICRUDRepository<Review> reviews, ICRUDRepository<Gam
         return new { gameId = id, count = found.Count, average, reviews = list };
     }
 
+    /// <summary>Review count and average rating (one decimal) for every game that has reviews, by game id.</summary>
+    public async Task<Dictionary<long, (int Count, double Average)>> Stats()
+    {
+        var gameOf = new Dictionary<long, long>();
+        await foreach (var link in gameReviews.Read()) gameOf[link.ReviewId] = link.GameId;
+        var ratings = new Dictionary<long, List<decimal>>();
+        await foreach (var row in reviews.Read())
+        {
+            if (!gameOf.TryGetValue(row.Id, out var gameId)) continue;
+            if (!ratings.TryGetValue(gameId, out var list)) ratings[gameId] = list = [];
+            list.Add(row.Rating);
+        }
+        return ratings.ToDictionary(r => r.Key, r => (r.Value.Count, Math.Round((double)r.Value.Average() * 10) / 10));
+    }
+
     /// <summary>Adds <paramref name="userId"/>'s review of the game; 400 for a bad rating or comment, 404 for an unknown game, 409 for a second review.</summary>
     public async Task<object> Add(long gameId, long userId, JsonElement body)
     {
