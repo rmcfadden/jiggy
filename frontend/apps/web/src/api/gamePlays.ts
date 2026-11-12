@@ -38,7 +38,13 @@ export type ActionResponse = {
 }
 
 /** A play the page is showing: the state it loaded and how to send moves, each answered by the server's new state. */
-export type PlayHandle = { id: number; state: PlayState; send: (action: PlayAction) => Promise<ActionResponse> }
+export type PlayHandle = {
+  id: number
+  state: PlayState
+  send: (action: PlayAction) => Promise<ActionResponse>
+  /** A finished play being stepped through: the board follows `state` and cannot be moved. */
+  replay?: boolean
+}
 
 /** What `POST /api/game_plays` answers: the new play and its first state, which the server owns. */
 export type GamePlayStart = { id: number; gameId: number; finished: string | null; state: PlayState }
@@ -70,6 +76,18 @@ export const sendPlayAction = (playId: number, action: PlayAction) => playReques
 
 /** The play's current state, rebuilt by the server from its stored changes. */
 export const fetchPlayState = (playId: number) => playRequest<{ id: number; state: PlayState; finished: string | null }>('GET', `/${playId}/state`)
+
+/** Every state of the play, first to last: the starting layout, then the layout after each stored change. */
+export const fetchPlayStates = (playId: number) => playRequest<{ id: number; states: PlayState[]; finished: string | null }>('GET', `/${playId}/states`)
+
+/** Query for all of a play's states; only run for a finished play, whose history can no longer change. */
+export const playStatesQuery = (playId: number) => ({
+  queryKey: ['gamePlay', playId, 'states'] as const,
+  queryFn: () => fetchPlayStates(playId),
+  staleTime: Infinity,
+  gcTime: 0,
+  retry: false,
+})
 
 /** Query for a play's state. Never refetched on its own: after the first load the page follows the server's move replies. */
 export const playStateQuery = (playId: number) => ({

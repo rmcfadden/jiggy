@@ -29,6 +29,8 @@ public static class GamePlaysRoutes
             Results.Ok(await service.Action(id, User(http), body)));
         group.MapGet("/{id:long}/state", async (long id, HttpContext http, GamePlaysService service) =>
             Results.Ok(await service.State(id, User(http))));
+        group.MapGet("/{id:long}/states", async (long id, HttpContext http, GamePlaysService service) =>
+            Results.Ok(await service.States(id, User(http))));
         group.MapGet("/{id:long}/actions", async (long id, HttpContext http, GamePlaysService service) =>
             Results.Ok(await service.ActionList(id, User(http))));
         group.MapPost("/{id:long}/finish", async (long id, HttpContext http, GamePlaysService service) =>

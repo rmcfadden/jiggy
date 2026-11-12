@@ -42,6 +42,14 @@ export function gamePlaysRouter(service: GamePlaysService): Router {
     }
   })
 
+  router.get('/:id/states', async (req, res, next) => {
+    try {
+      res.json(await service.stateHistory(Number(req.params.id), user(res)))
+    } catch (err) {
+      next(err)
+    }
+  })
+
   router.get('/:id/actions', async (req, res, next) => {
     try {
       res.json(await service.actionList(Number(req.params.id), user(res)))

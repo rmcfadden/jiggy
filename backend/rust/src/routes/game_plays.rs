@@ -21,6 +21,7 @@ pub fn router(service: Arc<GamePlaysService>, tokens: Arc<TokenService>) -> Rout
         .route("/api/game_plays", post(start).get(unfinished))
         .route("/api/game_plays/{id}/action", post(action))
         .route("/api/game_plays/{id}/state", get(state))
+        .route("/api/game_plays/{id}/states", get(states))
         .route("/api/game_plays/{id}/actions", get(actions))
         .route("/api/game_plays/{id}/finish", post(finish))
         .with_state(service)
@@ -59,6 +60,10 @@ async fn action(State(service): Service, Extension(UserId(user)): Extension<User
 
 async fn state(State(service): Service, Extension(UserId(user)): Extension<UserId>, Path(id): Path<i64>) -> Reply {
     Ok(Json(service.state(id, user).await.map_err(fail)?))
+}
+
+async fn states(State(service): Service, Extension(UserId(user)): Extension<UserId>, Path(id): Path<i64>) -> Reply {
+    Ok(Json(service.states(id, user).await.map_err(fail)?))
 }
 
 async fn actions(State(service): Service, Extension(UserId(user)): Extension<UserId>, Path(id): Path<i64>) -> Reply {

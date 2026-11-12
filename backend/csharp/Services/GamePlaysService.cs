@@ -95,6 +95,13 @@ public class GamePlaysService(
         return new { id = playId, gameId = play.GameId, finished = play.Finished, state = StateOf(play).ToJson() };
     }
 
+    /// <summary>The play's state after every stored change, first to last, so a client can step through the whole game.</summary>
+    public async Task<object> States(long playId, long userId)
+    {
+        var play = await Load(playId, userId);
+        return new { id = playId, gameId = play.GameId, finished = play.Finished, states = PuzzleGameService.FoldAll(play.States.OrderBy(s => s.Id).Select(s => (JsonObject)JsonNode.Parse(s.StateChange)!).ToList()).Select(s => s.ToJson()).ToList() };
+    }
+
     public async Task<object> ActionList(long playId, long userId)
     {
         var play = await Load(playId, userId);
