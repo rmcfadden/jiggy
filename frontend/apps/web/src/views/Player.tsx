@@ -2,10 +2,11 @@ import { ZoomControls, useZoom } from '../designer/zoom'
 import { PieceSparkles } from '../designer/sparkles'
 import { NEAR_COLOR, DEFAULT_EFFECTS, effectClass, sparklePieces, useFlash, type PieceEffects } from '../designer/effects'
 import { DEFAULT_PIECE_BORDERS, PieceBorderPath, SET_ALPHA, type PieceBorders } from '../designer/controls'
-import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { gameQuery } from '../api/games'
+import { playStateQuery, sendPlayAction, type PlayHandle, type PlayState } from '../api/gamePlays'
 import { useImage } from '../api/images'
 import { useTemplate } from '../api/templates'
 import { normalizeSetup } from '../designer/library'
@@ -16,6 +17,7 @@ import {
   DEFAULT_JIGSAW_PARAMS,
   JigsawTemplateGenerator,
   JigsawVectorizer,
+  PIECE_SIZE,
   averageRating,
   buildPuzzle,
   decodePuzzleId,
@@ -53,7 +55,8 @@ export default function Player() {
         ? 'next-pieces'
         : 'scrambled'
   // Remount on id or mode change so the game state resets.
-  if (savedId !== null) return <SavedPlayer key={`${savedId}-${requested}`} id={savedId} requested={requested} />
+  const playId = /^\d+$/.test(params.get('play') ?? '') ? Number(params.get('play')) : null
+  if (savedId !== null) return <SavedPlayer key={`${savedId}-${requested}-${playId}`} id={savedId} playId={playId} requested={requested} />
   if (catalogPuzzle) return <CatalogPlayer key={`${id}-${mode}`} puzzle={catalogPuzzle} mode={mode} />
   return mode === 'next-pieces' ? (
     <NextPiecesGame key={id} spec={spec} />
@@ -63,21 +66,32 @@ export default function Player() {
 }
 
 /** A saved game from `/api/games/:id`: its stored config, its template's shape and its image, all from the database. */
-function SavedPlayer({ id, requested }: { id: number; requested: string | null }) {
+function SavedPlayer({ id, playId, requested }: { id: number; playId: number | null; requested: string | null }) {
   const game = useQuery(gameQuery<Parameters<typeof normalizeSetup>[0]>(id))
+  // With a play id the server owns the game: the board is drawn from its state and every move goes to it.
+  const playState = useQuery({ ...playStateQuery(playId ?? 0), enabled: playId !== null })
+  const play = useMemo<PlayHandle | undefined>(
+    () => (playId !== null && playState.data ? { id: playId, state: playState.data.state, send: (action) => sendPlayAction(playId, action) } : undefined),
+    [playId, playState.data],
+  )
   const template = useTemplate<Partial<JigsawTemplateParams>>(game.data?.templateId ?? null)
   const image = useImage(game.data?.imageId ?? null)
   if (game.isError) return <p role="alert" className="p-4">Could not load this puzzle: {game.error.message}</p>
   if (image.isError) return <p role="alert" className="p-4">Could not load this puzzle's picture: {image.error.message}</p>
+  if (playState.isError) return <p role="alert" className="p-4">Could not load this play: {playState.error.message}</p>
   const g = game.data
+  if (playId !== null && !play) return <p className="p-4">Loading…</p>
   if (!g || template.data?.id !== g.templateId || (g.imageId !== null && !image.data)) return <p className="p-4">Loading…</p>
   const settings = { ...normalizeSetup(g.config).config, type: g.parent as GameConfig['type'] }
   const params = { ...DEFAULT_JIGSAW_PARAMS, ...template.data.content }
   const photo = image.data?.url
-  const mode: Mode = requested === 'next-pieces' || requested === 'scrambled' ? requested : settings.type === 'next-pieces' ? 'next-pieces' : 'scrambled'
+  // The server's state decides which game runs: a tray play is always the panel game, whatever the page asked for.
+  const mode: Mode = play
+    ? play.state.type === 'scrambled' ? 'scrambled' : 'next-pieces'
+    : requested === 'next-pieces' || requested === 'scrambled' ? requested : settings.type === 'next-pieces' ? 'next-pieces' : 'scrambled'
   return (
     <div className="h-full">
-      <Board key={`${id}-${mode}`} settings={settings} template={params} photo={photo} mode={mode} />
+      <Board key={`${id}-${mode}`} settings={settings} template={params} photo={photo} mode={mode} play={play} />
     </div>
   )
 }
@@ -110,13 +124,13 @@ function CatalogPlayer({ puzzle, mode }: { puzzle: Puzzle; mode: Mode }) {
 type Mode = 'scrambled' | 'next-pieces'
 
 /** The playable board for a template, a picture and game settings. */
-function Board({ settings, template, photo, mode }: { settings: GameConfig; template: Partial<JigsawTemplateParams>; photo?: string; mode: Mode }) {
+function Board({ settings, template, photo, mode, play }: { settings: GameConfig; template: Partial<JigsawTemplateParams>; photo?: string; mode: Mode; play?: PlayHandle }) {
   const jigsaw = useMemo(() => new JigsawVectorizer().vectorize(new JigsawTemplateGenerator(template).generate()), [template])
   const cols = template.cols!
   const rows = template.rows!
   const spec: PuzzleSpec = { cols, rows, seed: template.seed! + settings.seed }
   return mode === 'next-pieces' ? (
-    <NextPiecesGame spec={spec} jigsaw={jigsaw} photo={photo} config={{ ...settings, type: 'next-pieces' }} />
+    <NextPiecesGame spec={spec} jigsaw={jigsaw} photo={photo} config={{ ...settings, type: 'next-pieces' }} play={play} />
   ) : (
     <Game
       spec={spec}
@@ -125,6 +139,7 @@ function Board({ settings, template, photo, mode }: { settings: GameConfig; temp
       showGuide
       zoomOrientation={settings.zoomOrientation}
       freeBuild={settings.freeBuild}
+      play={play}
       scatter={{
         cell: { width: template.width! / cols, height: template.height! / rows },
         viewPercent: settings.viewPercent,
@@ -148,6 +163,7 @@ export function Game({
   effects = DEFAULT_EFFECTS,
   zoomOrientation,
   freeBuild = false,
+  play,
 }: {
   spec: PuzzleSpec
   scatter?: ScatterOptions
@@ -166,17 +182,27 @@ export function Game({
   zoomOrientation?: ZoomOrientation
   /** Pieces join each other anywhere on the board and joined pieces drag together. */
   freeBuild?: boolean
+  /** A server-owned play: the pieces start where its state puts them and each drop is sent to the server, which answers with the new positions. */
+  play?: PlayHandle
 }) {
   const puzzle = useMemo(() => jigsaw ?? buildPuzzle(spec), [jigsaw, spec])
+  const served = play?.state.pieces ? play : undefined
+  // The server lays pieces out in 100-unit cells; the board draws them in the template's cell size.
+  const scale = useMemo(() => ({ x: (scatter?.cell?.width ?? PIECE_SIZE) / PIECE_SIZE, y: (scatter?.cell?.height ?? PIECE_SIZE) / PIECE_SIZE }), [scatter?.cell?.width, scatter?.cell?.height])
+  const fromServer = useCallback((state: PlayState): Offset[] => state.matrix.flat().map((guid) => ({ x: (state.pieces?.[guid]?.x ?? 0) * scale.x, y: (state.pieces?.[guid]?.y ?? 0) * scale.y })), [scale])
+  const free = served ? served.state.freeBuild !== false : freeBuild
+  const busy = useRef(false)
+  const [problem, setProblem] = useState<string | null>(null)
   const paths = useMemo(() => puzzle.pieces.map((p) => toSvgPath(p.vector)), [puzzle])
-  const [offsets, setOffsets] = useState<Offset[]>(() => scatterOffsets(spec, scatter))
+  const [offsets, setOffsets] = useState<Offset[]>(() => (served ? fromServer(served.state) : scatterOffsets(spec, scatter)))
   // Shape of the window the board sits in, so loose pieces can use all of it.
   const [aspect, setAspect] = useState<number>()
-  const touched = useRef(false)
+  // A served play never re-scatters: the server already placed the pieces.
+  const touched = useRef(Boolean(served))
   // Pieces drawn last are on top; dragging brings a piece to the front.
   const [order, setOrder] = useState(() => puzzle.pieces.map((_, i) => i))
   const svgRef = useRef<SVGSVGElement>(null)
-  const drag = useRef<{ index: number; group: number[]; last: Offset; pos: Offset } | null>(null)
+  const drag = useRef<{ index: number; group: number[]; last: Offset; pos: Offset; start: Offset[] } | null>(null)
   /** The piece being dragged while it is within snapping distance of its slot. */
   const [near, setNear] = useState<number | null>(null)
 
@@ -230,10 +256,11 @@ export function Game({
 
   const onDown = (index: number) => (e: React.PointerEvent) => {
     if (offsets[index].x === 0 && offsets[index].y === 0) return
+    if (busy.current) return // one move at a time: wait for the server's answer to the last drop
     touched.current = true
     e.currentTarget.setPointerCapture?.(e.pointerId)
-    const group = freeBuild ? connectedPieces(offsets, spec.cols, index) : [index]
-    drag.current = { index, group, last: toPuzzle(e), pos: offsets[index] }
+    const group = free ? connectedPieces(offsets, spec.cols, index) : [index]
+    drag.current = { index, group, last: toPuzzle(e), pos: offsets[index], start: offsets }
     setOrder((o) => [...o.filter((i) => !group.includes(i)), ...group])
   }
 
@@ -254,8 +281,26 @@ export function Game({
     drag.current = null
     setNear(null)
     if (!d) return
+    if (served) {
+      // The server decides: it snaps, joins or refuses, and its answer replaces what the player sees.
+      const at = d.start[d.index]
+      if (d.pos.x === at.x && d.pos.y === at.y) return
+      busy.current = true
+      setProblem(null)
+      served
+        .send({ type: 'move', piece: served.state.matrix.flat()[d.index], x: d.pos.x / scale.x, y: d.pos.y / scale.y })
+        .then((r) => setOffsets(fromServer(r.state)))
+        .catch((error: Error) => {
+          setOffsets(d.start)
+          setProblem(error.message)
+        })
+        .finally(() => {
+          busy.current = false
+        })
+      return
+    }
     setOffsets((os) =>
-      freeBuild ? settleGroup(os, spec.cols, d.group, snapTolerance) : os.map((o, i) => (i === d.index ? snapPiece(o, snapTolerance).offset : o)),
+      free ? settleGroup(os, spec.cols, d.group, snapTolerance) : os.map((o, i) => (i === d.index ? snapPiece(o, snapTolerance).offset : o)),
     )
   }
 
@@ -351,6 +396,7 @@ export function Game({
           </g>
         </svg>
       </div>
+      {problem && <p role="alert" className="absolute left-2 top-2 rounded bg-white/90 px-2 py-1 text-sm text-red-700">{problem}</p>}
       <ZoomControls z={z} orientation={zoomOrientation} preview={photo ? { photo, svg: svgRef, box: { x: minX, y: minY, width: puzzle.width, height: puzzle.height } } : undefined} />
       </div>
     </div>

@@ -34,8 +34,23 @@ export const stubApi = (url: string): unknown => {
   return []
 }
 
+/** The server's state for a play of a 4x3 game: scrambled pieces loose to the right, or a tray queue. */
+export const stubPlayState = (type: string) => {
+  const guids = Array.from({ length: 12 }, (_, i) => `00000000-0000-4000-8000-${String(i + 1).padStart(12, '0')}`)
+  const matrix = [guids.slice(0, 4), guids.slice(4, 8), guids.slice(8, 12)]
+  const base = { cols: 4, rows: 3, total: 12, mistakes: 0, solved: false, matrix }
+  return type === 'scrambled'
+    ? { ...base, type, freeBuild: true, pieces: Object.fromEntries(guids.map((g, i) => [g, { x: 500 + i * 10, y: -50 + i * 20 }])) }
+    : { ...base, type, queue: guids, visible: 3 }
+}
+
 /** `POST /api/game_plays` starts a play; every other request is a read of the sample catalog. */
-export const stubFetch = async (url: RequestInfo | URL, init?: RequestInit) =>
-  String(url) === '/api/game_plays' && init?.method === 'POST'
-    ? new Response(JSON.stringify({ id: 77, gameId: JSON.parse(String(init.body)).game_id, finished: null, state: {} }), { status: 201 })
-    : new Response(JSON.stringify(stubApi(String(url))))
+export const stubFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
+  const playOf = (gameId: number) => stubPlayState((stubApi('/api/games') as { id: number; parent: string }[]).find((g) => g.id === gameId)?.parent ?? 'scrambled')
+  if (String(url) === '/api/game_plays' && init?.method === 'POST') {
+    const gameId = JSON.parse(String(init.body)).game_id
+    return new Response(JSON.stringify({ id: 77, gameId, finished: null, state: playOf(gameId) }), { status: 201 })
+  }
+  if (/^\/api\/game_plays\/\d+\/state$/.test(String(url))) return new Response(JSON.stringify({ id: 77, gameId: 1, finished: null, state: playOf(1) }))
+  return new Response(JSON.stringify(stubApi(String(url))))
+}
