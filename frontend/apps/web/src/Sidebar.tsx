@@ -15,7 +15,6 @@ import {
 const LINKS = [
   { to: '/puzzles', label: 'Puzzles', short: 'E' },
   { to: '/designer', label: 'Designer', short: 'D' },
-  { to: '/account', label: 'Account', short: 'A' },
 ]
 
 const STORAGE_KEY = 'jiggy.sidebar.collapsed'

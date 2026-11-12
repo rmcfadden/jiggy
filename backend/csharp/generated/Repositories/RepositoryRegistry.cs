@@ -26,8 +26,11 @@ public static class RepositoryRegistry
         factory.Register("GameParentCategory", "GameParentCategories", connection => new GameParentCategoriesRepository(connection), connection => GameParentCategoriesRepository.CreateReadonly(connection));
         factory.Register("GameParentConfig", "GameParentConfigs", connection => new GameParentConfigsRepository(connection), connection => GameParentConfigsRepository.CreateReadonly(connection));
         factory.Register("GameParentSetting", "GameParentSettings", connection => new GameParentSettingsRepository(connection), connection => GameParentSettingsRepository.CreateReadonly(connection));
+        factory.Register("GamePlay", "GamePlays", connection => new GamePlaysRepository(connection), connection => GamePlaysRepository.CreateReadonly(connection));
+        factory.Register("GamePlayAction", "GamePlayActions", connection => new GamePlayActionsRepository(connection), connection => GamePlayActionsRepository.CreateReadonly(connection));
+        factory.Register("GamePlayState", "GamePlayStates", connection => new GamePlayStatesRepository(connection), connection => GamePlayStatesRepository.CreateReadonly(connection));
+        factory.Register("GamePlayUser", "GamePlayUsers", connection => new GamePlayUsersRepository(connection), connection => GamePlayUsersRepository.CreateReadonly(connection));
         factory.Register("GameSetting", "GameSettings", connection => new GameSettingsRepository(connection), connection => GameSettingsRepository.CreateReadonly(connection));
-        factory.Register("GameState", "GameStates", connection => new GameStatesRepository(connection), connection => GameStatesRepository.CreateReadonly(connection));
         factory.Register("Gender", "Genders", connection => new GendersRepository(connection), connection => GendersRepository.CreateReadonly(connection));
         factory.Register("Group", "Groups", connection => new GroupsRepository(connection), connection => GroupsRepository.CreateReadonly(connection));
         factory.Register("Label", "Labels", connection => new LabelsRepository(connection), connection => LabelsRepository.CreateReadonly(connection));

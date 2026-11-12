@@ -17,8 +17,11 @@ use super::super::GameParent;
 use super::super::GameParentCategory;
 use super::super::GameParentConfig;
 use super::super::GameParentSetting;
+use super::super::GamePlay;
+use super::super::GamePlayAction;
+use super::super::GamePlayState;
+use super::super::GamePlayUser;
 use super::super::GameSetting;
-use super::super::GameState;
 use super::super::Gender;
 use super::super::Group;
 use super::super::Label;
@@ -161,16 +164,34 @@ pub fn register(factory: &RepositoryFactory) {
         |connection| Arc::new(super::gameParentSettingsRepository::GameParentSettingsRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<GameParentSetting>>,
     );
     factory.register_named(
+        "GamePlay",
+        "game_plays",
+        |connection| Ok(Arc::new(super::gamePlaysRepository::GamePlaysRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<GamePlay>>),
+        |connection| Arc::new(super::gamePlaysRepository::GamePlaysRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<GamePlay>>,
+    );
+    factory.register_named(
+        "GamePlayAction",
+        "game_play_actions",
+        |connection| Ok(Arc::new(super::gamePlayActionsRepository::GamePlayActionsRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<GamePlayAction>>),
+        |connection| Arc::new(super::gamePlayActionsRepository::GamePlayActionsRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<GamePlayAction>>,
+    );
+    factory.register_named(
+        "GamePlayState",
+        "game_play_states",
+        |connection| Ok(Arc::new(super::gamePlayStatesRepository::GamePlayStatesRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<GamePlayState>>),
+        |connection| Arc::new(super::gamePlayStatesRepository::GamePlayStatesRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<GamePlayState>>,
+    );
+    factory.register_named(
+        "GamePlayUser",
+        "game_play_users",
+        |connection| Ok(Arc::new(super::gamePlayUsersRepository::GamePlayUsersRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<GamePlayUser>>),
+        |connection| Arc::new(super::gamePlayUsersRepository::GamePlayUsersRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<GamePlayUser>>,
+    );
+    factory.register_named(
         "GameSetting",
         "game_settings",
         |connection| Ok(Arc::new(super::gameSettingsRepository::GameSettingsRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<GameSetting>>),
         |connection| Arc::new(super::gameSettingsRepository::GameSettingsRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<GameSetting>>,
-    );
-    factory.register_named(
-        "GameState",
-        "game_states",
-        |connection| Ok(Arc::new(super::gameStatesRepository::GameStatesRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<GameState>>),
-        |connection| Arc::new(super::gameStatesRepository::GameStatesRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<GameState>>,
     );
     factory.register_named(
         "Gender",
@@ -375,8 +396,11 @@ pub trait Repositories {
     fn game_parent_categories(&self) -> Arc<super::gameParentCategoriesRepository::GameParentCategoriesRepository>;
     fn game_parent_configs(&self) -> Arc<super::gameParentConfigsRepository::GameParentConfigsRepository>;
     fn game_parent_settings(&self) -> Arc<super::gameParentSettingsRepository::GameParentSettingsRepository>;
+    fn game_plays(&self) -> Arc<super::gamePlaysRepository::GamePlaysRepository>;
+    fn game_play_actions(&self) -> Arc<super::gamePlayActionsRepository::GamePlayActionsRepository>;
+    fn game_play_states(&self) -> Arc<super::gamePlayStatesRepository::GamePlayStatesRepository>;
+    fn game_play_users(&self) -> Arc<super::gamePlayUsersRepository::GamePlayUsersRepository>;
     fn game_settings(&self) -> Arc<super::gameSettingsRepository::GameSettingsRepository>;
-    fn game_states(&self) -> Arc<super::gameStatesRepository::GameStatesRepository>;
     fn genders(&self) -> Arc<super::gendersRepository::GendersRepository>;
     fn groups(&self) -> Arc<super::groupsRepository::GroupsRepository>;
     fn labels(&self) -> Arc<super::labelsRepository::LabelsRepository>;
@@ -464,11 +488,20 @@ impl Repositories for Arc<dyn Datasource> {
     fn game_parent_settings(&self) -> Arc<super::gameParentSettingsRepository::GameParentSettingsRepository> {
         Arc::new(super::gameParentSettingsRepository::GameParentSettingsRepository::new(self.bind_connection(None)).expect("game_parent_settings"))
     }
+    fn game_plays(&self) -> Arc<super::gamePlaysRepository::GamePlaysRepository> {
+        Arc::new(super::gamePlaysRepository::GamePlaysRepository::new(self.bind_connection(None)).expect("game_plays"))
+    }
+    fn game_play_actions(&self) -> Arc<super::gamePlayActionsRepository::GamePlayActionsRepository> {
+        Arc::new(super::gamePlayActionsRepository::GamePlayActionsRepository::new(self.bind_connection(None)).expect("game_play_actions"))
+    }
+    fn game_play_states(&self) -> Arc<super::gamePlayStatesRepository::GamePlayStatesRepository> {
+        Arc::new(super::gamePlayStatesRepository::GamePlayStatesRepository::new(self.bind_connection(None)).expect("game_play_states"))
+    }
+    fn game_play_users(&self) -> Arc<super::gamePlayUsersRepository::GamePlayUsersRepository> {
+        Arc::new(super::gamePlayUsersRepository::GamePlayUsersRepository::new(self.bind_connection(None)).expect("game_play_users"))
+    }
     fn game_settings(&self) -> Arc<super::gameSettingsRepository::GameSettingsRepository> {
         Arc::new(super::gameSettingsRepository::GameSettingsRepository::new(self.bind_connection(None)).expect("game_settings"))
-    }
-    fn game_states(&self) -> Arc<super::gameStatesRepository::GameStatesRepository> {
-        Arc::new(super::gameStatesRepository::GameStatesRepository::new(self.bind_connection(None)).expect("game_states"))
     }
     fn genders(&self) -> Arc<super::gendersRepository::GendersRepository> {
         Arc::new(super::gendersRepository::GendersRepository::new(self.bind_connection(None)).expect("genders"))

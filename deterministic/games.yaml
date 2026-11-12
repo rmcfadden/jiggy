@@ -104,7 +104,8 @@ types:
             references: game_parent_base.id
         - category_id:
             references: category.id
-  - game_state:
+
+  - game_play_base:
       tags: [datasource_type]
       inherits: base
       fields:
@@ -112,9 +113,55 @@ types:
             references: game_base.id
         - user_id:
             references: user_base.id
-        - state:
+        - finished:
+            type: datetime
+            is_nullable: true
+
+  - game_play_users:
+      tags: [datasource_type, many_to_many]
+      inherits: base
+      fields:
+        - game_play_id:
+            references: game_play_base.id
+        - user_id:
+            references: user_base.id
+
+  - game_play_state:
+      tags: [datasource_type]
+      inherits: base
+      fields:
+        - game_play_id:
+            references: game_play_base.id
+        - state_change:
             type: string
-            size: 256
+            size: unlimited
+
+  - game_play_action:
+      tags: [datasource_type]
+      inherits: base
+      fields:
+        - game_play_id:
+            references: game_play_base.id
+        - user_id:
+            references: user_base.id
+        - action:
+            type: string
+            size: unlimited
+
+  - game_play:
+      tags: [view_type]
+      inherits: game_play_base
+      fields:
+        - states:
+            type: game_play_state[]
+            references: game_play_state.game_play_id
+        - actions:
+            type: game_play_action[]
+            references: game_play_action.game_play_id
+        - users:
+            type: user[]
+            references: game_play_users.game_play_id
+
   - game_parent_setting:
       tags: [datasource_type]
       inherits: base
@@ -127,6 +174,7 @@ types:
         - value:
             type: string
             size: unlimited
+
   - game_parent_setting_map:
       tags: [view_type]
       inherits: dictionary
@@ -164,6 +212,7 @@ types:
         - value:
             type: string
             size: unlimited
+
   - game_attribute_map:
       tags: [view_type]
       inherits: dictionary

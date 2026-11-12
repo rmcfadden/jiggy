@@ -660,7 +660,7 @@ GO
 CREATE TRIGGER trg_game_parent_categories_updated_at BEFORE UPDATE ON game_parent_categories
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
-CREATE TABLE game_states (
+CREATE TABLE game_plays (
     id BIGINT AUTO_INCREMENT NOT NULL,
     uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
     created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
@@ -668,14 +668,71 @@ CREATE TABLE game_states (
     version BLOB DEFAULT (X'00') NOT NULL,
     game_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL,
-    state VARCHAR(256) NOT NULL,
-    CONSTRAINT game_states_primary_key PRIMARY KEY (id),
-    CONSTRAINT game_states_uuid_unique_constraint UNIQUE (uuid),
-    CONSTRAINT game_states_game_id_foreign_key FOREIGN KEY (game_id) REFERENCES games (id),
-    CONSTRAINT game_states_user_id_foreign_key FOREIGN KEY (user_id) REFERENCES users (id)
+    finished DATETIME(3),
+    CONSTRAINT game_plays_primary_key PRIMARY KEY (id),
+    CONSTRAINT game_plays_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT game_plays_game_id_foreign_key FOREIGN KEY (game_id) REFERENCES games (id),
+    CONSTRAINT game_plays_user_id_foreign_key FOREIGN KEY (user_id) REFERENCES users (id)
 );
 GO
-CREATE TRIGGER trg_game_states_updated_at BEFORE UPDATE ON game_states
+CREATE TRIGGER trg_game_plays_updated_at BEFORE UPDATE ON game_plays
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE game_play_users (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    game_play_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    CONSTRAINT game_play_users_primary_key PRIMARY KEY (id),
+    CONSTRAINT game_play_users_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT game_play_users_game_play_id_foreign_key FOREIGN KEY (game_play_id) REFERENCES game_plays (id),
+    CONSTRAINT game_play_users_user_id_foreign_key FOREIGN KEY (user_id) REFERENCES users (id)
+);
+GO
+CREATE UNIQUE INDEX game_play_users_game_play_users_game_play_id_user_id_index ON game_play_users (game_play_id, user_id);
+GO
+CREATE TRIGGER trg_game_play_users_updated_at BEFORE UPDATE ON game_play_users
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE game_play_states (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    game_play_id BIGINT NOT NULL,
+    state_change TEXT NOT NULL,
+    CONSTRAINT game_play_states_primary_key PRIMARY KEY (id),
+    CONSTRAINT game_play_states_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT game_play_states_game_play_id_foreign_key FOREIGN KEY (game_play_id) REFERENCES game_plays (id)
+);
+GO
+CREATE INDEX game_play_states_game_play_state_game_play_id_index ON game_play_states (game_play_id);
+GO
+CREATE TRIGGER trg_game_play_states_updated_at BEFORE UPDATE ON game_play_states
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE game_play_actions (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    game_play_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    action TEXT NOT NULL,
+    CONSTRAINT game_play_actions_primary_key PRIMARY KEY (id),
+    CONSTRAINT game_play_actions_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT game_play_actions_game_play_id_foreign_key FOREIGN KEY (game_play_id) REFERENCES game_plays (id),
+    CONSTRAINT game_play_actions_user_id_foreign_key FOREIGN KEY (user_id) REFERENCES users (id)
+);
+GO
+CREATE INDEX game_play_actions_game_play_action_game_play_id_index ON game_play_actions (game_play_id);
+GO
+CREATE TRIGGER trg_game_play_actions_updated_at BEFORE UPDATE ON game_play_actions
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
 CREATE TABLE game_parent_settings (

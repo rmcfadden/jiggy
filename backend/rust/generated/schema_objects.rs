@@ -41,9 +41,17 @@ impl SchemaObject for GameParentConfig {}
 
 impl SchemaObject for GameParentSetting {}
 
-impl SchemaObject for GameSetting {}
+impl SchemaObject for GamePlay {}
 
-impl SchemaObject for GameState {}
+impl SchemaObject for GamePlayState {}
+
+impl SchemaObject for GamePlayAction {}
+
+impl SchemaObject for User {}
+
+impl SchemaObject for GamePlayUser {}
+
+impl SchemaObject for GameSetting {}
 
 impl SchemaObject for Gender {}
 
@@ -88,8 +96,6 @@ impl SchemaObject for TemplateType {}
 impl SchemaObject for Token {}
 
 impl SchemaObject for TokenType {}
-
-impl SchemaObject for User {}
 
 impl SchemaObject for UserGroup {}
 

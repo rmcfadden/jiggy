@@ -34,6 +34,12 @@ export const imagesApi = {
     if (!res.ok) throw new Error(`GET ${URL} failed: ${res.status}`)
     return res.json()
   },
+  /** One image by id, so a page that shows a single picture does not load every image. */
+  get: async (id: number): Promise<ServerImage> => {
+    const res = await fetch(`${URL}/${id}`)
+    if (!res.ok) throw new Error(`GET ${URL}/${id} failed: ${res.status}`)
+    return res.json()
+  },
   upload: (file: File, name?: string) => request('', { method: 'POST', body: form(file, name) }) as Promise<ServerImage>,
   /** Swaps the picture when `file` is given; changes the name or description when those are. */
   update: (id: number, change: { file?: File; name?: string; description?: string }) =>
@@ -44,6 +50,15 @@ export const imagesApi = {
 }
 
 export const IMAGES_KEY = ['images']
+
+/** Query options for one image; it stays disabled (no request) while `id` is null, e.g. a game without a picture. */
+export const imageQuery = (id: number | null) => ({
+  queryKey: [...IMAGES_KEY, 'one', id],
+  queryFn: () => imagesApi.get(id!),
+  enabled: id !== null,
+})
+
+export const useImage = (id: number | null) => useQuery(imageQuery(id))
 
 /** Every image the server holds: the stock photos and anything uploaded. */
 export const useImages = () => useQuery({ queryKey: IMAGES_KEY, queryFn: imagesApi.list })

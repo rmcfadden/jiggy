@@ -1,23 +1,23 @@
 use datasources::{Connection, CRUDRepository, CRUDRepositoryBuilder, CRUDRepositoryOptions, DictionaryMapper, EnrichmentVia, ICRUDRepository, IReadonlyRepository, IRepository, IWhere, ReadonlyRepository, ReadonlyRepositoryMappingOptions, Schema, SchemaColumn, Statement, Result, async_trait, CommandMiddleware, IdKey, Response, Stream};
-use super::super::GameState;
+use super::super::GamePlayAction;
 use std::any::TypeId;
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::pin::Pin;
 use std::sync::Arc;
 
-pub struct GameStatesRepository {
-    pub(crate) inner: Arc<CRUDRepository<GameState>>,
+pub struct GamePlayActionsRepository {
+    pub(crate) inner: Arc<CRUDRepository<GamePlayAction>>,
 }
 
-impl GameStatesRepository {
+impl GamePlayActionsRepository {
     pub fn new(connection: Arc<dyn Connection>) -> Result<Self> {
     let options = CRUDRepositoryBuilder::new()
     .add({
         let mut options = CRUDRepositoryOptions::default();
-        options.entity = "GameState".into();
+        options.entity = "GamePlayAction".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("GameState".into(), "game_states".into()),
+            ("GamePlayAction".into(), "game_play_actions".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -25,21 +25,21 @@ impl GameStatesRepository {
             ("created".into(), SchemaColumn { type_name: "datetime".into(), nullable: false, has_default: true, is_id: false }),
             ("updated".into(), SchemaColumn { type_name: "datetime".into(), nullable: false, has_default: true, is_id: false }),
             ("version".into(), SchemaColumn { type_name: "binary".into(), nullable: false, has_default: true, is_id: false }),
-            ("game_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
+            ("game_play_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
             ("user_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
-            ("state".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
+            ("action".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "game_id".into(), "user_id".into(), "state".into()];
-        options.create_properties = Some(vec!["game_id".into(), "user_id".into(), "state".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "game_id".into(), "user_id".into(), "state".into()]);
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "game_play_id".into(), "user_id".into(), "action".into()];
+        options.create_properties = Some(vec!["game_play_id".into(), "user_id".into(), "action".into()]);
+        options.update_properties = Some(vec!["uuid".into(), "game_play_id".into(), "user_id".into(), "action".into()]);
         options
     })
     .add_for("sqlite", {
         let mut options = CRUDRepositoryOptions::default();
-        options.entity = "GameState".into();
+        options.entity = "GamePlayAction".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("GameState".into(), "game_states".into()),
+            ("GamePlayAction".into(), "game_play_actions".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -47,27 +47,27 @@ impl GameStatesRepository {
             ("created".into(), SchemaColumn { type_name: "datetime".into(), nullable: false, has_default: true, is_id: false }),
             ("updated".into(), SchemaColumn { type_name: "datetime".into(), nullable: false, has_default: true, is_id: false }),
             ("version".into(), SchemaColumn { type_name: "binary".into(), nullable: false, has_default: true, is_id: false }),
-            ("game_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
+            ("game_play_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
             ("user_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
-            ("state".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
+            ("action".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "game_id".into(), "user_id".into(), "state".into()];
-        options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "game_id".into(), "user_id".into(), "state".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "game_id".into(), "user_id".into(), "state".into()]);
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "game_play_id".into(), "user_id".into(), "action".into()];
+        options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "game_play_id".into(), "user_id".into(), "action".into()]);
+        options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "game_play_id".into(), "user_id".into(), "action".into()]);
         options
     })
     .for_connection(connection.as_ref())?;
 
-        let repo = CRUDRepository::<GameState>::new(connection, options)?;
+        let repo = CRUDRepository::<GamePlayAction>::new(connection, options)?;
         Ok(Self { inner: Arc::new(repo) })
     }
 
-    pub fn create_readonly(connection: Arc<dyn Connection>) -> Result<ReadonlyRepository<GameState>> {
+    pub fn create_readonly(connection: Arc<dyn Connection>) -> Result<ReadonlyRepository<GamePlayAction>> {
         let mut options = ReadonlyRepositoryMappingOptions::default();
-        options.entity = "GameState".into();
+        options.entity = "GamePlayAction".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("GameState".into(), "game_states".into()),
+            ("GamePlayAction".into(), "game_play_actions".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -75,38 +75,38 @@ impl GameStatesRepository {
             ("created".into(), SchemaColumn { type_name: "datetime".into(), nullable: false, has_default: true, is_id: false }),
             ("updated".into(), SchemaColumn { type_name: "datetime".into(), nullable: false, has_default: true, is_id: false }),
             ("version".into(), SchemaColumn { type_name: "binary".into(), nullable: false, has_default: true, is_id: false }),
-            ("game_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
+            ("game_play_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
             ("user_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
-            ("state".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
+            ("action".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
         ]));
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "game_id".into(), "user_id".into(), "state".into()];
-        let repo = ReadonlyRepository::<GameState>::new(connection, options)?;
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "game_play_id".into(), "user_id".into(), "action".into()];
+        let repo = ReadonlyRepository::<GamePlayAction>::new(connection, options)?;
         Ok(repo)
     }
 }
 
-impl Deref for GameStatesRepository {
-    type Target = CRUDRepository<GameState>;
+impl Deref for GamePlayActionsRepository {
+    type Target = CRUDRepository<GamePlayAction>;
     fn deref(&self) -> &Self::Target {
         self.inner.as_ref()
     }
 }
 
-impl EnrichmentVia<GameState> for &GameStatesRepository {
+impl EnrichmentVia<GamePlayAction> for &GamePlayActionsRepository {
     fn into_repos(
         self,
     ) -> (
-        Arc<dyn IReadonlyRepository<GameState>>,
-        Option<Arc<dyn ICRUDRepository<GameState>>>,
+        Arc<dyn IReadonlyRepository<GamePlayAction>>,
+        Option<Arc<dyn ICRUDRepository<GamePlayAction>>>,
     ) {
         (
-            Arc::clone(&self.inner) as Arc<dyn IReadonlyRepository<GameState>>,
-            Some(Arc::clone(&self.inner) as Arc<dyn ICRUDRepository<GameState>>),
+            Arc::clone(&self.inner) as Arc<dyn IReadonlyRepository<GamePlayAction>>,
+            Some(Arc::clone(&self.inner) as Arc<dyn ICRUDRepository<GamePlayAction>>),
         )
     }
 }
 
-impl IRepository for GameStatesRepository {
+impl IRepository for GamePlayActionsRepository {
     fn entity_type(&self) -> TypeId {
         IRepository::entity_type(self.inner.as_ref())
     }
@@ -117,8 +117,8 @@ impl IRepository for GameStatesRepository {
 }
 
 #[async_trait]
-impl IReadonlyRepository<GameState> for GameStatesRepository {
-    fn to_crud(self: Arc<Self>) -> Option<Arc<dyn ICRUDRepository<GameState>>> {
+impl IReadonlyRepository<GamePlayAction> for GamePlayActionsRepository {
+    fn to_crud(self: Arc<Self>) -> Option<Arc<dyn ICRUDRepository<GamePlayAction>>> {
         Some(self)
     }
 
@@ -126,7 +126,7 @@ impl IReadonlyRepository<GameState> for GameStatesRepository {
         &self,
         query: Option<&dyn Statement>,
         options: Option<&ReadonlyRepositoryMappingOptions>,
-    ) -> Result<Option<GameState>> {
+    ) -> Result<Option<GamePlayAction>> {
         self.inner.as_ref().read_single(query, options).await
     }
 
@@ -134,7 +134,7 @@ impl IReadonlyRepository<GameState> for GameStatesRepository {
         &'a self,
         query: Option<&'a dyn Statement>,
         options: Option<&'a ReadonlyRepositoryMappingOptions>,
-    ) -> Pin<Box<dyn Stream<Item = Result<GameState>> + Send + 'a>> {
+    ) -> Pin<Box<dyn Stream<Item = Result<GamePlayAction>> + Send + 'a>> {
         IReadonlyRepository::read(self.inner.as_ref(), query, options)
     }
 
@@ -142,7 +142,7 @@ impl IReadonlyRepository<GameState> for GameStatesRepository {
         &self,
         clause: &dyn IWhere,
         options: Option<&ReadonlyRepositoryMappingOptions>,
-    ) -> Result<Option<GameState>> {
+    ) -> Result<Option<GamePlayAction>> {
         self.inner.as_ref().read_single_where(clause, options).await
     }
 
@@ -150,26 +150,26 @@ impl IReadonlyRepository<GameState> for GameStatesRepository {
         &'a self,
         clause: &'a dyn IWhere,
         options: Option<&'a ReadonlyRepositoryMappingOptions>,
-    ) -> Pin<Box<dyn Stream<Item = Result<GameState>> + Send + 'a>> {
+    ) -> Pin<Box<dyn Stream<Item = Result<GamePlayAction>> + Send + 'a>> {
         IReadonlyRepository::read_where(self.inner.as_ref(), clause, options)
     }
 }
 
 #[async_trait]
-impl ICRUDRepository<GameState> for GameStatesRepository {
-    async fn create(&self, item: GameState) -> Result<GameState> {
+impl ICRUDRepository<GamePlayAction> for GamePlayActionsRepository {
+    async fn create(&self, item: GamePlayAction) -> Result<GamePlayAction> {
         self.inner.create(item).await
     }
 
-    async fn update(&self, item: GameState, by_where: Option<&dyn IWhere>) -> Result<Response> {
+    async fn update(&self, item: GamePlayAction, by_where: Option<&dyn IWhere>) -> Result<Response> {
         ICRUDRepository::update(self.inner.as_ref(), item, by_where).await
     }
 
-    async fn delete(&self, item: GameState, by_where: Option<&dyn IWhere>) -> Result<Response> {
+    async fn delete(&self, item: GamePlayAction, by_where: Option<&dyn IWhere>) -> Result<Response> {
         ICRUDRepository::delete(self.inner.as_ref(), item, by_where).await
     }
 
-    async fn read_single_by_id(&self, id: &dyn IdKey) -> Result<Option<GameState>> {
+    async fn read_single_by_id(&self, id: &dyn IdKey) -> Result<Option<GamePlayAction>> {
         self.inner.read_single_by_id(id).await
     }
 
@@ -182,13 +182,13 @@ impl ICRUDRepository<GameState> for GameStatesRepository {
     }
 }
 
-pub fn game_states_row_repository(connection: Arc<dyn Connection>) -> Result<CRUDRepository<datasources::Row>> {
+pub fn game_play_actions_row_repository(connection: Arc<dyn Connection>) -> Result<CRUDRepository<datasources::Row>> {
     let options = CRUDRepositoryBuilder::new()
     .add({
         let mut options = CRUDRepositoryOptions::default();
-        options.entity = "GameState".into();
+        options.entity = "GamePlayAction".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("GameState".into(), "game_states".into()),
+            ("GamePlayAction".into(), "game_play_actions".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -196,21 +196,21 @@ pub fn game_states_row_repository(connection: Arc<dyn Connection>) -> Result<CRU
             ("created".into(), SchemaColumn { type_name: "datetime".into(), nullable: false, has_default: true, is_id: false }),
             ("updated".into(), SchemaColumn { type_name: "datetime".into(), nullable: false, has_default: true, is_id: false }),
             ("version".into(), SchemaColumn { type_name: "binary".into(), nullable: false, has_default: true, is_id: false }),
-            ("game_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
+            ("game_play_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
             ("user_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
-            ("state".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
+            ("action".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "game_id".into(), "user_id".into(), "state".into()];
-        options.create_properties = Some(vec!["game_id".into(), "user_id".into(), "state".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "game_id".into(), "user_id".into(), "state".into()]);
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "game_play_id".into(), "user_id".into(), "action".into()];
+        options.create_properties = Some(vec!["game_play_id".into(), "user_id".into(), "action".into()]);
+        options.update_properties = Some(vec!["uuid".into(), "game_play_id".into(), "user_id".into(), "action".into()]);
         options
     })
     .add_for("sqlite", {
         let mut options = CRUDRepositoryOptions::default();
-        options.entity = "GameState".into();
+        options.entity = "GamePlayAction".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("GameState".into(), "game_states".into()),
+            ("GamePlayAction".into(), "game_play_actions".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -218,14 +218,14 @@ pub fn game_states_row_repository(connection: Arc<dyn Connection>) -> Result<CRU
             ("created".into(), SchemaColumn { type_name: "datetime".into(), nullable: false, has_default: true, is_id: false }),
             ("updated".into(), SchemaColumn { type_name: "datetime".into(), nullable: false, has_default: true, is_id: false }),
             ("version".into(), SchemaColumn { type_name: "binary".into(), nullable: false, has_default: true, is_id: false }),
-            ("game_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
+            ("game_play_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
             ("user_id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: false }),
-            ("state".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
+            ("action".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "game_id".into(), "user_id".into(), "state".into()];
-        options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "game_id".into(), "user_id".into(), "state".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "game_id".into(), "user_id".into(), "state".into()]);
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "game_play_id".into(), "user_id".into(), "action".into()];
+        options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "game_play_id".into(), "user_id".into(), "action".into()]);
+        options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "game_play_id".into(), "user_id".into(), "action".into()]);
         options
     })
     .for_connection(connection.as_ref())?;

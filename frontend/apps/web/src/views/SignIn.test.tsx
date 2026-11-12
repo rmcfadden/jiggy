@@ -28,7 +28,7 @@ it('signs in, exchanges the signin token, stores the session and leaves the page
     },
   ])
   expect(loadSession()).toMatchObject({ username: 'ann', accessToken: 'access-1', refreshToken: 'refresh-1' })
-  expect(screen.getByRole('link', { name: 'Account' })).toBeTruthy()
+  expect(screen.getByRole('button', { name: 'Account menu' }).textContent).toBe('a')
 })
 
 it('shows the server message for bad credentials and stays signed out', async () => {
