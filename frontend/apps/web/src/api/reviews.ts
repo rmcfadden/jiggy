@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { UnauthorizedError } from './gamePlays'
+import { GAME_SUMMARIES_KEY } from './gameSummaries'
 import { freshAccessToken } from '../auth/refresh'
 
 /** One review of a game; `rating` is whole stars, 1 to 5. */
@@ -43,6 +44,7 @@ export const useAddReview = (gameId: number) => {
       if (!res.ok) throw await failure(res, 'POST /api/reviews')
       return res.json()
     },
-    onSuccess: () => client.invalidateQueries({ queryKey: reviewsKey(gameId) }),
+    // The new review changes the game's rating on every card, which comes from the summaries.
+    onSuccess: () => Promise.all([client.invalidateQueries({ queryKey: reviewsKey(gameId) }), client.invalidateQueries({ queryKey: GAME_SUMMARIES_KEY })]),
   })
 }

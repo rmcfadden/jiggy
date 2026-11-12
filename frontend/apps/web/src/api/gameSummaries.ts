@@ -13,6 +13,9 @@ export type GameSummaryRow = {
   thumbnameLocation: string
   categories: { id: number; name: string }[]
   attributes: Record<string, string>
+  /** How many reviews the game has, and their average out of 5 (null when there are none). */
+  reviewCount: number
+  averageRating: number | null
 }
 
 /** The value of the attribute called `name`, or undefined. */

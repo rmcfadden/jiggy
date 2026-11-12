@@ -110,7 +110,7 @@ app.get('/health', (_req, res) => {
 app.use('/api/categories', categoriesRouter(categories))
 app.use('/api/games_parents', gameParentsRouter(gameParents))
 app.use('/api/games', gamesRouter(games))
-app.use('/api/games_summaries', gameSummariesRouter(summaries))
+app.use('/api/games_summaries', gameSummariesRouter(summaries, reviews))
 app.use('/api/templates', templatesRouter(templates))
 app.use('/api/images', imagesRouter(images))
 app.use('/api/signin', signinRouter(signin))

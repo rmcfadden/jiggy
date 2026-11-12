@@ -4,7 +4,7 @@ using Datasources;
 namespace Backend.Services;
 
 /// <summary>What the list API returns: no uuid or dates, categories trimmed to id and name.</summary>
-public record GameSummaryDto(long Id, string Name, string Description, string ParentName, string ThumbnameLocation, List<CategorySummaryDto> Categories, Dictionary<string, string> Attributes);
+public record GameSummaryDto(long Id, string Name, string Description, string ParentName, string ThumbnameLocation, List<CategorySummaryDto> Categories, Dictionary<string, string> Attributes, int ReviewCount, double? AverageRating);
 
 public record CategorySummaryDto(long Id, string Name);
 
@@ -113,11 +113,13 @@ public class GameSummariesService
         }
     }
 
-    public async Task<List<GameSummaryDto>> List()
+    /// <summary>The summaries with each game's review count and average rating (null when it has no reviews).</summary>
+    public async Task<List<GameSummaryDto>> List(IReadOnlyDictionary<long, (int Count, double Average)> ratings)
     {
         var list = new List<GameSummaryDto>();
         await foreach (var s in Read())
-            list.Add(new GameSummaryDto(s.Id, s.Name, s.Description, s.ParentName, s.ThumbnameLocation, s.Categories.Select(c => new CategorySummaryDto(c.Id, c.Name)).ToList(), s.Attributes));
+            list.Add(new GameSummaryDto(s.Id, s.Name, s.Description, s.ParentName, s.ThumbnameLocation, s.Categories.Select(c => new CategorySummaryDto(c.Id, c.Name)).ToList(), s.Attributes,
+                ratings.TryGetValue(s.Id, out var r) ? r.Count : 0, ratings.TryGetValue(s.Id, out var a) ? a.Average : null));
         return list;
     }
 }

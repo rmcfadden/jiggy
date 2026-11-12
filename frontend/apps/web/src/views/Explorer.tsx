@@ -11,6 +11,7 @@ import {
 } from '@jiggy/shared'
 import { START_PLAY_KEY } from '../api/gamePlays'
 import PlayLink from './PlayLink'
+import { ReviewsLink } from './GameMeta'
 import { attributeOf, useGameSummaries, type GameSummaryRow } from '../api/gameSummaries'
 import { TEMPLATE_SIZES } from '../designer/gameAssets'
 import {
@@ -82,7 +83,7 @@ function Card({ puzzle, size, inList, onToggleList, className = '' }: {
           <span className="truncate font-medium">{puzzle.name}</span>
           <div className="flex justify-between gap-2 text-slate-500">
             <span>{pieceCount(puzzle)} pieces</span>
-            <span>{rating !== null ? `★ ${rating.toFixed(1)}${size === 'small' ? '' : ` (${puzzle.reviews.length})`}` : size === 'small' ? '' : 'No reviews'}</span>
+            {(rating !== null || size !== 'small') && <ReviewsLink gameId={Number(puzzle.id)} name={puzzle.name} average={rating} count={puzzle.reviews.length} short={size === 'small'} />}
           </div>
         </div>
       </PlayLink>
@@ -279,7 +280,8 @@ function useCatalog() {
     template: { size: attributeOf(g, 'pieceCount') ?? '0', style: 'subtle' },
     settings: DEFAULT_GAME_CONFIG,
     image: { name: g.name, location: g.thumbnameLocation },
-    reviews: [],
+    // The catalog model keeps a list of reviews; the server sends only their count and average, which this list reproduces.
+    reviews: Array.from({ length: g.reviewCount }, () => ({ rating: g.averageRating ?? 0, comment: '' })),
   })
   const catalog: Catalog = { categories, puzzles: (games.data ?? []).map(toPuzzle) }
   return { catalog, isError: categoriesQuery.isError || games.isError }

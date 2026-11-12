@@ -74,7 +74,7 @@ async fn main() {
         .merge(routes::templates::router(templates))
         .merge(routes::images::router(images))
         .merge(routes::games::router(games))
-        .merge(routes::game_summaries::router(summaries))
+        .merge(routes::game_summaries::router(summaries, reviews.clone()))
         .merge(routes::signin::router(signin))
         .merge(routes::signup::router(signup))
         .merge(routes::oauth::router(oauth))

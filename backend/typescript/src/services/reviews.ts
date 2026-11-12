@@ -38,6 +38,20 @@ export class ReviewsService {
     return { gameId, count: reviews.length, average, reviews }
   }
 
+  /** Review count and average rating (one decimal) for every game that has reviews, by game id. */
+  async stats(): Promise<Map<number, { count: number; average: number }>> {
+    const gameOf = new Map<number, number>()
+    for await (const link of this.gameReviews.read()) gameOf.set(Number(link.reviewId), Number(link.gameId))
+    const sums = new Map<number, { count: number; total: number }>()
+    for await (const row of this.reviews.read()) {
+      const gameId = gameOf.get(Number(row.id))
+      if (gameId === undefined) continue
+      const sum = sums.get(gameId) ?? { count: 0, total: 0 }
+      sums.set(gameId, { count: sum.count + 1, total: sum.total + Number(row.rating) })
+    }
+    return new Map([...sums].map(([gameId, { count, total }]) => [gameId, { count, average: Math.round((total / count) * 10) / 10 }]))
+  }
+
   /** Adds `userId`'s review of the game; 400 for a bad rating or comment, 404 for an unknown game, 409 for a second review. */
   async add(gameId: number, userId: number, body: { rating?: unknown; comment?: unknown }): Promise<ReviewDto> {
     const { rating } = body
