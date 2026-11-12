@@ -601,6 +601,8 @@ CREATE TABLE categories (
     CONSTRAINT categories_category_id_foreign_key FOREIGN KEY (category_id) REFERENCES categories (id)
 );
 GO
+CREATE UNIQUE INDEX categories_category_name_index ON categories (name);
+GO
 CREATE TRIGGER trg_categories_updated_at BEFORE UPDATE ON categories
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
@@ -654,6 +656,8 @@ CREATE TABLE games (
     CONSTRAINT games_uuid_unique_constraint UNIQUE (uuid),
     CONSTRAINT games_game_parent_id_foreign_key FOREIGN KEY (game_parent_id) REFERENCES game_parents (id)
 );
+GO
+CREATE UNIQUE INDEX games_game_base_name_index ON games (name);
 GO
 CREATE TRIGGER trg_games_updated_at BEFORE UPDATE ON games
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));

@@ -2,7 +2,8 @@
   "private": true,
   "scripts": {
     "start": "cargo run",
-    "setup": "cargo run -- setup"
+    "setup": "cargo run -- setup",
+    "sitemap": "cargo run -- sitemap"
   },
   "dependencies": {
     "@deterministic-code/datasources": "^0.1.61",

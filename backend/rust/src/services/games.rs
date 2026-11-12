@@ -4,6 +4,7 @@ use crate::generated::{Game, GameCategory};
 use crate::services::categories::CategoriesService;
 use crate::services::game_parents::GameParentsService;
 use crate::services::images::{By, ImagesService};
+use crate::services::slug::slug;
 use crate::services::templates::TemplatesService;
 use futures_util::TryStreamExt;
 use serde_json::{json, Value};
@@ -23,6 +24,8 @@ pub enum GameError {
     Datasource(datasources::DatasourceError),
     /// A game refers to a parent game, template, image or category that does not exist (or a field is missing).
     Invalid(String),
+    /// The name (or its slug) belongs to another game, so the two could not be told apart in a URL.
+    Duplicate(String),
 }
 
 impl From<datasources::DatasourceError> for GameError {
@@ -94,6 +97,26 @@ impl GamesService {
         Ok(Some(to_json(&game, template_id, parents.get(&game.game_parent_id).map_or("", String::as_str), categories, &thumbs, true)))
     }
 
+    /// The game whose name has this slug (see `slug`), as `get` returns it; `None` when there is none.
+    pub async fn get_by_name(&self, name: &str) -> Result<Option<Value>> {
+        let rows: Vec<Game> = self.repo.read(None, None).try_collect().await?;
+        match rows.iter().find(|g| !g.is_deleted && slug(&g.name) == name) {
+            Some(game) => self.get(game.id).await,
+            None => Ok(None),
+        }
+    }
+
+    /// The games filed under the category with this slug or any of its sub-categories; `None` when there is no such category.
+    pub async fn list_by_category_name(&self, name: &str) -> Result<Option<Vec<Value>>> {
+        let Some(ids) = self.categories.find_by_slug(name).await? else { return Ok(None) };
+        let list = self.list().await?;
+        Ok(Some(
+            list.into_iter()
+                .filter(|g| g["categoryIds"].as_array().is_some_and(|c| c.iter().filter_map(Value::as_i64).any(|id| ids.contains(&id))))
+                .collect(),
+        ))
+    }
+
     /// Creates the game from `{ name, description, parent, templateId, imageId, config, categoryIds }`;
     /// the template, image, parent and categories must exist.
     pub async fn create(&self, input: &Value) -> Result<Value> {
@@ -104,6 +127,7 @@ impl GamesService {
         let image_id = input["imageId"].as_i64();
         self.check_image(image_id).await?;
         let category_ids = self.check_categories(&input["categoryIds"]).await?;
+        self.check_name(input["name"].as_str().unwrap_or_default(), None).await?;
 
         let item = Game {
             name: input["name"].as_str().unwrap_or_default().into(),
@@ -142,6 +166,9 @@ impl GamesService {
         }
         let category_ids = self.check_categories(&input["categoryIds"]).await?;
         if let Some(v) = input["name"].as_str() {
+            if v != game.name {
+                self.check_name(v, Some(id)).await?;
+            }
             game.name = v.into();
         }
         if let Some(v) = input["description"].as_str() {
@@ -242,6 +269,19 @@ impl GamesService {
             added.push(name.to_string());
         }
         Ok(added)
+    }
+
+    /// Rejects a name whose slug another game has; deleted games count, as the unique index on `name` keeps their names.
+    async fn check_name(&self, name: &str, except: Option<i64>) -> Result<()> {
+        let wanted = slug(name);
+        if wanted.is_empty() {
+            return invalid("name must contain a letter or digit");
+        }
+        let rows: Vec<Game> = self.repo.read(None, None).try_collect().await?;
+        match rows.iter().find(|g| Some(g.id) != except && (g.name == name || slug(&g.name) == wanted)) {
+            Some(other) => Err(GameError::Duplicate(format!("a puzzle named '{}' already exists", other.name))),
+            None => Ok(()),
+        }
     }
 
     async fn find(&self, id: i64) -> Result<Option<Game>> {

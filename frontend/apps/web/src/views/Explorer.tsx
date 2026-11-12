@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useMutationState, useQuery } from '@tanstack/react-query'
 import {
   DEFAULT_GAME_CONFIG,
   averageRating,
   findPuzzle,
   puzzlesInCategory,
+  slug,
   type Catalog,
   type Category,
   type Puzzle,
@@ -76,6 +77,7 @@ function Card({ puzzle, size, inList, onToggleList, className = '' }: {
     <div className={`relative ${className}`}>
       <PlayLink
         gameId={puzzle.id}
+        name={puzzle.name}
         className="flex flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm hover:border-amber-500"
       >
         <img src={puzzle.image.location} alt={puzzle.image.name} loading="lazy" className={`${dims.image} w-full object-cover`} />
@@ -127,8 +129,23 @@ function Segmented<T extends string>({ label, options, value, onChange }: {
   )
 }
 
+const findCategoryBy = (categories: Category[], test: (c: Category) => boolean): Category | undefined => {
+  for (const c of categories) {
+    const found = test(c) ? c : findCategoryBy(c.children, test)
+    if (found) return found
+  }
+  return undefined
+}
+
+/** The selected category lives in the URL: `/category/<name slug>`, or `/puzzles` for all of them. */
 function ClassicView({ prefs, catalog, ...profile }: { prefs: BrowsePrefs; catalog: Catalog } & ProfileProps) {
-  const [category, setCategory] = useState<string | undefined>()
+  const navigate = useNavigate()
+  const { name } = useParams()
+  const category = name ? findCategoryBy(catalog.categories, (c) => slug(c.name) === name)?.id : undefined
+  const setCategory = (id: string | undefined) => {
+    const picked = id === undefined ? undefined : findCategoryBy(catalog.categories, (c) => c.id === id)
+    navigate(picked ? `/category/${slug(picked.name)}` : '/puzzles')
+  }
   const puzzles = puzzlesInCategory(catalog, category)
   return (
     <div className={`flex min-h-0 flex-1 flex-col ${prefs.side === 'right' ? 'md:flex-row-reverse' : 'md:flex-row'}`}>
@@ -211,6 +228,7 @@ function NetflixView({
       {featured && (
         <PlayLink
           gameId={featured.id}
+          name={featured.name}
           className="relative mb-6 block h-48 overflow-hidden rounded-xl bg-[#0f172a] md:h-64"
         >
           <img src={featured.image.location} alt="" className="h-full w-full object-cover opacity-70" />

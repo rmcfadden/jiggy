@@ -22,6 +22,9 @@ public record PuzzleSeed(string Slug, string Name, string? Description, string P
 
 public class InvalidGameException(string message) : Exception(message);
 
+/// <summary>The name (or its slug) belongs to another game, so the two could not be told apart in a URL.</summary>
+public class DuplicateGameNameException(string message) : Exception(message);
+
 public class GamesService(
     ICRUDRepository<GameView> repo,
     ICRUDRepository<GameCategory> gameCategories,
@@ -58,6 +61,20 @@ public class GamesService(
             : null;
     }
 
+    /// <summary>The game whose name has this slug (see <see cref="Slug"/>), as <c>Get</c> returns it; null when there is none.</summary>
+    public async Task<GameDto?> GetByName(string name)
+    {
+        var game = (await Games()).FirstOrDefault(g => Slug.Of(g.Name) == name);
+        return game is null ? null : await Get(game.Id);
+    }
+
+    /// <summary>The games filed under the category with this slug or any of its sub-categories; null when there is no such category.</summary>
+    public async Task<List<GameListItem>?> ListByCategoryName(string name)
+    {
+        if (await categories.FindBySlug(name) is not { } ids) return null;
+        return (await List()).Where(g => g.CategoryIds.Any(ids.Contains)).ToList();
+    }
+
     /// <summary>Creates the game; the template, image and parent must exist.</summary>
     public async Task<GameDto> Create(GameInput input)
     {
@@ -66,6 +83,7 @@ public class GamesService(
         var templateUid = await TemplateUid(templateId);
         await CheckImage(input.ImageId);
         await CheckCategories(input.CategoryIds);
+        await CheckName(input.Name ?? "", null);
 
         var game = new GameView
         {
@@ -99,6 +117,7 @@ public class GamesService(
             settings[ImageKey] = imageId.ToString();
         }
         await CheckCategories(input.CategoryIds);
+        if (input.Name is not null && input.Name != game.Name) await CheckName(input.Name, id);
         game.Name = input.Name ?? game.Name;
         game.Description = input.Description ?? game.Description;
         if (input.Config is { } config) settings[ConfigKey] = config.GetRawText();
@@ -212,6 +231,16 @@ public class GamesService(
         }
         foreach (var id in wanted.Except(present).Order())
             await gameCategories.Create(new GameCategory { GameId = gameId, CategoryId = id });
+    }
+
+    /// <summary>Rejects a name whose slug another game has; deleted games count, as the unique index on <c>name</c> keeps their names.</summary>
+    async Task CheckName(string name, long? exceptId)
+    {
+        var wanted = Slug.Of(name);
+        if (wanted == "") throw new InvalidGameException("name must contain a letter or digit");
+        await foreach (var row in repo.Read())
+            if (row.Id != exceptId && (row.Name == name || Slug.Of(row.Name) == wanted))
+                throw new DuplicateGameNameException($"a puzzle named '{row.Name}' already exists");
     }
 
     async Task CheckCategories(List<long>? ids)

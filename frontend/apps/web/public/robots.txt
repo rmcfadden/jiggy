@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Point crawlers at the sitemap written by the backend `sitemap` command, e.g.:
+# Sitemap: https://your-site.example/sitemap.xml

@@ -22,6 +22,7 @@ pub fn router(service: Arc<GamesService>) -> Router {
 fn fail(err: GameError) -> Failure {
     match err {
         GameError::Invalid(message) => (StatusCode::BAD_REQUEST, Json(json!({ "error": message }))),
+        GameError::Duplicate(message) => (StatusCode::CONFLICT, Json(json!({ "error": message }))),
         GameError::Datasource(err) => {
             eprintln!("games: {err:?}");
             (StatusCode::INTERNAL_SERVER_ERROR, Json(Value::Null))

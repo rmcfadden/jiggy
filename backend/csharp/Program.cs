@@ -156,6 +156,12 @@ if (args.FirstOrDefault() == "setup")
     return;
 }
 
+if (args.FirstOrDefault() == "sitemap")
+{
+    Environment.ExitCode = await SitemapCommand.Run(app.Services.GetRequiredService<CategoriesService>(), app.Services.GetRequiredService<GamesService>(), args, app.Configuration["Site:BaseUrl"]);
+    return;
+}
+
 if (args.FirstOrDefault() is "add-user" or "update-user")
 {
     Environment.ExitCode = await UserCommands.Run(app.Services.GetRequiredService<UserService>(), args);
@@ -167,6 +173,7 @@ app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 app.MapCategories();
 app.MapGameParents();
 app.MapGames();
+app.MapPuzzles();
 app.MapGameSummaries();
 app.MapTemplates();
 app.MapImages();

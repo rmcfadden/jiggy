@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { UnknownReferenceError, type GamesService } from '../services/games.ts'
+import { DuplicateNameError, UnknownReferenceError, type GamesService } from '../services/games.ts'
 
 export function gamesRouter(service: GamesService): Router {
   const router = Router()
@@ -27,6 +27,7 @@ export function gamesRouter(service: GamesService): Router {
       res.status(201).json(await service.create(req.body))
     } catch (err) {
       if (err instanceof UnknownReferenceError) res.status(400).json({ error: err.message })
+      else if (err instanceof DuplicateNameError) res.status(409).json({ error: err.message })
       else next(err)
     }
   })
@@ -38,6 +39,7 @@ export function gamesRouter(service: GamesService): Router {
       else res.sendStatus(404)
     } catch (err) {
       if (err instanceof UnknownReferenceError) res.status(400).json({ error: err.message })
+      else if (err instanceof DuplicateNameError) res.status(409).json({ error: err.message })
       else next(err)
     }
   })

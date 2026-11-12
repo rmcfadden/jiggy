@@ -787,6 +787,8 @@ CREATE TABLE "categories" (
     CONSTRAINT "categories_category_id_foreign_key" FOREIGN KEY ("category_id") REFERENCES "categories" ("id")
 );
 GO
+CREATE UNIQUE INDEX "categories_category_name_index" ON "categories" ("name");
+GO
 -- Shared updated_at function
 CREATE OR REPLACE FUNCTION set_updated_at() RETURNS TRIGGER AS $$
 BEGIN
@@ -858,6 +860,8 @@ CREATE TABLE "games" (
     CONSTRAINT "games_uuid_unique_constraint" UNIQUE ("uuid"),
     CONSTRAINT "games_game_parent_id_foreign_key" FOREIGN KEY ("game_parent_id") REFERENCES "game_parents" ("id")
 );
+GO
+CREATE UNIQUE INDEX "games_game_base_name_index" ON "games" ("name");
 GO
 -- Shared updated_at function
 CREATE OR REPLACE FUNCTION set_updated_at() RETURNS TRIGGER AS $$

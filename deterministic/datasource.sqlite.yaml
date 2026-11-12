@@ -36,6 +36,15 @@ types:
             is_unique: true
   - game_base:
       mapping: games
+      indexes:
+        - game_base_name:
+            fields: [name]
+            is_unique: true
+  - category:
+      indexes:
+        - category_name:
+            fields: [name]
+            is_unique: true
   - game_attribute:
       indexes:
         - game_attribute_game_id_name:

@@ -6,6 +6,7 @@ import type { CategoriesService } from './categories.ts'
 import type { GameParentsService } from './gameParents.ts'
 import type { TemplatesService } from './templates.ts'
 import type { ImagesService } from './images.ts'
+import { slug } from './slug.ts'
 
 /**
  * What the API exchanges. A game is a puzzle described by three things: its `templateId`, its background
@@ -48,6 +49,9 @@ export type PuzzleSeed = { slug: string; name: string; description?: string; par
 /** A game refers to a parent game, template, image or category that does not exist. */
 export class UnknownReferenceError extends Error {}
 
+/** The name (or its slug) is already used by another game, so it could not be told apart in a URL. */
+export class DuplicateNameError extends Error {}
+
 const CONFIG_KEY = 'config'
 /** Setting holding the uuid of the game's template. */
 const TEMPLATE_KEY = 'template_uid'
@@ -86,6 +90,22 @@ export class GamesService {
     return toDto(row, templateId, (await this.parentLocations()).get(Number(row.gameParentId)) ?? '', await this.categoryIdsOf(id), await this.images.thumbnailUrls())
   }
 
+  /** The game whose name has this slug (see `slug`), as `get` returns it; undefined when there is none. */
+  async getByName(name: string): Promise<GameDto | undefined> {
+    for await (const row of this.repo.read()) {
+      if (!row.isDeleted && slug(row.name) === name) return this.get(Number(row.id))
+    }
+    return undefined
+  }
+
+  /** The games filed under the category with this slug or any of its sub-categories; undefined when there is no such category. */
+  async listByCategoryName(name: string): Promise<GameListItem[] | undefined> {
+    const found = await this.categories.findBySlug(name)
+    if (!found) return undefined
+    const ids = new Set(found.ids)
+    return (await this.list()).filter((g) => g.categoryIds.some((id) => ids.has(id)))
+  }
+
   /** Creates the game; the template, image, parent and categories must exist. */
   async create(input: GameInput): Promise<GameDto> {
     const parent = await this.findParent(input.parent ?? fail('parent is required'))
@@ -93,6 +113,7 @@ export class GamesService {
     const templateUid = await this.templateUid(templateId)
     await this.checkImage(input.imageId)
     await this.checkCategories(input.categoryIds)
+    await this.checkName(input.name ?? '')
 
     const created = await this.repo.create(
       game({
@@ -127,6 +148,7 @@ export class GamesService {
     if (input.config !== undefined) next[CONFIG_KEY] = JSON.stringify(input.config)
     row.settings = next
     await this.checkCategories(input.categoryIds)
+    if (input.name !== undefined && input.name !== row.name) await this.checkName(input.name, id)
     row.name = input.name ?? row.name
     row.description = input.description ?? row.description
     await this.repo.update(row)
@@ -193,6 +215,15 @@ export class GamesService {
   private async attributesOf(templateId: number): Promise<Record<string, string>> {
     const content = (await this.templates.get(templateId))?.content as { cols?: number; rows?: number } | undefined
     return { [PIECE_COUNT]: String((content?.cols ?? 0) * (content?.rows ?? 0)) }
+  }
+
+  /** Rejects a name whose slug another game has; deleted games count, as the unique index on `name` keeps their names. */
+  private async checkName(name: string, exceptId?: number): Promise<void> {
+    const wanted = slug(name)
+    if (!wanted) throw new UnknownReferenceError('name must contain a letter or digit')
+    for await (const row of this.repo.read()) {
+      if (Number(row.id) !== exceptId && (row.name === name || slug(row.name) === wanted)) throw new DuplicateNameError(`a puzzle named '${row.name}' already exists`)
+    }
   }
 
   private async find(id: number): Promise<Game | undefined> {
