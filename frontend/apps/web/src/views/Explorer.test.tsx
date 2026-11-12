@@ -89,8 +89,23 @@ it("continues the signed-in user's unfinished plays, one per game, each opening 
   await renderExplorer()
   fireEvent.click(pressed('Layout', 'Netflix'))
   const row = await screen.findByRole('region', { name: 'Continue playing' })
-  const hrefs = within(row).getAllByRole('link').map((a) => a.getAttribute('href'))
+  // The card's rating is a role="link" span (no href): only the anchors open plays.
+  const hrefs = within(row).getAllByRole('link').map((a) => a.getAttribute('href')).filter(Boolean)
   expect(hrefs).toEqual(['/puzzle?id=2&play=8', '/puzzle?id=3&play=5'])
+})
+
+it("shows a card's average rating, which opens that game's reviews", async () => {
+  signIn()
+  serveUnfinished()
+  const serve = globalThis.fetch
+  vi.stubGlobal('fetch', (url: RequestInfo | URL, init?: RequestInit) =>
+    String(url).startsWith('/api/reviews') ? Promise.resolve(new Response(JSON.stringify({ gameId: 2, count: 2, average: 4, reviews: [] }))) : serve(url, init),
+  )
+  await renderExplorer()
+  fireEvent.click(pressed('Layout', 'Netflix'))
+  const row = await screen.findByRole('region', { name: 'Continue playing' })
+  const [rating] = await within(row).findAllByText('★ 4.0 (2)')
+  expect(rating.getAttribute('role')).toBe('link')
 })
 
 it('shows no Continue playing row when signed out or with nothing unfinished', async () => {
