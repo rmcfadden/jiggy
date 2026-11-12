@@ -3,10 +3,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import App from './App'
-import { stubFetch } from './views/stubApi'
+import { stubApi, stubFetch } from './views/stubApi'
 
 beforeEach(() => {
   vi.stubGlobal('fetch', stubFetch)
+  localStorage.setItem('jiggy.auth', JSON.stringify({ username: 'ann', accessToken: 'a', refreshToken: 'r', expiresAt: Date.now() + 60_000 }))
 })
 
 afterEach(() => {
@@ -33,6 +34,51 @@ it('redirects / to the explorer and links puzzles to the player', async () => {
   const link = screen.getAllByRole('link').find((l) => l.getAttribute('href')?.startsWith('/puzzle?id='))!
   fireEvent.click(link)
   expect(await screen.findByLabelText('Puzzle board')).toBeTruthy()
+})
+
+it('starts a new game play when a puzzle is clicked, and opens the puzzle with its id', async () => {
+  const calls: { url: string; method?: string; body?: unknown; auth?: string }[] = []
+  vi.stubGlobal('fetch', async (url: RequestInfo | URL, init?: RequestInit) => {
+    calls.push({ url: String(url), method: init?.method, body: init?.body ? JSON.parse(String(init.body)) : undefined, auth: (init?.headers as Record<string, string> | undefined)?.Authorization })
+    return stubFetch(url, init)
+  })
+  await renderAt('/puzzles')
+  fireEvent.click(screen.getAllByRole('link').find((l) => l.getAttribute('href')?.startsWith('/puzzle?id='))!)
+  expect(await screen.findByLabelText('Puzzle board')).toBeTruthy()
+  expect(calls.filter((c) => c.url === '/api/images')).toEqual([]) // never the whole image list
+  const start = calls.filter((c) => c.url === '/api/game_plays')
+  expect(start).toEqual([{ url: '/api/game_plays', method: 'POST', body: { game_id: expect.any(Number) }, auth: 'Bearer a' }])
+})
+
+it('loads only the picture of the game being played, not every image', async () => {
+  const urls: string[] = []
+  vi.stubGlobal('fetch', async (url: RequestInfo | URL, init?: RequestInit) => {
+    urls.push(String(url))
+    if (String(url) === '/api/games/1') return new Response(JSON.stringify({ ...(stubApi('/api/games/1') as object), imageId: 5 }))
+    return stubFetch(url, init)
+  })
+  await renderAt('/puzzle?id=1&play=77')
+  expect(await screen.findByLabelText('Puzzle board')).toBeTruthy()
+  expect(urls).toContain('/api/images/5')
+  expect(urls).not.toContain('/api/images')
+})
+
+it('shows the error and stays on the list when the play cannot be started', async () => {
+  vi.stubGlobal('fetch', async (url: RequestInfo | URL, init?: RequestInit) =>
+    String(url) === '/api/game_plays' ? new Response(JSON.stringify({ error: 'no game service for "chess"' }), { status: 422 }) : stubFetch(url, init))
+  await renderAt('/puzzles')
+  fireEvent.click(screen.getAllByRole('link').find((l) => l.getAttribute('href')?.startsWith('/puzzle?id='))!)
+  expect((await screen.findByRole('alert')).textContent).toContain('no game service for "chess"')
+  expect(screen.getByRole('heading', { name: 'Puzzles' })).toBeTruthy()
+})
+
+it('signs out and asks to sign in again when the access token was refused', async () => {
+  vi.stubGlobal('fetch', async (url: RequestInfo | URL, init?: RequestInit) =>
+    String(url) === '/api/game_plays' ? new Response('{}', { status: 401 }) : stubFetch(url, init))
+  await renderAt('/puzzles')
+  fireEvent.click(screen.getAllByRole('link').find((l) => l.getAttribute('href')?.startsWith('/puzzle?id='))!)
+  expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeTruthy()
+  expect(localStorage.getItem('jiggy.auth')).toBeNull()
 })
 
 it('filters the catalog by category, including sub-categories', async () => {

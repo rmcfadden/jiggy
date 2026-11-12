@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { Link } from 'react-router-dom'
+import { useMutationState, useQuery } from '@tanstack/react-query'
 import {
   DEFAULT_GAME_CONFIG,
   averageRating,
@@ -10,6 +9,8 @@ import {
   type Category,
   type Puzzle,
 } from '@jiggy/shared'
+import { START_PLAY_KEY } from '../api/gamePlays'
+import PlayLink from './PlayLink'
 import { attributeOf, useGameSummaries, type GameSummaryRow } from '../api/gameSummaries'
 import { TEMPLATE_SIZES } from '../designer/gameAssets'
 import {
@@ -71,8 +72,8 @@ function Card({ puzzle, size, inList, onToggleList, className = '' }: {
   const dims = ICON_DIMENSIONS[size]
   return (
     <div className={`relative ${className}`}>
-      <Link
-        to={`/puzzle?id=${puzzle.id}`}
+      <PlayLink
+        gameId={puzzle.id}
         onClick={() => recordPlayed(puzzle.id)}
         className="flex flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm hover:border-amber-500"
       >
@@ -84,7 +85,7 @@ function Card({ puzzle, size, inList, onToggleList, className = '' }: {
             <span>{rating !== null ? `★ ${rating.toFixed(1)}${size === 'small' ? '' : ` (${puzzle.reviews.length})`}` : size === 'small' ? '' : 'No reviews'}</span>
           </div>
         </div>
-      </Link>
+      </PlayLink>
       <button
         aria-label={`${inList ? 'Remove' : 'Add'} ${puzzle.name} ${inList ? 'from' : 'to'} My List`}
         aria-pressed={inList}
@@ -208,8 +209,8 @@ function NetflixView({
   return (
     <div className="min-w-0 flex-1 overflow-y-auto p-4 md:p-6">
       {featured && (
-        <Link
-          to={`/puzzle?id=${featured.id}`}
+        <PlayLink
+          gameId={featured.id}
           onClick={() => recordPlayed(featured.id)}
           className="relative mb-6 block h-48 overflow-hidden rounded-xl bg-[#0f172a] md:h-64"
         >
@@ -221,7 +222,7 @@ function NetflixView({
               ★ {averageRating(featured)!.toFixed(1)} · {pieceCount(featured)} pieces
             </p>
           </div>
-        </Link>
+        </PlayLink>
       )}
       <div role="group" aria-label="Rows" className="mb-5 flex flex-wrap items-center gap-1.5">
         <span className="mr-1 text-xs text-slate-500">Categories</span>
@@ -290,6 +291,8 @@ export default function Explorer() {
   const [prefs, update] = useBrowsePrefs()
   const profile = useProfile()
   const { catalog, isError } = useCatalog()
+  // The newest attempt to start a play; its error (other than an expired session, which sends the user to sign in) is shown.
+  const lastStart = useMutationState({ filters: { mutationKey: START_PLAY_KEY }, select: (m) => ({ status: m.state.status, error: m.state.error as Error | null }) }).at(-1)
   return (
     <div className="flex h-full flex-col">
       <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b border-slate-200 px-4 py-3 md:px-6">
@@ -303,6 +306,11 @@ export default function Explorer() {
         </div>
       </header>
       {isError && <p className="px-4 py-2 text-sm text-red-600 md:px-6">Couldn't load puzzles from the server.</p>}
+      {lastStart?.status === 'error' && (
+        <p role="alert" className="px-4 py-2 text-sm text-red-600 md:px-6">
+          Couldn't start the puzzle: {lastStart.error?.message}
+        </p>
+      )}
       {prefs.layout === 'classic' ? (
         <ClassicView prefs={prefs} catalog={catalog} {...profile} />
       ) : (

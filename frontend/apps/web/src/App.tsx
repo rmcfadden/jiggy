@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import RequireAuth from './auth/RequireAuth'
 import Layout from './Layout'
 import Designer from './designer/Designer'
 import Account from './views/Account'
@@ -13,8 +14,10 @@ export default function App() {
       <Route element={<Layout />}>
         <Route index element={<Navigate to="/puzzles" replace />} />
         <Route path="puzzles" element={<Explorer />} />
-        <Route path="puzzle" element={<Player />} />
-        <Route path="designer" element={<Designer />} />
+        <Route element={<RequireAuth />}>
+          <Route path="puzzle" element={<Player />} />
+          <Route path="designer" element={<Designer />} />
+        </Route>
         <Route path="account" element={<Account />} />
         <Route path="signin" element={<SignIn />} />
         <Route path="signup" element={<SignUp />} />

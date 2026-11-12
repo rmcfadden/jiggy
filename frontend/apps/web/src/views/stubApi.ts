@@ -22,6 +22,8 @@ export const stubApi = (url: string): unknown => {
     const game = (stubApi('/api/games') as { id: number }[]).find((g) => g.id === Number(one[1]))
     return game
   }
+  const img = /^\/api\/images\/(\d+)$/.exec(url)
+  if (img) return { id: Number(img[1]), uuid: 'u', name: 'Stub', mimeType: 'image/png', description: '', url: `/api/images/files/${img[1]}`, created: '', updated: '' }
   if (url.startsWith('/api/templates/')) return { id: 1, uuid: '1', type: 'jigsaw', name: 'Stub', content: { cols: 4, rows: 3, width: 800, height: 600, seed: 7 }, created: '', updated: '' }
   if (url.startsWith('/api/games'))
     return CATALOG.puzzles.map((p, i) => ({
@@ -32,4 +34,8 @@ export const stubApi = (url: string): unknown => {
   return []
 }
 
-export const stubFetch = async (url: RequestInfo | URL) => new Response(JSON.stringify(stubApi(String(url))))
+/** `POST /api/game_plays` starts a play; every other request is a read of the sample catalog. */
+export const stubFetch = async (url: RequestInfo | URL, init?: RequestInit) =>
+  String(url) === '/api/game_plays' && init?.method === 'POST'
+    ? new Response(JSON.stringify({ id: 77, gameId: JSON.parse(String(init.body)).game_id, finished: null, state: {} }), { status: 201 })
+    : new Response(JSON.stringify(stubApi(String(url))))

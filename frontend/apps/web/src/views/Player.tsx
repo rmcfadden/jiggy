@@ -6,7 +6,7 @@ import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { gameQuery } from '../api/games'
-import { useImages } from '../api/images'
+import { useImage } from '../api/images'
 import { useTemplate } from '../api/templates'
 import { normalizeSetup } from '../designer/library'
 import { NextPiecesGame } from './NextPiecesGame'
@@ -66,13 +66,14 @@ export default function Player() {
 function SavedPlayer({ id, requested }: { id: number; requested: string | null }) {
   const game = useQuery(gameQuery<Parameters<typeof normalizeSetup>[0]>(id))
   const template = useTemplate<Partial<JigsawTemplateParams>>(game.data?.templateId ?? null)
-  const images = useImages()
+  const image = useImage(game.data?.imageId ?? null)
   if (game.isError) return <p role="alert" className="p-4">Could not load this puzzle: {game.error.message}</p>
+  if (image.isError) return <p role="alert" className="p-4">Could not load this puzzle's picture: {image.error.message}</p>
   const g = game.data
-  if (!g || template.data?.id !== g.templateId || !images.data) return <p className="p-4">Loading…</p>
+  if (!g || template.data?.id !== g.templateId || (g.imageId !== null && !image.data)) return <p className="p-4">Loading…</p>
   const settings = { ...normalizeSetup(g.config).config, type: g.parent as GameConfig['type'] }
   const params = { ...DEFAULT_JIGSAW_PARAMS, ...template.data.content }
-  const photo = images.data.find((i) => i.id === g.imageId)?.url
+  const photo = image.data?.url
   const mode: Mode = requested === 'next-pieces' || requested === 'scrambled' ? requested : settings.type === 'next-pieces' ? 'next-pieces' : 'scrambled'
   return (
     <div className="h-full">
