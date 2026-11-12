@@ -6,6 +6,7 @@ import { gamePlayUser, type GamePlayUser } from '../../generated/types/datasourc
 import type { GamesService } from './games.ts'
 import type { TemplatesService } from './templates.ts'
 import { foldState } from './gameplay/puzzleGameService.ts'
+import { foldStates } from './gameplay/state.ts'
 import type { GameServiceRegistry } from './gameplay/registry.ts'
 import { GameError, parseAction, type PuzzleState, type StateRow } from './gameplay/types.ts'
 
@@ -86,6 +87,13 @@ export class GamePlaysService {
   async state(playId: number, userId: number): Promise<PlayDto> {
     const play = await this.load(playId, userId)
     return { id: playId, gameId: Number(play.gameId), finished: play.finished, state: this.stateOf(play) }
+  }
+
+  /** The play's state after every stored change, first to last, so a client can step through the whole game. */
+  async stateHistory(playId: number, userId: number): Promise<{ id: number; gameId: number; finished: Date | null; states: PuzzleState[] }> {
+    const play = await this.load(playId, userId)
+    const ordered = [...play.states].sort((a, b) => Number(a.id) - Number(b.id))
+    return { id: playId, gameId: Number(play.gameId), finished: play.finished, states: foldStates(ordered.map((s) => JSON.parse(s.stateChange) as Record<string, unknown>)) }
   }
 
   async actionList(playId: number, userId: number): Promise<ActionDto[]> {

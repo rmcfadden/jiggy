@@ -23,12 +23,19 @@ export function applyEvents(state: PuzzleState, events: StateEvent[]): PuzzleSta
 
 /** Rebuilds a state from its stored rows: the first is the full state, each later one a {@link StateRow}. */
 export function foldState(rows: Record<string, unknown>[]): PuzzleState {
+  return foldStates(rows).at(-1)!
+}
+
+/** Every state of a play, in order: the first row's state, then the state after each later row. */
+export function foldStates(rows: Record<string, unknown>[]): PuzzleState[] {
   if (rows.length === 0) throw new GameError(404, 'the play has no state')
   let state = structuredClone(rows[0]) as unknown as PuzzleState
   if (!Array.isArray(state.matrix)) throw new GameError(409, 'the play was stored in an old format')
+  const states = [state]
   for (const row of rows.slice(1)) {
     const { events, mistakes, solved } = row as unknown as StateRow
     state = { ...applyEvents(state, events), mistakes, solved }
+    states.push(state)
   }
-  return state
+  return states
 }

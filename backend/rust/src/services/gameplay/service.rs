@@ -53,14 +53,21 @@ pub trait PuzzleGameService: Send + Sync {
 
 /// Rebuilds a state from its stored rows: the first is the full state, each later one is `{ events, mistakes, solved }`.
 pub fn fold_state(rows: &[Value]) -> GameResult<PuzzleState> {
+    Ok(fold_states(rows)?.pop().expect("fold_states returns at least one state"))
+}
+
+/// Every state of a play, in order: the first row's state, then the state after each later row.
+pub fn fold_states(rows: &[Value]) -> GameResult<Vec<PuzzleState>> {
     let Some(first) = rows.first() else { return refuse(404, "the play has no state") };
     let mut state = PuzzleState::from_json(first)?;
+    let mut states = vec![state.clone()];
     for row in &rows[1..] {
         let bad = || GameError { status: 500, message: "stored game state is corrupt".into() };
         let events = row["events"].as_array().ok_or_else(bad)?.iter().map(StateEvent::from_json).collect::<GameResult<Vec<_>>>()?;
         state = state.apply(&events)?;
         state.mistakes = row["mistakes"].as_u64().unwrap_or(state.mistakes);
         state.solved = row["solved"].as_bool().unwrap_or(state.solved);
+        states.push(state.clone());
     }
-    Ok(state)
+    Ok(states)
 }

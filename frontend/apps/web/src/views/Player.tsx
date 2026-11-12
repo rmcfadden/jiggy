@@ -6,7 +6,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { gameQuery } from '../api/games'
-import { FINISHED_PLAYS_KEY, UNFINISHED_PLAYS_KEY, UnauthorizedError, playStateQuery, sendPlayAction, type PlayHandle, type PlayState } from '../api/gamePlays'
+import { FINISHED_PLAYS_KEY, UNFINISHED_PLAYS_KEY, UnauthorizedError, playStateQuery, playStatesQuery, sendPlayAction, type PlayHandle, type PlayState } from '../api/gamePlays'
 import { useSignOut } from '../auth/hooks'
 import { primaryButton } from '../designer/controls'
 import { useImage } from '../api/images'
@@ -72,6 +72,12 @@ function SavedPlayer({ id, playId, requested }: { id: number; playId: number | n
   const game = useQuery(gameQuery<Parameters<typeof normalizeSetup>[0]>(id))
   // With a play id the server owns the game: the board is drawn from its state and every move goes to it.
   const playState = useQuery({ ...playStateQuery(playId ?? 0), enabled: playId !== null })
+  // A finished play opens as a replay: every state is loaded and a scroller at the bottom steps through them.
+  const finished = Boolean(playState.data?.finished)
+  const history = useQuery({ ...playStatesQuery(playId ?? 0), enabled: playId !== null && finished })
+  const [step, setStep] = useState<number | null>(null)
+  const states = history.data?.states
+  const at = states ? Math.min(step ?? states.length - 1, states.length - 1) : 0
   // A refused access token (expired or invalid), whether loading the play or sending a move, signs the user out and
   // sends them to sign in, coming back to this puzzle afterwards.
   const navigate = useNavigate()
@@ -85,7 +91,14 @@ function SavedPlayer({ id, playId, requested }: { id: number; playId: number | n
   }, [signOut, navigate, location.pathname, location.search])
   const play = useMemo<PlayHandle | undefined>(
     () =>
-      playId !== null && playState.data
+      playId !== null && playState.data && finished && states
+        ? {
+            id: playId,
+            state: states[at],
+            replay: true,
+            send: () => Promise.reject(new Error('This play is finished.')),
+          }
+        : playId !== null && playState.data && !finished
         ? {
             id: playId,
             state: playState.data.state,
@@ -107,9 +120,9 @@ function SavedPlayer({ id, playId, requested }: { id: number; playId: number | n
               ),
           }
         : undefined,
-    [playId, playState.data, toSignIn, client],
+    [playId, playState.data, finished, states, at, toSignIn, client],
   )
-  const unauthorized = playState.error instanceof UnauthorizedError
+  const unauthorized = playState.error instanceof UnauthorizedError || history.error instanceof UnauthorizedError
   useEffect(() => {
     if (unauthorized) toSignIn()
   }, [unauthorized, toSignIn])
@@ -120,6 +133,7 @@ function SavedPlayer({ id, playId, requested }: { id: number; playId: number | n
   if (unauthorized) return <p className="p-4">Your session has expired. Redirecting to sign in…</p>
   if (playState.isError) return <p role="alert" className="p-4">Could not load this play: {playState.error.message}</p>
   const g = game.data
+  if (history.isError && !unauthorized) return <p role="alert" className="p-4">Could not load this play's history: {history.error.message}</p>
   if (playId !== null && !play) return <p className="p-4">Loading…</p>
   if (!g || template.data?.id !== g.templateId || (g.imageId !== null && !image.data)) return <p className="p-4">Loading…</p>
   const settings = { ...normalizeSetup(g.config).config, type: g.parent as GameConfig['type'] }
@@ -130,9 +144,38 @@ function SavedPlayer({ id, playId, requested }: { id: number; playId: number | n
     ? play.state.type === 'scrambled' ? 'scrambled' : 'next-pieces'
     : requested === 'next-pieces' || requested === 'scrambled' ? requested : settings.type === 'next-pieces' ? 'next-pieces' : 'scrambled'
   return (
-    <div className="h-full">
-      <Board key={`${id}-${mode}`} settings={settings} template={params} photo={photo} mode={mode} play={play} />
+    <div className="flex h-full flex-col">
+      <div className="min-h-0 flex-1">
+        <Board key={`${id}-${mode}`} settings={settings} template={params} photo={photo} mode={mode} play={play} />
+      </div>
+      {play?.replay && states && <HistoryScroller count={states.length} step={at} onStep={setStep} />}
       {congratulating && <Congratulations name={g.name} onClose={() => setCongratulating(false)} />}
+    </div>
+  )
+}
+
+/** A scroller under a finished play's board: the start is the first stop and each stop after it applies the next change. */
+function HistoryScroller({ count, step, onStep }: { count: number; step: number; onStep: (step: number) => void }) {
+  const last = count - 1
+  const go = (to: number) => onStep(Math.max(0, Math.min(last, to)))
+  const button = 'h-8 w-8 shrink-0 rounded text-sm font-medium hover:bg-slate-200 disabled:opacity-40 disabled:hover:bg-transparent'
+  return (
+    <div role="group" aria-label="History scroller" className="flex items-center gap-2 border-t border-slate-200 bg-slate-100 px-4 py-2 text-sm">
+      <button className={button} aria-label="Start" disabled={step === 0} onClick={() => go(0)}>⏮</button>
+      <button className={button} aria-label="Previous step" disabled={step === 0} onClick={() => go(step - 1)}>◀</button>
+      <input
+        type="range"
+        aria-label="History step"
+        className="min-w-0 flex-1"
+        min={0}
+        max={last}
+        step={1}
+        value={step}
+        onChange={(e) => go(Number(e.target.value))}
+      />
+      <button className={button} aria-label="Next step" disabled={step === last} onClick={() => go(step + 1)}>▶</button>
+      <button className={button} aria-label="End" disabled={step === last} onClick={() => go(last)}>⏭</button>
+      <span className="w-24 shrink-0 text-right tabular-nums text-slate-600">{step === 0 ? 'Start' : `Step ${step} of ${last}`}</span>
     </div>
   )
 }
@@ -276,6 +319,12 @@ export function Game({
   /** The piece being dragged while it is within snapping distance of its slot. */
   const [near, setNear] = useState<number | null>(null)
 
+  // A replay follows the state it is given: stepping through the history swaps the layout without remounting the board.
+  const replay = play?.replay ? play.state : undefined
+  useEffect(() => {
+    if (replay) setOffsets(fromServer(replay))
+  }, [replay, fromServer])
+
   const homes = useMemo(() => offsets.map((o) => o.x === 0 && o.y === 0), [offsets])
   const flash = useFlash(homes)
 
@@ -325,6 +374,7 @@ export function Game({
   }
 
   const onDown = (index: number) => (e: React.PointerEvent) => {
+    if (play?.replay) return
     if (offsets[index].x === 0 && offsets[index].y === 0) return
     if (busy.current) return // one move at a time: wait for the server's answer to the last drop
     touched.current = true

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   DEFAULT_GAME_CONFIG,
   JigsawTemplateGenerator,
@@ -46,6 +46,11 @@ export function NextPiecesGame({
   const [game, setGame] = useState(() => (play ? fromServer(play.state) : createGame(config, total)))
   const [selected, setSelected] = useState<number | null>(null)
   const [problem, setProblem] = useState<string | null>(null)
+  // A replay follows the state it is given, so stepping through the history swaps the board without remounting it.
+  const replay = play?.replay ? play.state : undefined
+  useEffect(() => {
+    if (replay) setGame(fromServer(replay))
+  }, [replay])
 
   return (
     <div className="flex h-full flex-col">
@@ -62,7 +67,7 @@ export function NextPiecesGame({
           onSelect={setSelected}
           onPlace={(slot, dragged) => {
             const piece = dragged ?? selected
-            if (piece === null) return
+            if (piece === null || play?.replay) return
             if (play) {
               // The server decides whether the piece fits; its answer is the new state, a wrong slot included.
               setProblem(null)

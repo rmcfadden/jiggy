@@ -5,7 +5,7 @@ use crate::generated::repositories::gamePlayUsersRepository::GamePlayUsersReposi
 use crate::generated::repositories::gamePlaysRepository::GamePlaysRepository;
 use crate::generated::{GamePlay, GamePlayAction, GamePlayState, GamePlayUser};
 use crate::services::gameplay::registry::GameServiceRegistry;
-use crate::services::gameplay::service::fold_state;
+use crate::services::gameplay::service::{fold_state, fold_states};
 use crate::services::gameplay::types::{move_result, parse_action, state_row, GameError, GameSetup, PuzzleState};
 use crate::services::games::GamesService;
 use crate::services::templates::TemplatesService;
@@ -158,6 +158,16 @@ impl GamePlaysService {
         let play = self.load(play_id, user_id).await?;
         let state = state_of(&play)?;
         Ok(json!({ "id": play_id, "gameId": play.game_id, "finished": play.finished.map(stamp), "state": state.to_json() }))
+    }
+
+    /// The play's state after every stored change, first to last, so a client can step through the whole game.
+    pub async fn states(&self, play_id: i64, user_id: i64) -> Result<Value> {
+        let play = self.load(play_id, user_id).await?;
+        let mut states = play.states.clone();
+        states.sort_by_key(|s| s.id);
+        let changes: Vec<Value> = states.iter().map(|s| serde_json::from_str(&s.state_change).unwrap_or(Value::Null)).collect();
+        let folded = fold_states(&changes)?;
+        Ok(json!({ "id": play_id, "gameId": play.game_id, "finished": play.finished.map(stamp), "states": folded.iter().map(|s| s.to_json()).collect::<Vec<_>>() }))
     }
 
     pub async fn action_list(&self, play_id: i64, user_id: i64) -> Result<Value> {

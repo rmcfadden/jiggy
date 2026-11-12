@@ -47,17 +47,22 @@ public abstract class PuzzleGameService(Func<string>? newId = null)
     protected GameException Unsupported(GameAction action) => new(400, $"a {Type} game has no \"{action.Kind}\" action");
 
     /// <summary>Rebuilds a state from its stored rows: the first is the full state, each later one is <c>{ events, mistakes, solved }</c>.</summary>
-    public static PuzzleState Fold(IReadOnlyList<JsonObject> rows)
+    public static PuzzleState Fold(IReadOnlyList<JsonObject> rows) => FoldAll(rows)[^1];
+
+    /// <summary>Every state of a play, in order: the first row's state, then the state after each later row.</summary>
+    public static List<PuzzleState> FoldAll(IReadOnlyList<JsonObject> rows)
     {
         if (rows.Count == 0) throw new GameException(404, "the play has no state");
         var state = PuzzleState.FromJson(rows[0]);
+        var states = new List<PuzzleState> { state };
         foreach (var row in rows.Skip(1))
         {
             var events = row["events"]?.AsArray().Select(StateEvent.FromJson).ToList() ?? throw new GameException(500, "stored game state is corrupt");
             state = state.Apply(events);
             state.Mistakes = row["mistakes"]?.GetValue<long>() ?? state.Mistakes;
             state.Solved = row["solved"]?.GetValue<bool>() ?? state.Solved;
+            states.Add(state);
         }
-        return state;
+        return states;
     }
 }
