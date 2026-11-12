@@ -58,6 +58,8 @@ export async function setup(): Promise<void> {
   const seeds = JSON.parse(await readFile(seedFile(process.env.CATEGORIES_SEED_PATH, '../../../data/categories.json'), 'utf8')) as CategorySeed[]
   const categories = await categoriesService.addCategories(seeds)
   console.log(categories.length ? `added ${categories.length} categories` : 'categories already present')
+  const types = await templates.addTypes()
+  console.log(types.length ? `added template types: ${types.join(', ')}` : 'template types already present')
   const added = await templates.addTemplates(seedFile(process.env.TEMPLATES_SEED_PATH, '../../../data/templates.json'))
   console.log(added.length ? `added templates: ${added.join(', ')}` : 'templates already present')
   const samples = await images.addSamples(seedFile(process.env.IMAGES_SAMPLES_PATH, '../../../../frontend/apps/web/public/catalog'))
@@ -75,8 +77,8 @@ export async function setup(): Promise<void> {
   if (!admin) console.log('users already present, no admin added')
   else if (admin.generated) console.log(`added user admin with password ${admin.password} (shown once; change it with update-user)`)
   else console.log('added user admin with the password from ADMIN_PASSWORD')
-}
   const user = await identitySetup.addUser(process.env.USER_PASSWORD)
   if (!user) console.log('user already present, no user added')
   else if (user.generated) console.log(`added user user (no admin role) with password ${user.password} (shown once; change it with update-user)`)
   else console.log('added user user (no admin role) with the password from USER_PASSWORD')
+}

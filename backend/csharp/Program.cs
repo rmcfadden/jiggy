@@ -12,7 +12,7 @@ builder.Services.AddSingleton(sp => new GameParentsService(sp.GetRequiredService
 builder.Services.AddSingleton(sp =>
 {
     var ds = sp.GetRequiredService<IDatasource>();
-    return new TemplatesService(ds.CreateRepository<Backend.Types.View.Template>("Templates"), ds.CreateReadonlyRepository<Backend.Types.Datasource.TemplateType>("TemplateTypes"));
+    return new TemplatesService(ds.CreateRepository<Backend.Types.View.Template>("Templates"), ds.CreateRepository<Backend.Types.Datasource.TemplateType>("TemplateTypes"));
 });
 builder.Services.AddSingleton<IImageStorage>(sp =>
 {
@@ -119,6 +119,8 @@ if (args.FirstOrDefault() == "setup")
     var seedPath = Path.GetFullPath(app.Configuration["Categories:SeedPath"] ?? "../data/categories.json", app.Environment.ContentRootPath);
     var categories = await app.Services.GetRequiredService<CategoriesService>().AddCategories(seedPath);
     Console.WriteLine(categories.Count > 0 ? $"added {categories.Count} categories" : "categories already present");
+    var templateTypes = await app.Services.GetRequiredService<TemplatesService>().AddTypes();
+    Console.WriteLine(templateTypes.Count > 0 ? $"added template types: {string.Join(", ", templateTypes)}" : "template types already present");
     var templatesPath = Path.GetFullPath(app.Configuration["Templates:SeedPath"] ?? "../data/templates.json", app.Environment.ContentRootPath);
     var templates = await app.Services.GetRequiredService<TemplatesService>().AddTemplates(templatesPath);
     Console.WriteLine(templates.Count > 0 ? $"added templates: {string.Join(", ", templates)}" : "templates already present");
@@ -138,12 +140,12 @@ if (args.FirstOrDefault() == "setup")
     if (admin is null) Console.WriteLine("users already present, no admin added");
     else if (admin.Value.Generated) Console.WriteLine($"added user admin with password {admin.Value.Password} (shown once; change it with update-user)");
     else Console.WriteLine("added user admin with the password from ADMIN_PASSWORD");
-    return;
-}
     var user = await identity.AddUser(Environment.GetEnvironmentVariable("USER_PASSWORD"));
     if (user is null) Console.WriteLine("user already present, no user added");
     else if (user.Value.Generated) Console.WriteLine($"added user user (no admin role) with password {user.Value.Password} (shown once; change it with update-user)");
     else Console.WriteLine("added user user (no admin role) with the password from USER_PASSWORD");
+    return;
+}
 
 if (args.FirstOrDefault() is "add-user" or "update-user")
 {

@@ -2,6 +2,7 @@ version: 1.0.0
 includes:
   - file: base.yaml
   - file: user-roles.yaml
+  - file: reviews.yaml
     combine_options:
       source:
         remove_types: [base]
@@ -88,6 +89,7 @@ types:
         - is_enabled:
             type: boolean
             default_value: true
+
   - game_category:
       tags: [datasource_type, many_to_many]
       inherits: base
@@ -96,6 +98,7 @@ types:
             references: game_base.id
         - category_id:
             references: category.id
+
   - game_parent_category:
       tags: [datasource_type, many_to_many]
       inherits: base
@@ -237,23 +240,6 @@ types:
             type: string
             size: unlimited
             references: game_setting.value
-  - review:
-      tags: [datasource_type]
-      inherits: base
-      fields:
-        - game_id:
-            references: game_base.id
-        - user_id:
-            references: user_base.id
-        - description:
-            type: string
-            size: unlimited
-        - rating:
-            type: decimal
-            size: [10, 2]
-        - is_approved:
-            type: boolean
-            default_value: false
   - game:
       tags: [view_type]
       inherits: game_base
@@ -277,3 +263,13 @@ types:
         - categories:
             type: category[]
             references: game_parent_category.game_parent_id
+
+  - game_reviews:
+      tags: [datasource_type, many_to_many]
+      inherits: base
+      fields:
+        - game_id:
+            references: game_base.id
+        - review_id:
+            references: review.id
+

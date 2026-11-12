@@ -1,0 +1,32 @@
+version: 1.0.0
+includes:
+  - file: base.yaml
+  - file: user-roles.yaml
+
+types:
+  - review:
+      tags: [datasource_type]
+      inherits: base
+      fields:
+        - user_id:
+            references: user_base.id
+        - comment:
+            type: string
+            size: unlimited
+        - rating:
+            type: decimal
+            size: [10, 2]
+        - is_moderated:
+            type: boolean
+            default_value: false
+
+  - review_feedback:
+      tags: [datasource_type]
+      inherits: base
+      fields:
+       - review_id:
+            references: review.id
+       - user_id:
+            references: user_base.id
+       - is_positive:     
+            type: boolean

@@ -9,6 +9,10 @@ impl SchemaObject for AddressAttribute {}
 
 impl SchemaObject for AddressLabel {}
 
+impl SchemaObject for AuthenticationMethod {}
+
+impl SchemaObject for AuthorizationCode {}
+
 impl SchemaObject for Category {}
 
 impl SchemaObject for Contact {}
@@ -51,11 +55,27 @@ impl SchemaObject for User {}
 
 impl SchemaObject for GamePlayUser {}
 
+impl SchemaObject for GameReview {}
+
 impl SchemaObject for GameSetting {}
 
 impl SchemaObject for Gender {}
 
 impl SchemaObject for Group {}
+
+impl SchemaObject for IdentityProvider {}
+
+impl SchemaObject for IdentityProviderAuthorizeSession {}
+
+impl SchemaObject for IdentityProviderLinkedUser {}
+
+impl SchemaObject for IdentityProviderLinkedUserFieldType {}
+
+impl SchemaObject for IdentityProviderSetting {}
+
+impl SchemaObject for IdentityProviderSigninAttempt {}
+
+impl SchemaObject for IdentityProviderType {}
 
 impl SchemaObject for Language {}
 
@@ -64,6 +84,8 @@ impl SchemaObject for LocalizedString {}
 impl SchemaObject for LocalizedStringName {}
 
 impl SchemaObject for MimeType {}
+
+impl SchemaObject for OauthGrantType {}
 
 impl SchemaObject for PhoneAttribute {}
 
@@ -74,6 +96,8 @@ impl SchemaObject for PhoneType {}
 impl SchemaObject for Resource {}
 
 impl SchemaObject for Review {}
+
+impl SchemaObject for ReviewFeedback {}
 
 impl SchemaObject for Role {}
 

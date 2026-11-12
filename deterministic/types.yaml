@@ -2,6 +2,9 @@ version: 1.0.0
 includes:
   - file: games.yaml
   - file: identity.yaml
+    combine_options:
+      source:
+        remove_types: [base, user_base, role, group, user_group, user_role, user_setting, user_setting_map, user]
   - file: sessions.yaml
 types:
   - game_summary:

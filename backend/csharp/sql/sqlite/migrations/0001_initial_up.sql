@@ -125,6 +125,50 @@ BEGIN
   UPDATE "user_settings" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
+CREATE TABLE "reviews" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "reviews_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "reviews_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "reviews_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "reviews_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "comment" TEXT NOT NULL,
+    "rating" NUMERIC NOT NULL,
+    "is_moderated" BOOLEAN CONSTRAINT "reviews_is_moderated_default_constraint" DEFAULT 0 NOT NULL,
+    CONSTRAINT "reviews_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "reviews_user_id_foreign_key" FOREIGN KEY ("user_id") REFERENCES "users" ("id")
+);
+GO
+CREATE TRIGGER "trg_reviews_updated_at"
+AFTER UPDATE ON "reviews"
+FOR EACH ROW
+WHEN NEW."updated" IS OLD."updated"
+BEGIN
+  UPDATE "reviews" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+END;
+GO
+CREATE TABLE "review_feedbacks" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "review_feedbacks_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "review_feedbacks_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "review_feedbacks_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "review_feedbacks_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "review_id" INTEGER NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "is_positive" BOOLEAN NOT NULL,
+    CONSTRAINT "review_feedbacks_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "review_feedbacks_review_id_foreign_key" FOREIGN KEY ("review_id") REFERENCES "reviews" ("id"),
+    CONSTRAINT "review_feedbacks_user_id_foreign_key" FOREIGN KEY ("user_id") REFERENCES "users" ("id")
+);
+GO
+CREATE TRIGGER "trg_review_feedbacks_updated_at"
+AFTER UPDATE ON "review_feedbacks"
+FOR EACH ROW
+WHEN NEW."updated" IS OLD."updated"
+BEGIN
+  UPDATE "review_feedbacks" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+END;
+GO
 CREATE TABLE "genders" (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     "uuid" TEXT CONSTRAINT "genders_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
@@ -956,28 +1000,47 @@ BEGIN
   UPDATE "game_attributes" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "reviews" (
+CREATE TABLE "game_reviews" (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    "uuid" TEXT CONSTRAINT "reviews_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
-    "created" TEXT CONSTRAINT "reviews_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-    "updated" TEXT CONSTRAINT "reviews_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-    "version" BLOB CONSTRAINT "reviews_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "uuid" TEXT CONSTRAINT "game_reviews_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "game_reviews_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "game_reviews_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "game_reviews_version_default_constraint" DEFAULT X'00' NOT NULL,
     "game_id" INTEGER NOT NULL,
-    "user_id" INTEGER NOT NULL,
-    "description" TEXT NOT NULL,
-    "rating" NUMERIC NOT NULL,
-    "is_approved" BOOLEAN CONSTRAINT "reviews_is_approved_default_constraint" DEFAULT 0 NOT NULL,
-    CONSTRAINT "reviews_uuid_unique_constraint" UNIQUE ("uuid"),
-    CONSTRAINT "reviews_game_id_foreign_key" FOREIGN KEY ("game_id") REFERENCES "games" ("id"),
-    CONSTRAINT "reviews_user_id_foreign_key" FOREIGN KEY ("user_id") REFERENCES "users" ("id")
+    "review_id" INTEGER NOT NULL,
+    CONSTRAINT "game_reviews_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "game_reviews_game_id_foreign_key" FOREIGN KEY ("game_id") REFERENCES "games" ("id"),
+    CONSTRAINT "game_reviews_review_id_foreign_key" FOREIGN KEY ("review_id") REFERENCES "reviews" ("id")
 );
 GO
-CREATE TRIGGER "trg_reviews_updated_at"
-AFTER UPDATE ON "reviews"
+CREATE TRIGGER "trg_game_reviews_updated_at"
+AFTER UPDATE ON "game_reviews"
 FOR EACH ROW
 WHEN NEW."updated" IS OLD."updated"
 BEGIN
-  UPDATE "reviews" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+  UPDATE "game_reviews" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+END;
+GO
+CREATE TABLE "oauth_grant_types" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "oauth_grant_types_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "oauth_grant_types_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "oauth_grant_types_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "oauth_grant_types_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "name" VARCHAR(256) NOT NULL,
+    "description" VARCHAR(512) NOT NULL,
+    "is_custom" BOOLEAN CONSTRAINT "oauth_grant_types_is_custom_default_constraint" DEFAULT 0 NOT NULL,
+    "is_enabled" BOOLEAN CONSTRAINT "oauth_grant_types_is_enabled_default_constraint" DEFAULT 1 NOT NULL,
+    "is_legacy" BOOLEAN CONSTRAINT "oauth_grant_types_is_legacy_default_constraint" DEFAULT 0 NOT NULL,
+    CONSTRAINT "oauth_grant_types_uuid_unique_constraint" UNIQUE ("uuid")
+);
+GO
+CREATE TRIGGER "trg_oauth_grant_types_updated_at"
+AFTER UPDATE ON "oauth_grant_types"
+FOR EACH ROW
+WHEN NEW."updated" IS OLD."updated"
+BEGIN
+  UPDATE "oauth_grant_types" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
 CREATE TABLE "secret_types" (
@@ -1108,6 +1171,133 @@ BEGIN
   UPDATE "user_tokens" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
+CREATE TABLE "authentication_methods_bases" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "authentication_methods_bases_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "authentication_methods_bases_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "authentication_methods_bases_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "authentication_methods_bases_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "name" VARCHAR(256) NOT NULL,
+    "description" VARCHAR(256),
+    "is_default" BOOLEAN CONSTRAINT "authentication_methods_bases_is_default_default_constraint" DEFAULT 1 NOT NULL,
+    "is_enabled" BOOLEAN CONSTRAINT "authentication_methods_bases_is_enabled_default_constraint" DEFAULT 1 NOT NULL,
+    CONSTRAINT "authentication_methods_bases_uuid_unique_constraint" UNIQUE ("uuid")
+);
+GO
+CREATE TRIGGER "trg_authentication_methods_bases_updated_at"
+AFTER UPDATE ON "authentication_methods_bases"
+FOR EACH ROW
+WHEN NEW."updated" IS OLD."updated"
+BEGIN
+  UPDATE "authentication_methods_bases" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+END;
+GO
+CREATE TABLE "identity_provider_types" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "identity_provider_types_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "identity_provider_types_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "identity_provider_types_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "identity_provider_types_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "name" VARCHAR(256) NOT NULL,
+    "description" TEXT,
+    CONSTRAINT "identity_provider_types_uuid_unique_constraint" UNIQUE ("uuid")
+);
+GO
+CREATE TRIGGER "trg_identity_provider_types_updated_at"
+AFTER UPDATE ON "identity_provider_types"
+FOR EACH ROW
+WHEN NEW."updated" IS OLD."updated"
+BEGIN
+  UPDATE "identity_provider_types" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+END;
+GO
+CREATE TABLE "identity_providers_bases" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "identity_providers_bases_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "identity_providers_bases_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "identity_providers_bases_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "identity_providers_bases_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "identity_provider_type_id" INTEGER NOT NULL,
+    "name" VARCHAR(256) NOT NULL,
+    "description" TEXT,
+    "is_enabled" BOOLEAN CONSTRAINT "identity_providers_bases_is_enabled_default_constraint" DEFAULT 1 NOT NULL,
+    "is_builtin" BOOLEAN CONSTRAINT "identity_providers_bases_is_builtin_default_constraint" DEFAULT 0 NOT NULL,
+    "is_deleted" BOOLEAN CONSTRAINT "identity_providers_bases_is_deleted_default_constraint" DEFAULT 0 NOT NULL,
+    CONSTRAINT "identity_providers_bases_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "identity_providers_bases_identity_provider_type_id_foreign_key" FOREIGN KEY ("identity_provider_type_id") REFERENCES "identity_provider_types" ("id")
+);
+GO
+CREATE TRIGGER "trg_identity_providers_bases_updated_at"
+AFTER UPDATE ON "identity_providers_bases"
+FOR EACH ROW
+WHEN NEW."updated" IS OLD."updated"
+BEGIN
+  UPDATE "identity_providers_bases" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+END;
+GO
+CREATE TABLE "identity_provider_settings_bases" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "identity_provider_settings_bases_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "identity_provider_settings_bases_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "identity_provider_settings_bases_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "identity_provider_settings_bases_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "identity_provider_id" INTEGER NOT NULL,
+    "name" VARCHAR(256) NOT NULL,
+    "value" TEXT NOT NULL,
+    CONSTRAINT "identity_provider_settings_bases_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "identity_provider_settings_bases_identity_provider_id_foreign_key" FOREIGN KEY ("identity_provider_id") REFERENCES "identity_providers_bases" ("id")
+);
+GO
+CREATE TRIGGER "trg_identity_provider_settings_bases_updated_at"
+AFTER UPDATE ON "identity_provider_settings_bases"
+FOR EACH ROW
+WHEN NEW."updated" IS OLD."updated"
+BEGIN
+  UPDATE "identity_provider_settings_bases" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+END;
+GO
+CREATE TABLE "identity_provider_linked_user_field_types" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "identity_provider_linked_user_field_types_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "identity_provider_linked_user_field_types_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "identity_provider_linked_user_field_types_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "identity_provider_linked_user_field_types_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "name" VARCHAR(256) NOT NULL,
+    CONSTRAINT "identity_provider_linked_user_field_types_uuid_unique_constraint" UNIQUE ("uuid")
+);
+GO
+CREATE TRIGGER "trg_identity_provider_linked_user_field_types_updated_at"
+AFTER UPDATE ON "identity_provider_linked_user_field_types"
+FOR EACH ROW
+WHEN NEW."updated" IS OLD."updated"
+BEGIN
+  UPDATE "identity_provider_linked_user_field_types" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+END;
+GO
+CREATE TABLE "identity_provider_linked_users_bases" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "identity_provider_linked_users_bases_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "identity_provider_linked_users_bases_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "identity_provider_linked_users_bases_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "identity_provider_linked_users_bases_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "identity_provider_id" INTEGER NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "identity_provider_linked_user_field_type_id" INTEGER NOT NULL,
+    "value" TEXT NOT NULL,
+    CONSTRAINT "identity_provider_linked_users_bases_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "identity_provider_linked_users_bases_identity_provider_id_foreign_key" FOREIGN KEY ("identity_provider_id") REFERENCES "identity_providers_bases" ("id"),
+    CONSTRAINT "identity_provider_linked_users_bases_user_id_foreign_key" FOREIGN KEY ("user_id") REFERENCES "users" ("id"),
+    CONSTRAINT "identity_provider_linked_users_bases_identity_provider_linked_user_field_type_id_foreign_key" FOREIGN KEY ("identity_provider_linked_user_field_type_id") REFERENCES "identity_provider_linked_user_field_types" ("id")
+);
+GO
+CREATE TRIGGER "trg_identity_provider_linked_users_bases_updated_at"
+AFTER UPDATE ON "identity_provider_linked_users_bases"
+FOR EACH ROW
+WHEN NEW."updated" IS OLD."updated"
+BEGIN
+  UPDATE "identity_provider_linked_users_bases" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+END;
+GO
 CREATE TABLE "session_types" (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     "uuid" TEXT CONSTRAINT "session_types_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
@@ -1150,6 +1340,80 @@ FOR EACH ROW
 WHEN NEW."updated" IS OLD."updated"
 BEGIN
   UPDATE "sessions_bases" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+END;
+GO
+CREATE TABLE "authorization_codes_bases" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "authorization_codes_bases_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "authorization_codes_bases_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "authorization_codes_bases_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "authorization_codes_bases_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "session_id" INTEGER,
+    "code" VARCHAR(512) NOT NULL,
+    "is_used" BOOLEAN CONSTRAINT "authorization_codes_bases_is_used_default_constraint" DEFAULT 1 NOT NULL,
+    "is_deleted" BOOLEAN CONSTRAINT "authorization_codes_bases_is_deleted_default_constraint" DEFAULT 0 NOT NULL,
+    CONSTRAINT "authorization_codes_bases_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "authorization_codes_bases_session_id_foreign_key" FOREIGN KEY ("session_id") REFERENCES "sessions_bases" ("id")
+);
+GO
+CREATE TRIGGER "trg_authorization_codes_bases_updated_at"
+AFTER UPDATE ON "authorization_codes_bases"
+FOR EACH ROW
+WHEN NEW."updated" IS OLD."updated"
+BEGIN
+  UPDATE "authorization_codes_bases" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+END;
+GO
+CREATE TABLE "identity_provider_authorize_sessions_bases" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "identity_provider_authorize_sessions_bases_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "identity_provider_authorize_sessions_bases_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "identity_provider_authorize_sessions_bases_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "identity_provider_authorize_sessions_bases_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "identity_provider_id" INTEGER NOT NULL,
+    "session_id" INTEGER NOT NULL,
+    "redirect_uri" TEXT NOT NULL,
+    "state" TEXT NOT NULL,
+    "code_challenge" TEXT NOT NULL,
+    "code_challenge_method" VARCHAR(128) NOT NULL,
+    "revoked" TEXT,
+    "finished" TEXT,
+    "is_deleted" BOOLEAN CONSTRAINT "identity_provider_authorize_sessions_bases_is_deleted_default_constraint" DEFAULT 0 NOT NULL,
+    CONSTRAINT "identity_provider_authorize_sessions_bases_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "identity_provider_authorize_sessions_bases_identity_provider_id_foreign_key" FOREIGN KEY ("identity_provider_id") REFERENCES "identity_providers_bases" ("id"),
+    CONSTRAINT "identity_provider_authorize_sessions_bases_session_id_foreign_key" FOREIGN KEY ("session_id") REFERENCES "sessions_bases" ("id")
+);
+GO
+CREATE TRIGGER "trg_identity_provider_authorize_sessions_bases_updated_at"
+AFTER UPDATE ON "identity_provider_authorize_sessions_bases"
+FOR EACH ROW
+WHEN NEW."updated" IS OLD."updated"
+BEGIN
+  UPDATE "identity_provider_authorize_sessions_bases" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+END;
+GO
+CREATE TABLE "identity_provider_signin_attempts_bases" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "identity_provider_signin_attempts_bases_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "identity_provider_signin_attempts_bases_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "identity_provider_signin_attempts_bases_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "identity_provider_signin_attempts_bases_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "identity_provider_id" INTEGER NOT NULL,
+    "session_id" INTEGER NOT NULL,
+    "authentication_method_id" INTEGER NOT NULL,
+    "is_success" BOOLEAN NOT NULL,
+    CONSTRAINT "identity_provider_signin_attempts_bases_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "identity_provider_signin_attempts_bases_identity_provider_id_foreign_key" FOREIGN KEY ("identity_provider_id") REFERENCES "identity_providers_bases" ("id"),
+    CONSTRAINT "identity_provider_signin_attempts_bases_session_id_foreign_key" FOREIGN KEY ("session_id") REFERENCES "sessions_bases" ("id"),
+    CONSTRAINT "identity_provider_signin_attempts_bases_authentication_method_id_foreign_key" FOREIGN KEY ("authentication_method_id") REFERENCES "authentication_methods_bases" ("id")
+);
+GO
+CREATE TRIGGER "trg_identity_provider_signin_attempts_bases_updated_at"
+AFTER UPDATE ON "identity_provider_signin_attempts_bases"
+FOR EACH ROW
+WHEN NEW."updated" IS OLD."updated"
+BEGIN
+  UPDATE "identity_provider_signin_attempts_bases" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
 CREATE TABLE "session_hits_bases" (
@@ -1872,6 +2136,20 @@ GO
 -- Seeds: template_types
 GO
 INSERT INTO "template_types" ("id", "uuid", "name", "description") VALUES (1, '88ba1ed1-69f1-54cf-9b1f-0273aaa19012', 'jigsaw', 'Jigsaw template settings');
+GO
+-- Seeds: oauth_grant_types
+GO
+INSERT INTO "oauth_grant_types" ("id", "uuid", "name", "description") VALUES (1, '28ac257b-2eb0-544f-ad7a-059baa8a0022', 'authorization_code', 'The Authorization Code grant type lets confidential and public clients exchange an authorization code for an access token after the user is redirected back to the client.');
+GO
+INSERT INTO "oauth_grant_types" ("id", "uuid", "name", "description") VALUES (2, '87dcd7de-44c1-5a22-8842-b102df36e651', 'refresh_token', 'The Refresh Token grant type lets clients exchange a refresh token for a new access token once the original has expired, allowing them to maintain valid access without requiring further user interaction.');
+GO
+INSERT INTO "oauth_grant_types" ("id", "uuid", "name", "description") VALUES (3, '202c534d-968d-58b1-a5e3-40a0ccfd0100', 'urn:ietf:params:oauth:grant-type:device_code', 'The Device Code grant type enables browserless or input-constrained devices to exchange a previously obtained device code for an access token.');
+GO
+INSERT INTO "oauth_grant_types" ("id", "uuid", "name", "description") VALUES (4, '9ede56b9-bf7e-582f-acf4-4e72d91fe9cd', 'client_credentials', 'To authenticate this request, the client can either include client_id and client_secret as additional request parameters, or pass them via the HTTP Basic auth header.');
+GO
+INSERT INTO "oauth_grant_types" ("id", "uuid", "name", "description", "is_legacy") VALUES (5, '88ea1e58-c478-53a1-b7ad-2992705a254c', 'implicit', 'The Implicit flow was a simplified OAuth flow previously recommended for native and JavaScript apps that returned an access token immediately, bypassing the authorization code exchange step.', 1);
+GO
+INSERT INTO "oauth_grant_types" ("id", "uuid", "name", "description", "is_legacy") VALUES (6, '21f39a2d-5223-53fe-9133-aff10c0feb20', 'password', 'The Password grant type is a legacy method for exchanging a user''s credentials directly for an access token. Since this requires the client to collect and transmit the user''s password to the authorization server, it is no longer recommended.', 1);
 GO
 -- Seeds: secret_types
 GO

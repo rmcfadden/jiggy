@@ -5,9 +5,27 @@ DROP TABLE IF EXISTS session_states_bases;
 GO
 DROP TABLE IF EXISTS session_hits_bases;
 GO
+DROP TABLE IF EXISTS identity_provider_signin_attempts_bases;
+GO
+DROP TABLE IF EXISTS identity_provider_authorize_sessions_bases;
+GO
+DROP TABLE IF EXISTS authorization_codes_bases;
+GO
 DROP TABLE IF EXISTS sessions_bases;
 GO
 DROP TABLE IF EXISTS session_types;
+GO
+DROP TABLE IF EXISTS identity_provider_linked_users_bases;
+GO
+DROP TABLE IF EXISTS identity_provider_linked_user_field_types;
+GO
+DROP TABLE IF EXISTS identity_provider_settings_bases;
+GO
+DROP TABLE IF EXISTS identity_providers_bases;
+GO
+DROP TABLE IF EXISTS identity_provider_types;
+GO
+DROP TABLE IF EXISTS authentication_methods_bases;
 GO
 DROP TABLE IF EXISTS user_tokens;
 GO
@@ -21,7 +39,9 @@ DROP TABLE IF EXISTS secrets_bases;
 GO
 DROP TABLE IF EXISTS secret_types;
 GO
-DROP TABLE IF EXISTS reviews;
+DROP TABLE IF EXISTS oauth_grant_types;
+GO
+DROP TABLE IF EXISTS game_reviews;
 GO
 DROP TABLE IF EXISTS game_attributes;
 GO
@@ -94,6 +114,10 @@ GO
 DROP TABLE IF EXISTS contacts;
 GO
 DROP TABLE IF EXISTS genders;
+GO
+DROP TABLE IF EXISTS review_feedbacks;
+GO
+DROP TABLE IF EXISTS reviews;
 GO
 DROP TABLE IF EXISTS user_settings;
 GO

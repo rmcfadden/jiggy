@@ -18,7 +18,7 @@ public record TemplateSeed(string Type, string Name, JsonElement Content);
 
 public class UnknownTemplateTypeException(string type) : Exception($"unknown template type: {type}");
 
-public class TemplatesService(ICRUDRepository<TemplateView> repo, IReadonlyRepository<TemplateType> types)
+public class TemplatesService(ICRUDRepository<TemplateView> repo, ICRUDRepository<TemplateType> types)
 {
     /// <summary>Templates of <paramref name="type"/> (a template type name such as "jigsaw"), or all of them when null.</summary>
     public async Task<List<TemplateListItem>> List(string? type = null)
@@ -66,6 +66,22 @@ public class TemplatesService(ICRUDRepository<TemplateView> repo, IReadonlyRepos
     /// Creates the templates in the seed file at <paramref name="path"/> that are missing, matching on (type, name);
     /// existing rows are never changed. Returns the names added.
     /// </summary>
+    static readonly (string Name, string Description)[] TemplateTypes = [("jigsaw", "Jigsaw template settings")];
+
+    /// <summary>Adds the built-in template types that are not there yet; returns the names it added.</summary>
+    public async Task<List<string>> AddTypes()
+    {
+        var have = (await TypeNames()).Values.ToHashSet();
+        var added = new List<string>();
+        foreach (var (name, description) in TemplateTypes)
+        {
+            if (have.Contains(name)) continue;
+            await types.Create(new TemplateType { Name = name, Description = description });
+            added.Add(name);
+        }
+        return added;
+    }
+
     public async Task<List<string>> AddTemplates(string path)
     {
         var seeds = JsonSerializer.Deserialize<List<TemplateSeed>>(await File.ReadAllTextAsync(path), new JsonSerializerOptions(JsonSerializerDefaults.Web)) ?? [];
