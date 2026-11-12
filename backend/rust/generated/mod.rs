@@ -69,8 +69,14 @@ pub mod gameBase;
 pub mod gameCategory;
 #[path = "types/datasource/gameParentCategory.rs"]
 pub mod gameParentCategory;
-#[path = "types/datasource/gameState.rs"]
-pub mod gameState;
+#[path = "types/datasource/gamePlayBase.rs"]
+pub mod gamePlayBase;
+#[path = "types/datasource/gamePlayUser.rs"]
+pub mod gamePlayUser;
+#[path = "types/datasource/gamePlayState.rs"]
+pub mod gamePlayState;
+#[path = "types/datasource/gamePlayAction.rs"]
+pub mod gamePlayAction;
 #[path = "types/datasource/gameParentSetting.rs"]
 pub mod gameParentSetting;
 #[path = "types/datasource/gameSetting.rs"]
@@ -115,6 +121,8 @@ pub mod localizedString;
 pub mod resource;
 #[path = "types/view/template.rs"]
 pub mod template;
+#[path = "types/view/gamePlay.rs"]
+pub mod gamePlay;
 #[path = "types/view/game.rs"]
 pub mod game;
 #[path = "types/view/gameParent.rs"]
@@ -164,7 +172,10 @@ pub use gameParentConfig::*;
 pub use gameBase::*;
 pub use gameCategory::*;
 pub use gameParentCategory::*;
-pub use gameState::*;
+pub use gamePlayBase::*;
+pub use gamePlayUser::*;
+pub use gamePlayState::*;
+pub use gamePlayAction::*;
 pub use gameParentSetting::*;
 pub use gameSetting::*;
 pub use gameAttribute::*;
@@ -187,6 +198,7 @@ pub use contact::*;
 pub use localizedString::*;
 pub use resource::*;
 pub use template::*;
+pub use gamePlay::*;
 pub use game::*;
 pub use gameParent::*;
 pub use secret::*;

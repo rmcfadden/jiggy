@@ -29,7 +29,13 @@ DROP TABLE IF EXISTS "game_settings";
 GO
 DROP TABLE IF EXISTS "game_parent_settings";
 GO
-DROP TABLE IF EXISTS "game_states";
+DROP TABLE IF EXISTS "game_play_actions";
+GO
+DROP TABLE IF EXISTS "game_play_states";
+GO
+DROP TABLE IF EXISTS "game_play_users";
+GO
+DROP TABLE IF EXISTS "game_plays";
 GO
 DROP TABLE IF EXISTS "game_parent_categories";
 GO

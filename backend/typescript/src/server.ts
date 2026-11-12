@@ -41,6 +41,14 @@ import type { EmailType } from '../generated/types/datasource/emailType.ts'
 import type { Gender } from '../generated/types/datasource/gender.ts'
 import { SignupService } from './services/signup.ts'
 import { signupRouter } from './routes/signup.ts'
+import type { GamePlay } from '../generated/types/view/gamePlay.ts'
+import type { GamePlayState } from '../generated/types/datasource/gamePlayState.ts'
+import type { GamePlayAction } from '../generated/types/datasource/gamePlayAction.ts'
+import type { GamePlayUser } from '../generated/types/datasource/gamePlayUser.ts'
+import { GamePlaysService } from './services/gamePlays.ts'
+import { GameServiceRegistry } from './services/gameplay/registry.ts'
+import { gamePlaysRouter } from './routes/gamePlays.ts'
+import { requireAuth } from './middleware/auth.ts'
 
 const ds = Datasource.default as Datasource & {
   categories: ICRUDRepository<Category>
@@ -61,6 +69,10 @@ const ds = Datasource.default as Datasource & {
   emails: ICRUDRepository<Email>
   emailTypes: ICRUDRepository<EmailType>
   genders: ICRUDRepository<Gender>
+  gamePlays: ICRUDRepository<GamePlay>
+  gamePlayStates: ICRUDRepository<GamePlayState>
+  gamePlayActions: ICRUDRepository<GamePlayAction>
+  gamePlayUsers: ICRUDRepository<GamePlayUser>
 }
 const categories = new CategoriesService(ds.categories)
 const gameParents = new GameParentsService(ds.gameParents)
@@ -75,6 +87,8 @@ const sessions = new SessionService(ds.sessions, ds.sessionHits, ds.sessionTypes
 const signin = new SigninService(users, tokens, ds.contacts, ds.emails)
 const oauth = new OAuthService(users, tokens, sessions, tokenSettings)
 const signup = new SignupService(users, tokens, ds.contacts, ds.emails, ds.emailTypes, ds.genders)
+
+const gamePlays = new GamePlaysService(ds.gamePlays, ds.gamePlayStates, ds.gamePlayActions, ds.gamePlayUsers, games, templates, new GameServiceRegistry())
 
 const summaries = new GameSummariesService(await ds.createConnection(), images, ds.games)
 
@@ -94,6 +108,7 @@ app.use('/api/images', imagesRouter(images))
 app.use('/api/signin', signinRouter(signin))
 app.use('/api/oauth', oauthRouter(oauth))
 app.use('/api/signup', signupRouter(signup))
+app.use('/api/game_plays', requireAuth(tokens), gamePlaysRouter(gamePlays))
 
 const port = Number(process.env.PORT ?? 3000)
 app.listen(port, () => console.log(`listening on :${port}`))

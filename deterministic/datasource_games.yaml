@@ -19,6 +19,23 @@ types:
             is_unique: true
   - game_parent_base:
       mapping: game_parent
+  - game_play_base:
+      mapping: game_play
+  - game_play_users:
+      indexes:
+        - game_play_users_game_play_id_user_id:
+            fields: [game_play_id, user_id]
+            is_unique: true
+  - game_play_state:
+      indexes:
+        - game_play_state_game_play_id:
+            fields: [game_play_id]
+            is_unique: false
+  - game_play_action:
+      indexes:
+        - game_play_action_game_play_id:
+            fields: [game_play_id]
+            is_unique: false
   - localized_string_base:
       mapping: localized_string
   - resource_base:

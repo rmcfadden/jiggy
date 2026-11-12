@@ -94,6 +94,18 @@ builder.Services.AddSingleton(sp =>
         ds.CreateReadonlyRepository<Backend.Types.Datasource.EmailType>("EmailTypes"),
         ds.CreateReadonlyRepository<Backend.Types.Datasource.Gender>("Genders"));
 });
+builder.Services.AddSingleton(sp =>
+{
+    var ds = sp.GetRequiredService<IDatasource>();
+    return new GamePlaysService(
+        ds.CreateRepository<Backend.Types.View.GamePlay>("GamePlays"),
+        ds.CreateRepository<Backend.Types.Datasource.GamePlayState>("GamePlayStates"),
+        ds.CreateRepository<Backend.Types.Datasource.GamePlayAction>("GamePlayActions"),
+        ds.CreateRepository<Backend.Types.Datasource.GamePlayUser>("GamePlayUsers"),
+        sp.GetRequiredService<GamesService>(),
+        sp.GetRequiredService<TemplatesService>(),
+        new Backend.Services.Gameplay.GameServiceRegistry());
+});
 builder.Services.AddSingleton(sp => new OAuthService(
     sp.GetRequiredService<UserService>(), sp.GetRequiredService<TokenService>(), sp.GetRequiredService<SessionService>(), sp.GetRequiredService<TokenSettings>()));
 builder.Services.AddSingleton(sp => new GameSummariesService(sp.GetRequiredService<IDatasource>().CreateConnection().GetAwaiter().GetResult(), sp.GetRequiredService<ImagesService>(), sp.GetRequiredService<IDatasource>().CreateRepository<Backend.Types.View.Game>("Games")));
@@ -146,5 +158,6 @@ app.MapImages();
 app.MapSignin();
 app.MapSignup();
 app.MapOAuth();
+app.MapGamePlays();
 
 app.Run();

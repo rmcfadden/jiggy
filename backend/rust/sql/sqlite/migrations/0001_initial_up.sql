@@ -796,26 +796,95 @@ BEGIN
   UPDATE "game_parent_categories" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "game_states" (
+CREATE TABLE "game_plays" (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    "uuid" TEXT CONSTRAINT "game_states_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
-    "created" TEXT CONSTRAINT "game_states_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-    "updated" TEXT CONSTRAINT "game_states_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-    "version" BLOB CONSTRAINT "game_states_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "uuid" TEXT CONSTRAINT "game_plays_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "game_plays_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "game_plays_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "game_plays_version_default_constraint" DEFAULT X'00' NOT NULL,
     "game_id" INTEGER NOT NULL,
     "user_id" INTEGER NOT NULL,
-    "state" VARCHAR(256) NOT NULL,
-    CONSTRAINT "game_states_uuid_unique_constraint" UNIQUE ("uuid"),
-    CONSTRAINT "game_states_game_id_foreign_key" FOREIGN KEY ("game_id") REFERENCES "games" ("id"),
-    CONSTRAINT "game_states_user_id_foreign_key" FOREIGN KEY ("user_id") REFERENCES "users" ("id")
+    "finished" TEXT,
+    CONSTRAINT "game_plays_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "game_plays_game_id_foreign_key" FOREIGN KEY ("game_id") REFERENCES "games" ("id"),
+    CONSTRAINT "game_plays_user_id_foreign_key" FOREIGN KEY ("user_id") REFERENCES "users" ("id")
 );
 GO
-CREATE TRIGGER "trg_game_states_updated_at"
-AFTER UPDATE ON "game_states"
+CREATE TRIGGER "trg_game_plays_updated_at"
+AFTER UPDATE ON "game_plays"
 FOR EACH ROW
 WHEN NEW."updated" IS OLD."updated"
 BEGIN
-  UPDATE "game_states" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+  UPDATE "game_plays" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+END;
+GO
+CREATE TABLE "game_play_users" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "game_play_users_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "game_play_users_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "game_play_users_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "game_play_users_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "game_play_id" INTEGER NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    CONSTRAINT "game_play_users_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "game_play_users_game_play_id_foreign_key" FOREIGN KEY ("game_play_id") REFERENCES "game_plays" ("id"),
+    CONSTRAINT "game_play_users_user_id_foreign_key" FOREIGN KEY ("user_id") REFERENCES "users" ("id")
+);
+GO
+CREATE UNIQUE INDEX "game_play_users_game_play_users_game_play_id_user_id_index" ON "game_play_users" ("game_play_id", "user_id");
+GO
+CREATE TRIGGER "trg_game_play_users_updated_at"
+AFTER UPDATE ON "game_play_users"
+FOR EACH ROW
+WHEN NEW."updated" IS OLD."updated"
+BEGIN
+  UPDATE "game_play_users" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+END;
+GO
+CREATE TABLE "game_play_states" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "game_play_states_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "game_play_states_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "game_play_states_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "game_play_states_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "game_play_id" INTEGER NOT NULL,
+    "state_change" TEXT NOT NULL,
+    CONSTRAINT "game_play_states_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "game_play_states_game_play_id_foreign_key" FOREIGN KEY ("game_play_id") REFERENCES "game_plays" ("id")
+);
+GO
+CREATE INDEX "game_play_states_game_play_state_game_play_id_index" ON "game_play_states" ("game_play_id");
+GO
+CREATE TRIGGER "trg_game_play_states_updated_at"
+AFTER UPDATE ON "game_play_states"
+FOR EACH ROW
+WHEN NEW."updated" IS OLD."updated"
+BEGIN
+  UPDATE "game_play_states" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+END;
+GO
+CREATE TABLE "game_play_actions" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "uuid" TEXT CONSTRAINT "game_play_actions_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "game_play_actions_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "game_play_actions_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "game_play_actions_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "game_play_id" INTEGER NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "action" TEXT NOT NULL,
+    CONSTRAINT "game_play_actions_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "game_play_actions_game_play_id_foreign_key" FOREIGN KEY ("game_play_id") REFERENCES "game_plays" ("id"),
+    CONSTRAINT "game_play_actions_user_id_foreign_key" FOREIGN KEY ("user_id") REFERENCES "users" ("id")
+);
+GO
+CREATE INDEX "game_play_actions_game_play_action_game_play_id_index" ON "game_play_actions" ("game_play_id");
+GO
+CREATE TRIGGER "trg_game_play_actions_updated_at"
+AFTER UPDATE ON "game_play_actions"
+FOR EACH ROW
+WHEN NEW."updated" IS OLD."updated"
+BEGIN
+  UPDATE "game_play_actions" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
 CREATE TABLE "game_parent_settings" (

@@ -9,6 +9,7 @@ export { localizedString, LocalizedString } from "./localizedString";
 export { resource, Resource } from "./resource";
 export { template, Template } from "./template";
 export { category, Category } from "./category";
+export { gamePlay, GamePlay } from "./gamePlay";
 export { game, Game } from "./game";
 export { gameParent, GameParent } from "./gameParent";
 export { secret, Secret } from "./secret";

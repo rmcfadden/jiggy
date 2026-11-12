@@ -27,6 +27,7 @@
     "setup": "tsx src/cli.ts setup",
     "add-user": "tsx src/cli.ts add-user",
     "update-user": "tsx src/cli.ts update-user",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test \"src/**/*.test.ts\""
   }
 }

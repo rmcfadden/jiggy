@@ -1,8 +1,8 @@
 // schema-version: 1.0
-/// Type GameState.
+/// Type GamePlayBase.
 #[derive(Clone, Debug, PartialEq, datasources::Facet)]
 #[facet(crate = ::datasources::facet)]
-pub struct GameState {
+pub struct GamePlayBase {
     pub id: i64,
     pub uuid: datasources::uuid::Uuid,
     pub created: datasources::chrono::DateTime<datasources::chrono::Utc>,
@@ -10,9 +10,9 @@ pub struct GameState {
     pub version: Vec<u8>,
     pub game_id: i64,
     pub user_id: i64,
-    pub state: String,
+    pub finished: Option<datasources::chrono::DateTime<datasources::chrono::Utc>>,
 }
-impl Default for GameState {
+impl Default for GamePlayBase {
     fn default() -> Self {
         Self {
             id: 0,
@@ -22,7 +22,7 @@ impl Default for GameState {
             version: vec![0],
             game_id: 0,
             user_id: 0,
-            state: String::new(),
+            finished: None,
         }
     }
 }
