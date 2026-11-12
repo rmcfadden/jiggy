@@ -1,0 +1,8 @@
+version: 1.0.0
+types:
+  - sessions_base:
+      mapping: sessions
+  - session_hits_base:
+      mapping: session_hits
+  - session_states_base:
+      mapping: session_states
