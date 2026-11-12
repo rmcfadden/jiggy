@@ -17,7 +17,7 @@ impl IdentityProviderSigninAttemptsRepository {
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "IdentityProviderSigninAttempt".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("IdentityProviderSigninAttempt".into(), "identity_provider_signin_attempts_bases".into()),
+            ("IdentityProviderSigninAttempt".into(), "identity_provider_signin_attempts".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -40,7 +40,7 @@ impl IdentityProviderSigninAttemptsRepository {
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "IdentityProviderSigninAttempt".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("IdentityProviderSigninAttempt".into(), "identity_provider_signin_attempts_bases".into()),
+            ("IdentityProviderSigninAttempt".into(), "identity_provider_signin_attempts".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -69,7 +69,7 @@ impl IdentityProviderSigninAttemptsRepository {
         let mut options = ReadonlyRepositoryMappingOptions::default();
         options.entity = "IdentityProviderSigninAttempt".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("IdentityProviderSigninAttempt".into(), "identity_provider_signin_attempts_bases".into()),
+            ("IdentityProviderSigninAttempt".into(), "identity_provider_signin_attempts".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -191,7 +191,7 @@ pub fn identity_provider_signin_attempts_row_repository(connection: Arc<dyn Conn
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "IdentityProviderSigninAttempt".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("IdentityProviderSigninAttempt".into(), "identity_provider_signin_attempts_bases".into()),
+            ("IdentityProviderSigninAttempt".into(), "identity_provider_signin_attempts".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -214,7 +214,7 @@ pub fn identity_provider_signin_attempts_row_repository(connection: Arc<dyn Conn
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "IdentityProviderSigninAttempt".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("IdentityProviderSigninAttempt".into(), "identity_provider_signin_attempts_bases".into()),
+            ("IdentityProviderSigninAttempt".into(), "identity_provider_signin_attempts".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),

@@ -6,7 +6,7 @@ namespace Backend.Routes;
 
 public static class GamePlaysRoutes
 {
-    const string UserKey = "userId";
+    internal const string UserKey = "userId";
 
     public static void MapGamePlays(this IEndpointRouteBuilder app)
     {
@@ -37,13 +37,13 @@ public static class GamePlaysRoutes
             Results.Ok(await service.Finish(id, User(http))));
     }
 
-    static long User(HttpContext http) => (long)http.Items[UserKey]!;
+    internal static long User(HttpContext http) => (long)http.Items[UserKey]!;
 
     /// <summary>
     /// Requires <c>Authorization: Bearer &lt;access token&gt;</c> (the JWT from /api/oauth/token). On success the user's id is
     /// in <c>HttpContext.Items</c>; otherwise the request is answered 401 and never reaches the route.
     /// </summary>
-    static async ValueTask<object?> Authenticate(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
+    internal static async ValueTask<object?> Authenticate(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
         var http = context.HttpContext;
         var header = http.Request.Headers.Authorization.ToString();
@@ -63,7 +63,7 @@ public static class GamePlaysRoutes
     }
 
     /// <summary>Game errors carry their own HTTP status; anything else is a 500.</summary>
-    static async ValueTask<object?> GameErrors(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
+    internal static async ValueTask<object?> GameErrors(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
         try
         {

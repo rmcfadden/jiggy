@@ -7,6 +7,7 @@ pub mod games;
 pub mod images;
 pub mod jwt;
 pub mod oauth;
+pub mod reviews;
 pub mod sessions;
 pub mod signin;
 pub mod signup;

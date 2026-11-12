@@ -12,7 +12,7 @@ public sealed class AuthenticationMethodsRepository : CRUDRepository<Backend.Typ
             .Add(new()
             {
                 Entity = "AuthenticationMethod",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["AuthenticationMethod"] = "authentication_methods_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["AuthenticationMethod"] = "authentication_methods" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",
@@ -45,7 +45,7 @@ public sealed class AuthenticationMethodsRepository : CRUDRepository<Backend.Typ
             .Add("sqlite", new()
             {
                 Entity = "AuthenticationMethod",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["AuthenticationMethod"] = "authentication_methods_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["AuthenticationMethod"] = "authentication_methods" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",

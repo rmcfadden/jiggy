@@ -19,7 +19,7 @@ impl IdentityProvidersRepository {
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "IdentityProvider".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("IdentityProvider".into(), "identity_providers_bases".into()),
+            ("IdentityProvider".into(), "identity_providers".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -44,7 +44,7 @@ impl IdentityProvidersRepository {
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "IdentityProvider".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("IdentityProvider".into(), "identity_providers_bases".into()),
+            ("IdentityProvider".into(), "identity_providers".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -77,7 +77,7 @@ impl IdentityProvidersRepository {
         let mut options = ReadonlyRepositoryMappingOptions::default();
         options.entity = "IdentityProvider".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("IdentityProvider".into(), "identity_providers_bases".into()),
+            ("IdentityProvider".into(), "identity_providers".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -203,7 +203,7 @@ pub fn identity_providers_row_repository(connection: Arc<dyn Connection>) -> Res
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "IdentityProvider".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("IdentityProvider".into(), "identity_providers_bases".into()),
+            ("IdentityProvider".into(), "identity_providers".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -228,7 +228,7 @@ pub fn identity_providers_row_repository(connection: Arc<dyn Connection>) -> Res
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "IdentityProvider".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("IdentityProvider".into(), "identity_providers_bases".into()),
+            ("IdentityProvider".into(), "identity_providers".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),

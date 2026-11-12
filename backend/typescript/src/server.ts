@@ -49,6 +49,10 @@ import { GamePlaysService } from './services/gamePlays.ts'
 import { GameServiceRegistry } from './services/gameplay/registry.ts'
 import { gamePlaysRouter } from './routes/gamePlays.ts'
 import { requireAuth } from './middleware/auth.ts'
+import type { Review } from '../generated/types/datasource/review.ts'
+import type { GameReview } from '../generated/types/datasource/gameReview.ts'
+import { ReviewsService } from './services/reviews.ts'
+import { reviewsRouter } from './routes/reviews.ts'
 
 const ds = Datasource.default as Datasource & {
   categories: ICRUDRepository<Category>
@@ -73,6 +77,8 @@ const ds = Datasource.default as Datasource & {
   gamePlayStates: ICRUDRepository<GamePlayState>
   gamePlayActions: ICRUDRepository<GamePlayAction>
   gamePlayUsers: ICRUDRepository<GamePlayUser>
+  reviews: ICRUDRepository<Review>
+  gameReviews: ICRUDRepository<GameReview>
 }
 const categories = new CategoriesService(ds.categories)
 const gameParents = new GameParentsService(ds.gameParents)
@@ -89,6 +95,8 @@ const oauth = new OAuthService(users, tokens, sessions, tokenSettings)
 const signup = new SignupService(users, tokens, ds.contacts, ds.emails, ds.emailTypes, ds.genders)
 
 const gamePlays = new GamePlaysService(ds.gamePlays, ds.gamePlayStates, ds.gamePlayActions, ds.gamePlayUsers, games, templates, new GameServiceRegistry())
+
+const reviews = new ReviewsService(ds.reviews, ds.gameReviews, games, users)
 
 const summaries = new GameSummariesService(await ds.createConnection(), images, ds.games)
 
@@ -108,6 +116,7 @@ app.use('/api/images', imagesRouter(images))
 app.use('/api/signin', signinRouter(signin))
 app.use('/api/oauth', oauthRouter(oauth))
 app.use('/api/signup', signupRouter(signup))
+app.use('/api/reviews', reviewsRouter(reviews, requireAuth(tokens)))
 app.use('/api/game_plays', requireAuth(tokens), gamePlaysRouter(gamePlays))
 
 const port = Number(process.env.PORT ?? 3000)

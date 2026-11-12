@@ -25,7 +25,7 @@ public sealed class SecretsRepository : CRUDRepository<Backend.Types.View.Secret
             .Add(new()
             {
                 Entity = "Secret",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["Secret"] = "secrets_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["Secret"] = "secrets" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",
@@ -62,7 +62,7 @@ public sealed class SecretsRepository : CRUDRepository<Backend.Types.View.Secret
             .Add("sqlite", new()
             {
                 Entity = "Secret",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["Secret"] = "secrets_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["Secret"] = "secrets" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",

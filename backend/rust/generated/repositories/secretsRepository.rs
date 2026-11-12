@@ -19,7 +19,7 @@ impl SecretsRepository {
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "Secret".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("Secret".into(), "secrets_bases".into()),
+            ("Secret".into(), "secrets".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -45,7 +45,7 @@ impl SecretsRepository {
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "Secret".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("Secret".into(), "secrets_bases".into()),
+            ("Secret".into(), "secrets".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -80,7 +80,7 @@ impl SecretsRepository {
         let mut options = ReadonlyRepositoryMappingOptions::default();
         options.entity = "Secret".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("Secret".into(), "secrets_bases".into()),
+            ("Secret".into(), "secrets".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -208,7 +208,7 @@ pub fn secrets_row_repository(connection: Arc<dyn Connection>) -> Result<CRUDRep
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "Secret".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("Secret".into(), "secrets_bases".into()),
+            ("Secret".into(), "secrets".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -234,7 +234,7 @@ pub fn secrets_row_repository(connection: Arc<dyn Connection>) -> Result<CRUDRep
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "Secret".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("Secret".into(), "secrets_bases".into()),
+            ("Secret".into(), "secrets".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),

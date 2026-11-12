@@ -17,7 +17,7 @@ impl AuthenticationMethodsRepository {
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "AuthenticationMethod".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("AuthenticationMethod".into(), "authentication_methods_bases".into()),
+            ("AuthenticationMethod".into(), "authentication_methods".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -40,7 +40,7 @@ impl AuthenticationMethodsRepository {
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "AuthenticationMethod".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("AuthenticationMethod".into(), "authentication_methods_bases".into()),
+            ("AuthenticationMethod".into(), "authentication_methods".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -69,7 +69,7 @@ impl AuthenticationMethodsRepository {
         let mut options = ReadonlyRepositoryMappingOptions::default();
         options.entity = "AuthenticationMethod".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("AuthenticationMethod".into(), "authentication_methods_bases".into()),
+            ("AuthenticationMethod".into(), "authentication_methods".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -191,7 +191,7 @@ pub fn authentication_methods_row_repository(connection: Arc<dyn Connection>) ->
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "AuthenticationMethod".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("AuthenticationMethod".into(), "authentication_methods_bases".into()),
+            ("AuthenticationMethod".into(), "authentication_methods".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -214,7 +214,7 @@ pub fn authentication_methods_row_repository(connection: Arc<dyn Connection>) ->
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "AuthenticationMethod".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("AuthenticationMethod".into(), "authentication_methods_bases".into()),
+            ("AuthenticationMethod".into(), "authentication_methods".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),

@@ -12,7 +12,7 @@ public sealed class IdentityProviderSettingsRepository : CRUDRepository<Backend.
             .Add(new()
             {
                 Entity = "IdentityProviderSetting",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["IdentityProviderSetting"] = "identity_provider_settings_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["IdentityProviderSetting"] = "identity_provider_settings" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",
@@ -43,7 +43,7 @@ public sealed class IdentityProviderSettingsRepository : CRUDRepository<Backend.
             .Add("sqlite", new()
             {
                 Entity = "IdentityProviderSetting",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["IdentityProviderSetting"] = "identity_provider_settings_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["IdentityProviderSetting"] = "identity_provider_settings" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",

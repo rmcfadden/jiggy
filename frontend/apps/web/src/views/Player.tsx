@@ -149,7 +149,7 @@ function SavedPlayer({ id, playId, requested }: { id: number; playId: number | n
         <Board key={`${id}-${mode}`} settings={settings} template={params} photo={photo} mode={mode} play={play} />
       </div>
       {play?.replay && states && <HistoryScroller count={states.length} step={at} onStep={setStep} />}
-      {congratulating && <Congratulations name={g.name} onClose={() => setCongratulating(false)} />}
+      {congratulating && <Congratulations gameId={id} name={g.name} onClose={() => setCongratulating(false)} />}
     </div>
   )
 }
@@ -181,7 +181,7 @@ function HistoryScroller({ count, step, onStep }: { count: number; step: number;
 }
 
 /** Shown when a move finishes the puzzle. */
-function Congratulations({ name, onClose }: { name?: string; onClose: () => void }) {
+function Congratulations({ gameId, name, onClose }: { gameId: number; name?: string; onClose: () => void }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
     window.addEventListener('keydown', onKey)
@@ -200,7 +200,8 @@ function Congratulations({ name, onClose }: { name?: string; onClose: () => void
         <h2 className="mt-2 text-xl font-semibold">Congratulations!</h2>
         <p className="mt-1 text-sm text-slate-600">You finished{name ? ` ${name}` : ' the puzzle'}. It's saved in your history.</p>
         <div className="mt-5 flex flex-col gap-2">
-          <Link to="/account" className={`${primaryButton} text-center`}>View history</Link>
+          <Link to="/profile" className={`${primaryButton} text-center`}>View history</Link>
+          <Link to={`/reviews?game=${gameId}`} className="flex h-9 items-center justify-center rounded text-sm font-medium hover:bg-slate-100">Review this puzzle</Link>
           <Link to="/puzzles" className="flex h-9 items-center justify-center rounded text-sm font-medium hover:bg-slate-100">More puzzles</Link>
           <button className="h-9 rounded text-sm font-medium text-slate-600 hover:bg-slate-100" onClick={onClose}>Close</button>
         </div>

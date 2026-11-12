@@ -17,7 +17,7 @@ impl IdentityProviderAuthorizeSessionsRepository {
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "IdentityProviderAuthorizeSession".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("IdentityProviderAuthorizeSession".into(), "identity_provider_authorize_sessions_bases".into()),
+            ("IdentityProviderAuthorizeSession".into(), "identity_provider_authorize_sessions".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -45,7 +45,7 @@ impl IdentityProviderAuthorizeSessionsRepository {
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "IdentityProviderAuthorizeSession".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("IdentityProviderAuthorizeSession".into(), "identity_provider_authorize_sessions_bases".into()),
+            ("IdentityProviderAuthorizeSession".into(), "identity_provider_authorize_sessions".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -79,7 +79,7 @@ impl IdentityProviderAuthorizeSessionsRepository {
         let mut options = ReadonlyRepositoryMappingOptions::default();
         options.entity = "IdentityProviderAuthorizeSession".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("IdentityProviderAuthorizeSession".into(), "identity_provider_authorize_sessions_bases".into()),
+            ("IdentityProviderAuthorizeSession".into(), "identity_provider_authorize_sessions".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -206,7 +206,7 @@ pub fn identity_provider_authorize_sessions_row_repository(connection: Arc<dyn C
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "IdentityProviderAuthorizeSession".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("IdentityProviderAuthorizeSession".into(), "identity_provider_authorize_sessions_bases".into()),
+            ("IdentityProviderAuthorizeSession".into(), "identity_provider_authorize_sessions".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -234,7 +234,7 @@ pub fn identity_provider_authorize_sessions_row_repository(connection: Arc<dyn C
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "IdentityProviderAuthorizeSession".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("IdentityProviderAuthorizeSession".into(), "identity_provider_authorize_sessions_bases".into()),
+            ("IdentityProviderAuthorizeSession".into(), "identity_provider_authorize_sessions".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),

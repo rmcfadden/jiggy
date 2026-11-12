@@ -133,3 +133,27 @@ types:
         - phone_label_phone_id_label_id:
             fields: [phone_id, label_id]
             is_unique: true
+  - secrets_base:
+      mapping: secrets
+  - tokens_base:
+      mapping: tokens
+  - authorization_codes_base:
+      mapping: authorization_codes
+  - authentication_methods_base:
+      mapping: authentication_methods
+  - identity_providers_base:
+      mapping: identity_providers
+  - identity_provider_settings_base:
+      mapping: identity_provider_settings
+  - identity_provider_linked_users_base:
+      mapping: identity_provider_linked_users
+  - identity_provider_authorize_sessions_base:
+      mapping: identity_provider_authorize_sessions
+  - identity_provider_signin_attempts_base:
+      mapping: identity_provider_signin_attempts
+  - sessions_base:
+      mapping: sessions
+  - session_hits_base:
+      mapping: session_hits
+  - session_states_base:
+      mapping: session_states

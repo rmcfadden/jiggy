@@ -1,41 +1,41 @@
 -- Rollback initial migration for postgres
 
 -- DROP tables (reverse dependency order)
-DROP TABLE IF EXISTS "session_states_bases";
+DROP TABLE IF EXISTS "session_states";
 GO
-DROP TABLE IF EXISTS "session_hits_bases";
+DROP TABLE IF EXISTS "session_hits";
 GO
-DROP TABLE IF EXISTS "identity_provider_signin_attempts_bases";
+DROP TABLE IF EXISTS "identity_provider_signin_attempts";
 GO
-DROP TABLE IF EXISTS "identity_provider_authorize_sessions_bases";
+DROP TABLE IF EXISTS "identity_provider_authorize_sessions";
 GO
-DROP TABLE IF EXISTS "authorization_codes_bases";
+DROP TABLE IF EXISTS "authorization_codes";
 GO
-DROP TABLE IF EXISTS "sessions_bases";
+DROP TABLE IF EXISTS "sessions";
 GO
 DROP TABLE IF EXISTS "session_types";
 GO
-DROP TABLE IF EXISTS "identity_provider_linked_users_bases";
+DROP TABLE IF EXISTS "identity_provider_linked_users";
 GO
 DROP TABLE IF EXISTS "identity_provider_linked_user_field_types";
 GO
-DROP TABLE IF EXISTS "identity_provider_settings_bases";
+DROP TABLE IF EXISTS "identity_provider_settings";
 GO
-DROP TABLE IF EXISTS "identity_providers_bases";
+DROP TABLE IF EXISTS "identity_providers";
 GO
 DROP TABLE IF EXISTS "identity_provider_types";
 GO
-DROP TABLE IF EXISTS "authentication_methods_bases";
+DROP TABLE IF EXISTS "authentication_methods";
 GO
 DROP TABLE IF EXISTS "user_tokens";
 GO
-DROP TABLE IF EXISTS "tokens_bases";
+DROP TABLE IF EXISTS "tokens";
 GO
 DROP TABLE IF EXISTS "token_types";
 GO
 DROP TABLE IF EXISTS "user_secrets";
 GO
-DROP TABLE IF EXISTS "secrets_bases";
+DROP TABLE IF EXISTS "secrets";
 GO
 DROP TABLE IF EXISTS "secret_types";
 GO
