@@ -25,13 +25,13 @@ const renderAt = async (path: string) => {
       </MemoryRouter>
     </QueryClientProvider>,
   )
-  if (path.startsWith('/puzzles') || path === '/') await waitFor(() => expect(client.getQueryData(['categories'])).toBeDefined())
+  if (path === '/puzzles' || path === '/' || path.startsWith('/category/')) await waitFor(() => expect(client.getQueryData(['categories'])).toBeDefined())
 }
 
 it('redirects / to the explorer and links puzzles to the player', async () => {
   await renderAt('/')
   expect(screen.getByRole('heading', { name: 'Puzzles' })).toBeTruthy()
-  const link = screen.getAllByRole('link').find((l) => l.getAttribute('href')?.startsWith('/puzzle?id='))!
+  const link = screen.getAllByRole('link').find((l) => l.getAttribute('href')?.startsWith('/puzzles/'))!
   fireEvent.click(link)
   expect(await screen.findByLabelText('Puzzle board')).toBeTruthy()
 })
@@ -43,7 +43,7 @@ it('starts a new game play when a puzzle is clicked, and opens the puzzle with i
     return stubFetch(url, init)
   })
   await renderAt('/puzzles')
-  fireEvent.click(screen.getAllByRole('link').find((l) => l.getAttribute('href')?.startsWith('/puzzle?id='))!)
+  fireEvent.click(screen.getAllByRole('link').find((l) => l.getAttribute('href')?.startsWith('/puzzles/'))!)
   expect(await screen.findByLabelText('Puzzle board')).toBeTruthy()
   expect(calls.filter((c) => c.url === '/api/images')).toEqual([]) // never the whole image list
   const start = calls.filter((c) => c.url === '/api/game_plays')
@@ -67,7 +67,7 @@ it('shows the error and stays on the list when the play cannot be started', asyn
   vi.stubGlobal('fetch', async (url: RequestInfo | URL, init?: RequestInit) =>
     String(url) === '/api/game_plays' ? new Response(JSON.stringify({ error: 'no game service for "chess"' }), { status: 422 }) : stubFetch(url, init))
   await renderAt('/puzzles')
-  fireEvent.click(screen.getAllByRole('link').find((l) => l.getAttribute('href')?.startsWith('/puzzle?id='))!)
+  fireEvent.click(screen.getAllByRole('link').find((l) => l.getAttribute('href')?.startsWith('/puzzles/'))!)
   expect((await screen.findByRole('alert')).textContent).toContain('no game service for "chess"')
   expect(screen.getByRole('heading', { name: 'Puzzles' })).toBeTruthy()
 })
@@ -76,22 +76,27 @@ it('signs out and asks to sign in again when the access token was refused', asyn
   vi.stubGlobal('fetch', async (url: RequestInfo | URL, init?: RequestInit) =>
     String(url) === '/api/game_plays' ? new Response('{}', { status: 401 }) : stubFetch(url, init))
   await renderAt('/puzzles')
-  fireEvent.click(screen.getAllByRole('link').find((l) => l.getAttribute('href')?.startsWith('/puzzle?id='))!)
+  fireEvent.click(screen.getAllByRole('link').find((l) => l.getAttribute('href')?.startsWith('/puzzles/'))!)
   expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeTruthy()
   expect(localStorage.getItem('jiggy.auth')).toBeNull()
 })
 
 it('filters the catalog by category, including sub-categories', async () => {
   await renderAt('/puzzles')
-  const count = () => screen.getAllByRole('link').filter((l) => l.getAttribute('href')?.startsWith('/puzzle?id=')).length
+  const count = () => screen.getAllByRole('link').filter((l) => l.getAttribute('href')?.startsWith('/puzzles/')).length
   const all = count()
   fireEvent.click(screen.getByRole('button', { name: 'Birds' }))
-  expect(screen.queryByText('Matterhorn at Sunset')).toBeNull()
+  await waitFor(() => expect(screen.queryByText('Matterhorn at Sunset')).toBeNull())
   fireEvent.click(screen.getByRole('button', { name: 'Nature' }))
-  expect(screen.getByText('Matterhorn at Sunset')).toBeTruthy()
+  expect(await screen.findByText('Matterhorn at Sunset')).toBeTruthy()
   expect(count()).toBeLessThan(all)
   fireEvent.click(screen.getByRole('button', { name: 'All puzzles' }))
-  expect(count()).toBe(all)
+  await waitFor(() => expect(count()).toBe(all))
+})
+
+it('opens a saved puzzle by the slug of its name', async () => {
+  await renderAt('/puzzles/matterhorn-at-sunset')
+  expect(await screen.findByLabelText('Puzzle board')).toBeTruthy()
 })
 
 it('plays a catalog puzzle with its reviews', async () => {

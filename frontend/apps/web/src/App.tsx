@@ -5,6 +5,7 @@ import Designer from './designer/Designer'
 import ProfilePage from './views/ProfilePage'
 import Explorer from './views/Explorer'
 import Player from './views/Player'
+import PuzzleByName from './views/PuzzleByName'
 import ReviewsPage from './views/ReviewsPage'
 import SignIn from './views/SignIn'
 import SignUp from './views/SignUp'
@@ -15,6 +16,8 @@ export default function App() {
       <Route element={<Layout />}>
         <Route index element={<Navigate to="/puzzles" replace />} />
         <Route path="puzzles" element={<Explorer />} />
+        <Route path="puzzles/:name" element={<PuzzleByName />} />
+        <Route path="category/:name" element={<Explorer />} />
         <Route path="puzzle" element={<Player />} />
         <Route element={<RequireAuth />}>
           <Route path="designer" element={<Designer />} />

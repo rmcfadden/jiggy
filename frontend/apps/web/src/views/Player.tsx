@@ -44,7 +44,8 @@ import {
 
 const DEFAULT_SPEC: PuzzleSpec = { cols: 4, rows: 3, seed: 1 }
 
-export default function Player() {
+/** The puzzle page. `gameId` names a saved game directly (the `/puzzles/:name` route); otherwise the `id` search parameter does. */
+export default function Player({ gameId }: { gameId?: number } = {}) {
   const signedIn = Boolean(useSession().data)
   return (
     <div className="flex h-full flex-col">
@@ -56,16 +57,16 @@ export default function Player() {
       {/* Signed-out visitors get a view-only board: zoom and the preview still work, moves are ignored. */}
       <div className="min-h-0 flex-1">
         <ViewOnlyContext.Provider value={!signedIn}>
-          <PlayerContent />
+          <PlayerContent gameId={gameId} />
         </ViewOnlyContext.Provider>
       </div>
     </div>
   )
 }
 
-function PlayerContent() {
+function PlayerContent({ gameId }: { gameId?: number }) {
   const [params] = useSearchParams()
-  const savedId = /^\d+$/.test(params.get('id') ?? '') ? Number(params.get('id')) : null
+  const savedId = gameId ?? (/^\d+$/.test(params.get('id') ?? '') ? Number(params.get('id')) : null)
   const catalogPuzzle = savedId === null ? findPuzzle(CATALOG, params.get('id')) : undefined
   const spec = decodePuzzleId(params.get('id')) ?? DEFAULT_SPEC
   const id = catalogPuzzle?.id ?? encodePuzzleId(spec)

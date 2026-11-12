@@ -53,6 +53,7 @@ import type { Review } from '../generated/types/datasource/review.ts'
 import type { GameReview } from '../generated/types/datasource/gameReview.ts'
 import { ReviewsService } from './services/reviews.ts'
 import { reviewsRouter } from './routes/reviews.ts'
+import { puzzlesRouter } from './routes/puzzles.ts'
 
 const ds = Datasource.default as Datasource & {
   categories: ICRUDRepository<Category>
@@ -110,6 +111,7 @@ app.get('/health', (_req, res) => {
 app.use('/api/categories', categoriesRouter(categories))
 app.use('/api/games_parents', gameParentsRouter(gameParents))
 app.use('/api/games', gamesRouter(games))
+app.use('/api', puzzlesRouter(games))
 app.use('/api/games_summaries', gameSummariesRouter(summaries, reviews))
 app.use('/api/templates', templatesRouter(templates))
 app.use('/api/images', imagesRouter(images))

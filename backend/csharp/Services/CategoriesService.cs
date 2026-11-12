@@ -33,6 +33,20 @@ public class CategoriesService(ICRUDRepository<Category> repo)
     }
 
     /// <summary>
+    /// The ids of the enabled category whose name has this slug and of all its descendants (the category first); null
+    /// when there is no such category. Names are unique, so there is at most one.
+    /// </summary>
+    public async Task<List<long>?> FindBySlug(string slug)
+    {
+        var rows = await Flat();
+        var found = rows.FirstOrDefault(c => Slug.Of(c.Name) == slug);
+        if (found is null) return null;
+        var ids = new List<long> { found.Id };
+        for (var i = 0; i < ids.Count; i++) ids.AddRange(rows.Where(c => c.ParentId == ids[i]).Select(c => c.Id));
+        return ids;
+    }
+
+    /// <summary>
     /// Adds the categories in the JSON file at <paramref name="path"/> that are not there yet, matching on name and parent
     /// (deleted rows count, so a removed category is not brought back); returns the names it added.
     /// </summary>

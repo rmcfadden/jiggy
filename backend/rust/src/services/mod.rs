@@ -12,6 +12,8 @@ pub mod sessions;
 pub mod signin;
 pub mod signup;
 pub mod setup;
+pub mod sitemap;
+pub mod slug;
 pub mod templates;
 pub mod tokens;
 pub mod users;

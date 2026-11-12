@@ -1,5 +1,6 @@
 use crate::generated::Category;
 use crate::generated::repositories::categoriesRepository::CategoriesRepository;
+use crate::services::slug::slug;
 use futures_util::TryStreamExt;
 use serde_json::{json, Value};
 use std::sync::Arc;
@@ -29,6 +30,22 @@ impl CategoriesService {
             .iter()
             .map(|c| json!({ "id": c.id, "parentId": c.category_id, "name": c.name, "description": c.description }))
             .collect())
+    }
+
+    /// The ids of the enabled category whose name has this slug and of all its descendants (the category first);
+    /// `None` when there is no such category. Names are unique, so there is at most one.
+    pub async fn find_by_slug(&self, name: &str) -> Result<Option<Vec<i64>>, datasources::DatasourceError> {
+        let mut rows: Vec<Category> = self.repo.read(None, None).try_collect().await?;
+        rows.retain(|c| c.is_enabled && !c.is_deleted);
+        let Some(found) = rows.iter().find(|c| slug(&c.name) == name) else { return Ok(None) };
+        let mut ids = vec![found.id];
+        let mut i = 0;
+        while i < ids.len() {
+            let parent = ids[i];
+            ids.extend(rows.iter().filter(|c| c.category_id == Some(parent)).map(|c| c.id));
+            i += 1;
+        }
+        Ok(Some(ids))
     }
 
     /// Adds the categories in the JSON file at `path` that are not there yet, matching on name and parent

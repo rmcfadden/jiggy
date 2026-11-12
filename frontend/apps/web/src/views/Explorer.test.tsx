@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import Explorer from './Explorer'
 import { resumeOrStartGamePlay } from '../api/gamePlays'
@@ -18,12 +18,15 @@ afterEach(() => {
   localStorage.clear()
 })
 
-const renderExplorer = async () => {
+const renderExplorer = async (path = '/puzzles') => {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   const view = render(
     <QueryClientProvider client={client}>
-      <MemoryRouter>
-        <Explorer />
+      <MemoryRouter initialEntries={[path]}>
+        <Routes>
+          <Route path="puzzles" element={<Explorer />} />
+          <Route path="category/:name" element={<Explorer />} />
+        </Routes>
       </MemoryRouter>
     </QueryClientProvider>,
   )
@@ -150,4 +153,21 @@ it('falls back to defaults for bad stored data', async () => {
 it('keeps the profile list tidy', async () => {
   expect(toggleInList(['a'], 'b')).toEqual(['a', 'b'])
   expect(toggleInList(['a', 'b'], 'a')).toEqual(['b'])
+})
+
+it('selects the category named by the /category/:name URL and shows only its puzzles', async () => {
+  await renderExplorer('/category/mountains')
+  const nav = screen.getByRole('navigation', { name: 'Categories' })
+  await waitFor(() => expect(within(nav).getByRole('button', { name: 'Mountains' }).getAttribute('aria-pressed')).toBe('true'))
+  expect(screen.getByText('Matterhorn at Sunset')).toBeTruthy()
+  expect(screen.queryByText('Tropical Beach Scene')).toBeNull()
+})
+
+it('puts the chosen category in the URL, and "All puzzles" goes back to /puzzles', async () => {
+  await renderExplorer()
+  const nav = screen.getByRole('navigation', { name: 'Categories' })
+  fireEvent.click(await within(nav).findByRole('button', { name: 'Mountains' }))
+  await waitFor(() => expect(within(nav).getByRole('button', { name: 'Mountains' }).getAttribute('aria-pressed')).toBe('true'))
+  fireEvent.click(within(nav).getByRole('button', { name: 'All puzzles' }))
+  await waitFor(() => expect(within(nav).getByRole('button', { name: 'All puzzles' }).getAttribute('aria-pressed')).toBe('true'))
 })

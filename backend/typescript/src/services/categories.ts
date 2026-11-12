@@ -1,5 +1,6 @@
 import type { ICRUDRepository } from '@deterministic-code/datasources'
 import { category, type Category } from '../../generated/types/view/category.ts'
+import { slug } from './slug.ts'
 
 /** One entry of `backend/data/categories.json`; roots may list children. */
 export type CategorySeed = { name: string; description?: string; children?: CategorySeed[] }
@@ -26,6 +27,19 @@ export class CategoriesService {
       if (c.isEnabled && !c.isDeleted) rows.push({ id: Number(c.id), parentId: c.categoryId == null ? null : Number(c.categoryId), name: c.name, description: c.description })
     }
     return rows
+  }
+
+  /**
+   * The live category whose name has this slug, with the ids of its descendants; undefined when there is none.
+   * Names are unique, so there is at most one.
+   */
+  async findBySlug(name: string): Promise<{ row: CategoryRow; ids: number[] } | undefined> {
+    const rows = await this.flat()
+    const row = rows.find((c) => slug(c.name) === name)
+    if (!row) return undefined
+    const ids = [row.id]
+    for (let i = 0; i < ids.length; i++) for (const c of rows) if (c.parentId === ids[i]) ids.push(c.id)
+    return { row, ids }
   }
 
   /**

@@ -2,6 +2,7 @@ mod datasources_providers;
 mod generated;
 mod routes;
 mod services;
+mod sitemap_cli;
 mod users_cli;
 
 use axum::{routing::get, Json, Router};
@@ -63,6 +64,7 @@ async fn main() {
             setup(&game_parents, &categories, &templates, &images, &games, &identity).await;
             return;
         }
+        Some("sitemap") => std::process::exit(sitemap_cli::run(&args[1..], &categories, &games).await),
         Some(command @ ("add-user" | "update-user")) => std::process::exit(users_cli::run(command, &users, &args[1..]).await),
         _ => {}
     }
@@ -73,7 +75,8 @@ async fn main() {
         .merge(routes::game_parents::router(game_parents))
         .merge(routes::templates::router(templates))
         .merge(routes::images::router(images))
-        .merge(routes::games::router(games))
+        .merge(routes::games::router(games.clone()))
+        .merge(routes::puzzles::router(games))
         .merge(routes::game_summaries::router(summaries, reviews.clone()))
         .merge(routes::signin::router(signin))
         .merge(routes::signup::router(signup))

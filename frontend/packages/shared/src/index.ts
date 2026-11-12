@@ -14,3 +14,4 @@ export * from "./overlap";
 export * from "./game";
 export * from "./catalog";
 export * from "./catalog-data";
+export * from "./slug";

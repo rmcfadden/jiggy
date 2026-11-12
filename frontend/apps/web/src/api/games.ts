@@ -65,3 +65,14 @@ export const useCreateGame = <C = unknown>() => useInvalidating((input: GameInpu
 export const useUpdateGame = <C = unknown>() =>
   useInvalidating(({ id, ...input }: { id: number } & GameInput<C>) => gamesApi.update(id, input))
 export const useDeleteGame = () => useInvalidating(gamesApi.delete)
+
+/** Query options for one puzzle by the slug of its name (`/api/puzzles/:name`); the request fails with 404 when there is none. */
+export const gameByNameQuery = <C = unknown>(name: string) => ({
+  queryKey: [...KEY, 'name', name],
+  queryFn: async (): Promise<SavedGameRow<C>> => {
+    const res = await fetch(`/api/puzzles/${encodeURIComponent(name)}`)
+    if (!res.ok) throw new Error(`GET /api/puzzles/${name} failed: ${res.status}`)
+    return res.json()
+  },
+  retry: false,
+})

@@ -21,6 +21,10 @@ public static class GamesRoutes
             {
                 return Results.BadRequest(new { error = e.Message });
             }
+            catch (DuplicateGameNameException e)
+            {
+                return Results.Conflict(new { error = e.Message });
+            }
         });
         group.MapPut("/{id:long}", async (long id, GameInput input, GamesService service) =>
         {
@@ -31,6 +35,10 @@ public static class GamesRoutes
             catch (InvalidGameException e)
             {
                 return Results.BadRequest(new { error = e.Message });
+            }
+            catch (DuplicateGameNameException e)
+            {
+                return Results.Conflict(new { error = e.Message });
             }
         });
         group.MapDelete("/{id:long}", async (long id, GamesService service) =>

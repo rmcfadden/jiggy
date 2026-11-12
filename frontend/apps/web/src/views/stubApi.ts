@@ -1,5 +1,5 @@
 import { TEMPLATE_SIZES } from '../designer/gameAssets'
-import { CATALOG, CATEGORIES, type Category } from '@jiggy/shared'
+import { CATALOG, CATEGORIES, slug, type Category } from '@jiggy/shared'
 
 const flat = (cs: Category[]): Category[] => cs.flatMap((c) => [c, ...flat(c.children)])
 const all = flat(CATEGORIES)
@@ -17,6 +17,8 @@ export const stubApi = (url: string): unknown => {
       id: i + 1, attributes: [{ name: 'pieceCount', value: String(pieces(p.template.size)) }], name: p.name, description: '', parentName: p.settings.type, thumbnameLocation: p.image.location,
       categories: p.categories.map((id) => ({ id: all.findIndex((c) => c.id === id) + 1, name: all.find((c) => c.id === id)!.name })),
     }))
+  const named = /^\/api\/puzzles\/([^/?]+)/.exec(url)
+  if (named) return (stubApi('/api/games') as { name: string }[]).find((g) => slug(g.name) === decodeURIComponent(named[1]))
   const one = /^\/api\/games\/(\d+)/.exec(url)
   if (one) {
     const game = (stubApi('/api/games') as { id: number }[]).find((g) => g.id === Number(one[1]))
