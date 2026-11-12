@@ -24,7 +24,7 @@ public record TokenSettings(string JwtSecret, long SigninTtl, long AccessTtl, lo
         long Seconds(string key, long fallback) => long.TryParse(Get(key), out var v) ? v : fallback;
         var secret = Get("JWT_SECRET");
         if (secret is null || secret.Length < 32) throw new InvalidOperationException("JWT_SECRET must be set to at least 32 characters");
-        return new TokenSettings(secret, Seconds("SIGNIN_TOKEN_TTL", 300), Seconds("JWT_ACCESS_TTL", 900), Seconds("JWT_REFRESH_TTL", 2_592_000));
+        return new TokenSettings(secret, Seconds("SIGNIN_TOKEN_TTL", 300), Seconds("JWT_ACCESS_TTL", 86_400), Seconds("JWT_REFRESH_TTL", 86_400));
     }
 }
 
