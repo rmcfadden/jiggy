@@ -37,7 +37,7 @@ const open = async () => {
 }
 
 beforeEach(() => {
-  localStorage.setItem('jiggy.auth', JSON.stringify({ username: 'ann', accessToken: 'a', refreshToken: 'r', expiresAt: Date.now() + 60_000 }))
+  localStorage.setItem('jiggy.auth', JSON.stringify({ username: 'ann', accessToken: 'a', refreshToken: 'r', expiresAt: Date.now() + 86_400_000 }))
   // jsdom has no SVG geometry: the first point read (pointer down) is the origin, later ones are 100,50 further.
   let reads = 0
   Object.assign(SVGSVGElement.prototype, {
@@ -141,4 +141,29 @@ it('keeps the cell empty when the server denies a placement into the wrong slot'
   await waitFor(() => expect(actions()).toHaveLength(1))
   expect(actions()[0]).toMatchObject({ body: { type: 'place', piece: GUID(2), slot: 0 } })
   expect(screen.queryAllByTestId('placed')).toHaveLength(0)
+})
+
+it('signs out and goes to sign in when the access token is refused loading the play', async () => {
+  serve('scrambled', stubPlayState('scrambled'))
+  vi.stubGlobal('fetch', async (url: RequestInfo | URL, init?: RequestInit) =>
+    String(url) === '/api/game_plays/77/state' ? new Response('{}', { status: 401 }) : stubFetch(url, init))
+  render(
+    <QueryClientProvider client={new QueryClient()}>
+      <MemoryRouter initialEntries={['/puzzle?id=1&play=77']}>
+        <App />
+      </MemoryRouter>
+    </QueryClientProvider>,
+  )
+  expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeTruthy()
+  expect(localStorage.getItem('jiggy.auth')).toBeNull()
+})
+
+it('signs out, goes to sign in, and returns to the same play after signing in when a move is refused with 401', async () => {
+  reply = () => new Response('{}', { status: 401 })
+  serve('scrambled', stubPlayState('scrambled'))
+  const board = await open()
+  drag(screen.getByTestId('piece-0'), board)
+  expect(await screen.findByRole('heading', { name: 'Sign in' })).toBeTruthy()
+  expect(localStorage.getItem('jiggy.auth')).toBeNull()
+  expect(actions()).toHaveLength(1)
 })

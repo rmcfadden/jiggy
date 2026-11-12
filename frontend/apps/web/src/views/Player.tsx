@@ -2,11 +2,12 @@ import { ZoomControls, useZoom } from '../designer/zoom'
 import { PieceSparkles } from '../designer/sparkles'
 import { NEAR_COLOR, DEFAULT_EFFECTS, effectClass, sparklePieces, useFlash, type PieceEffects } from '../designer/effects'
 import { DEFAULT_PIECE_BORDERS, PieceBorderPath, SET_ALPHA, type PieceBorders } from '../designer/controls'
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { gameQuery } from '../api/games'
-import { playStateQuery, sendPlayAction, type PlayHandle, type PlayState } from '../api/gamePlays'
+import { UnauthorizedError, playStateQuery, sendPlayAction, type PlayHandle, type PlayState } from '../api/gamePlays'
+import { useSignOut } from '../auth/hooks'
 import { useImage } from '../api/images'
 import { useTemplate } from '../api/templates'
 import { normalizeSetup } from '../designer/library'
@@ -70,14 +71,39 @@ function SavedPlayer({ id, playId, requested }: { id: number; playId: number | n
   const game = useQuery(gameQuery<Parameters<typeof normalizeSetup>[0]>(id))
   // With a play id the server owns the game: the board is drawn from its state and every move goes to it.
   const playState = useQuery({ ...playStateQuery(playId ?? 0), enabled: playId !== null })
+  // A refused access token (expired or invalid), whether loading the play or sending a move, signs the user out and
+  // sends them to sign in, coming back to this puzzle afterwards.
+  const navigate = useNavigate()
+  const location = useLocation()
+  const signOut = useSignOut()
+  const toSignIn = useCallback(() => {
+    signOut()
+    navigate('/signin', { state: { from: location.pathname + location.search } })
+  }, [signOut, navigate, location.pathname, location.search])
   const play = useMemo<PlayHandle | undefined>(
-    () => (playId !== null && playState.data ? { id: playId, state: playState.data.state, send: (action) => sendPlayAction(playId, action) } : undefined),
-    [playId, playState.data],
+    () =>
+      playId !== null && playState.data
+        ? {
+            id: playId,
+            state: playState.data.state,
+            send: (action) =>
+              sendPlayAction(playId, action).catch((error: unknown) => {
+                if (error instanceof UnauthorizedError) toSignIn()
+                throw error
+              }),
+          }
+        : undefined,
+    [playId, playState.data, toSignIn],
   )
+  const unauthorized = playState.error instanceof UnauthorizedError
+  useEffect(() => {
+    if (unauthorized) toSignIn()
+  }, [unauthorized, toSignIn])
   const template = useTemplate<Partial<JigsawTemplateParams>>(game.data?.templateId ?? null)
   const image = useImage(game.data?.imageId ?? null)
   if (game.isError) return <p role="alert" className="p-4">Could not load this puzzle: {game.error.message}</p>
   if (image.isError) return <p role="alert" className="p-4">Could not load this puzzle's picture: {image.error.message}</p>
+  if (unauthorized) return <p className="p-4">Your session has expired. Redirecting to sign in…</p>
   if (playState.isError) return <p role="alert" className="p-4">Could not load this play: {playState.error.message}</p>
   const g = game.data
   if (playId !== null && !play) return <p className="p-4">Loading…</p>
