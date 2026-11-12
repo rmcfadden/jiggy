@@ -1,5 +1,6 @@
-use super::types::{refuse, Action, ActionResult, GameError, GameResult, GameSetup, Grid, PuzzleState};
-use serde_json::{Map, Value};
+use super::rng::Ids;
+use super::types::{refuse, Action, ActionResult, GameError, GameResult, GameSetup, Grid, PuzzleState, StateEvent};
+use serde_json::Value;
 
 /// Biggest puzzle the server will start; a guard against absurd templates.
 const MAX_PIECES: i64 = 2_500;
@@ -10,6 +11,8 @@ const MAX_PIECES: i64 = 2_500;
 /// result of `start` plus every accepted `action`.
 pub trait PuzzleGameService: Send + Sync {
     fn kind(&self) -> &'static str;
+    /// Makes the GUID of each piece of a new play.
+    fn ids(&self) -> &Ids;
     fn initial(&self, setup: &GameSetup, grid: &Grid) -> PuzzleState;
     fn apply(&self, state: &PuzzleState, action: &Action) -> GameResult<ActionResult>;
     fn is_solved(&self, state: &PuzzleState) -> bool;
@@ -21,7 +24,8 @@ pub trait PuzzleGameService: Send + Sync {
             return refuse(422, format!("the game's template has no usable grid ({cols}x{rows})"));
         }
         let seed = setup.number("seed", 1.0) as i64 as u32;
-        let grid = Grid { cols: cols as usize, rows: rows as usize, total: (cols * rows) as usize, seed };
+        let total = (cols * rows) as usize;
+        let grid = Grid { cols: cols as usize, rows: rows as usize, total, seed, guids: (0..total).map(|_| self.ids().next()).collect() };
         let mut state = self.initial(setup, &grid);
         state.solved = self.is_solved(&state);
         Ok(state)
@@ -33,11 +37,7 @@ pub trait PuzzleGameService: Send + Sync {
             return refuse(409, "the game is already solved");
         }
         let mut result = self.apply(state, action)?;
-        let solved = self.is_solved(&result.state);
-        result.state.solved = solved;
-        if solved {
-            result.delta.insert("solved".into(), Value::Bool(true));
-        }
+        result.state.solved = self.is_solved(&result.state);
         Ok(result)
     }
 
@@ -51,31 +51,16 @@ pub trait PuzzleGameService: Send + Sync {
     }
 }
 
-/// Rebuilds a state from its stored changes: the first row is the full state and each later row replaces the keys it
-/// names. `offsets` is the exception, it is stored sparsely as `{ pieceIndex: {x, y} }` and patched in place.
-pub fn fold_state(changes: &[Value]) -> GameResult<PuzzleState> {
-    let Some(first) = changes.first() else { return refuse(404, "the play has no state") };
-    let mut state: Map<String, Value> = first.as_object().cloned().unwrap_or_default();
-    for change in &changes[1..] {
-        let Some(change) = change.as_object() else { continue };
-        for (key, value) in change {
-            match (key.as_str(), value) {
-                ("offsets", Value::Object(sparse)) => {
-                    let mut offsets = state.get("offsets").and_then(Value::as_array).cloned().unwrap_or_default();
-                    for (index, offset) in sparse {
-                        if let Ok(i) = index.parse::<usize>() {
-                            if i < offsets.len() {
-                                offsets[i] = offset.clone();
-                            }
-                        }
-                    }
-                    state.insert("offsets".into(), Value::Array(offsets));
-                }
-                _ => {
-                    state.insert(key.clone(), value.clone());
-                }
-            }
-        }
+/// Rebuilds a state from its stored rows: the first is the full state, each later one is `{ events, mistakes, solved }`.
+pub fn fold_state(rows: &[Value]) -> GameResult<PuzzleState> {
+    let Some(first) = rows.first() else { return refuse(404, "the play has no state") };
+    let mut state = PuzzleState::from_json(first)?;
+    for row in &rows[1..] {
+        let bad = || GameError { status: 500, message: "stored game state is corrupt".into() };
+        let events = row["events"].as_array().ok_or_else(bad)?.iter().map(StateEvent::from_json).collect::<GameResult<Vec<_>>>()?;
+        state = state.apply(&events)?;
+        state.mistakes = row["mistakes"].as_u64().unwrap_or(state.mistakes);
+        state.solved = row["solved"].as_bool().unwrap_or(state.solved);
     }
-    PuzzleState::from_json(&Value::Object(state))
+    Ok(state)
 }

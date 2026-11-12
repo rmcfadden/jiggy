@@ -5,7 +5,7 @@ use crate::generated::repositories::gamePlaysRepository::GamePlaysRepository;
 use crate::generated::{GamePlay, GamePlayAction, GamePlayState, GamePlayUser};
 use crate::services::gameplay::registry::GameServiceRegistry;
 use crate::services::gameplay::service::fold_state;
-use crate::services::gameplay::types::{parse_action, GameError, GameSetup, PuzzleState};
+use crate::services::gameplay::types::{move_result, parse_action, state_row, GameError, GameSetup, PuzzleState};
 use crate::services::games::GamesService;
 use crate::services::templates::TemplatesService;
 use datasources::chrono::{DateTime, SecondsFormat, Utc};
@@ -119,11 +119,20 @@ impl GamePlaysService {
         let state = state_of(&play)?;
         let result = self.registry.for_parent(&state.kind)?.action(&state, &action)?;
         // The state row goes first: it is the truth. A failure before the action row leaves a state with no log entry, never a logged move that did not happen.
-        self.states.create(GamePlayState { game_play_id: play_id, state_change: Value::Object(result.delta).to_string(), ..GamePlayState::default() }).await?;
+        self.states.create(GamePlayState { game_play_id: play_id, state_change: state_row(&result).to_string(), ..GamePlayState::default() }).await?;
         self.actions.create(GamePlayAction { game_play_id: play_id, user_id, action: action.to_json().to_string(), ..GamePlayAction::default() }).await?;
         // Solving the puzzle ends the play: `finished` is set by the game, not by the client.
         let finished = if result.state.solved { Some(self.mark_finished(play_id).await?) } else { play.finished };
-        Ok(json!({ "accepted": true, "correct": result.correct, "solved": result.state.solved, "finished": finished.map(stamp), "state": result.state.to_json() }))
+        Ok(json!({
+            "accepted": result.result != move_result::DENIED,
+            "result": result.result,
+            "reason": result.reason,
+            "correct": result.correct,
+            "solved": result.state.solved,
+            "finished": finished.map(stamp),
+            "events": result.events.iter().map(|e| e.to_json()).collect::<Vec<_>>(),
+            "state": result.state.to_json(),
+        }))
     }
 
     pub async fn state(&self, play_id: i64, user_id: i64) -> Result<Value> {

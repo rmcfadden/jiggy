@@ -1,16 +1,26 @@
-import { GameError, type ActionResult, type GameAction, type GameSetup, type GameType, type Offset, type PuzzleState } from './types.ts'
+import { randomUUID } from 'node:crypto'
+import { GameError, type ActionResult, type GameAction, type GameSetup, type GameType, type PuzzleState } from './types.ts'
+
+export { foldState } from './state.ts'
 
 /** Biggest puzzle the server will start; a guard against absurd templates. */
 const MAX_PIECES = 2_500
 
+/** What a subclass gets to lay out a game: the grid, the seed, and one fresh GUID per piece (row-major). */
+export type Grid = { cols: number; rows: number; total: number; seed: number; guids: string[] }
+
 /**
  * The code that runs a puzzle game. The shared base holds everything the game types have in common: it builds the
- * starting state, checks every action against a strict contract and refuses anything that is not a legal move, and
- * decides when the game is solved. Subclasses only supply the starting layout and the rules of one move kind.
- * The state is never taken from a client: it is the result of `start` plus every accepted `action`.
+ * starting state (matrix of unguessable piece GUIDs included), checks every action against a strict contract and
+ * refuses anything that is not a legal move, and decides when the game is solved. Subclasses only supply the starting
+ * layout and the rules of one move kind. The state is never taken from a client: it is the result of `start` plus
+ * every accepted `action`.
  */
 export abstract class PuzzleGameService {
   abstract readonly type: GameType
+
+  /** `newId` makes piece GUIDs; the default is a CSPRNG v4 UUID. Tests pass a counter. */
+  constructor(protected readonly newId: () => string = randomUUID) {}
 
   /** The first state of a play; throws 422 when the template or config cannot make a game. */
   start(setup: GameSetup): PuzzleState {
@@ -18,7 +28,9 @@ export abstract class PuzzleGameService {
     if (!Number.isInteger(cols) || !Number.isInteger(rows) || cols < 1 || rows < 1 || cols * rows > MAX_PIECES) {
       throw new GameError(422, `the game's template has no usable grid (${cols}x${rows})`)
     }
-    const state = this.initial(setup, { cols, rows, total: cols * rows, seed: number(setup.config.seed, 1) })
+    const total = cols * rows
+    const guids = Array.from({ length: total }, () => this.newId())
+    const state = this.initial(setup, { cols, rows, total, seed: number(setup.config.seed, 1), guids })
     return { ...state, solved: this.isSolved(state) }
   }
 
@@ -26,8 +38,7 @@ export abstract class PuzzleGameService {
   action(state: PuzzleState, action: GameAction): ActionResult {
     if (state.solved) throw new GameError(409, 'the game is already solved')
     const result = this.apply(state, action)
-    const solved = this.isSolved(result.state)
-    return { ...result, state: { ...result.state, solved }, delta: solved ? { ...result.delta, solved } : result.delta }
+    return { ...result, state: { ...result.state, solved: this.isSolved(result.state) } }
   }
 
   /** The state a finished play ends with. A play may be finished early; `solved` says whether the puzzle was completed. */
@@ -35,7 +46,7 @@ export abstract class PuzzleGameService {
     return { solved: state.solved, mistakes: state.mistakes }
   }
 
-  protected abstract initial(setup: GameSetup, grid: { cols: number; rows: number; total: number; seed: number }): PuzzleState
+  protected abstract initial(setup: GameSetup, grid: Grid): PuzzleState
   protected abstract apply(state: PuzzleState, action: GameAction): ActionResult
   protected abstract isSolved(state: PuzzleState): boolean
 
@@ -46,21 +57,6 @@ export abstract class PuzzleGameService {
 
 export const number = (value: unknown, fallback: number): number => (typeof value === 'number' && Number.isFinite(value) ? value : fallback)
 
-/**
- * Rebuilds a state from its stored changes: the first row is the full state and each later row replaces the keys it
- * names. `offsets` is the exception, it is stored sparsely as `{ pieceIndex: {x, y} }` and patched in place.
- */
-export function foldState(changes: Record<string, unknown>[]): PuzzleState {
-  if (changes.length === 0) throw new GameError(404, 'the play has no state')
-  let state = structuredClone(changes[0]) as unknown as PuzzleState
-  for (const change of changes.slice(1)) {
-    const { offsets, ...rest } = change as { offsets?: Offset[] | Record<string, Offset> }
-    state = { ...state, ...(rest as Partial<PuzzleState>) }
-    if (offsets && !Array.isArray(offsets)) {
-      const next = [...(state.offsets ?? [])]
-      for (const [index, offset] of Object.entries(offsets)) next[Number(index)] = offset
-      state.offsets = next
-    } else if (offsets) state.offsets = offsets
-  }
-  return state
-}
+/** Splits row-major GUIDs into the matrix `matrix[row][col]`. */
+export const toMatrix = (guids: string[], cols: number): string[][] =>
+  Array.from({ length: guids.length / cols }, (_, row) => guids.slice(row * cols, (row + 1) * cols))

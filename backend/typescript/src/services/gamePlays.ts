@@ -7,7 +7,7 @@ import type { GamesService } from './games.ts'
 import type { TemplatesService } from './templates.ts'
 import { foldState } from './gameplay/puzzleGameService.ts'
 import type { GameServiceRegistry } from './gameplay/registry.ts'
-import { GameError, parseAction, type PuzzleState } from './gameplay/types.ts'
+import { GameError, parseAction, type PuzzleState, type StateRow } from './gameplay/types.ts'
 
 export type PlayDto = { id: number; gameId: number; finished: Date | null; state: PuzzleState }
 export type ActionDto = { id: number; userId: number; action: unknown; created: Date }
@@ -57,12 +57,13 @@ export class GamePlaysService {
       const state = this.stateOf(play)
       const result = this.registry.forParent(state.type).action(state, action)
       // The state row goes first: it is the truth. A failure before the action row leaves a state with no log entry, never a logged move that did not happen.
-      await this.states.create(gamePlayState({ gamePlayId: playId, stateChange: JSON.stringify(result.delta) }))
+      const row: StateRow = { events: result.events, mistakes: result.state.mistakes, solved: result.state.solved }
+      await this.states.create(gamePlayState({ gamePlayId: playId, stateChange: JSON.stringify(row) }))
       await this.actions.create(gamePlayAction({ gamePlayId: playId, userId, action: JSON.stringify(action) }))
       // Solving the puzzle ends the play: `finished` is set by the game, not by the client.
       let finished: Date | null = play.finished
       if (result.state.solved) finished = await this.markFinished(playId)
-      return { accepted: true, correct: result.correct, solved: result.state.solved, finished, state: result.state }
+      return { accepted: result.result !== 'denied', result: result.result, reason: result.reason, correct: result.correct, solved: result.state.solved, finished, events: result.events, state: result.state }
     })
   }
 
