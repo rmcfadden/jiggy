@@ -2,7 +2,7 @@ use crate::routes::auth::{require_auth, UserId};
 use crate::services::game_plays::{GamePlaysService, PlayError};
 use crate::services::tokens::TokenService;
 use axum::{
-    extract::{Path, State},
+    extract::{Path, Query, State},
     http::StatusCode,
     middleware,
     routing::{get, post},
@@ -18,7 +18,7 @@ type Reply = Result<Json<Value>, Failure>;
 /// Routes under /api/game_plays, all behind `require_auth`.
 pub fn router(service: Arc<GamePlaysService>, tokens: Arc<TokenService>) -> Router {
     Router::new()
-        .route("/api/game_plays", post(start))
+        .route("/api/game_plays", post(start).get(unfinished))
         .route("/api/game_plays/{id}/action", post(action))
         .route("/api/game_plays/{id}/state", get(state))
         .route("/api/game_plays/{id}/actions", get(actions))
@@ -42,6 +42,13 @@ async fn start(State(service): Service, Extension(UserId(user)): Extension<UserI
         return Err((StatusCode::BAD_REQUEST, Json(json!({ "error": "game_id must be an integer" }))));
     };
     Ok((StatusCode::CREATED, Json(service.start(game_id, user).await.map_err(fail)?)))
+}
+
+async fn unfinished(State(service): Service, Extension(UserId(user)): Extension<UserId>, Query(query): Query<std::collections::HashMap<String, String>>) -> Reply {
+    if query.get("finished").map(String::as_str) != Some("false") {
+        return Err((StatusCode::BAD_REQUEST, Json(json!({ "error": "only finished=false is supported" }))));
+    }
+    Ok(Json(service.unfinished(user).await.map_err(fail)?))
 }
 
 async fn action(State(service): Service, Extension(UserId(user)): Extension<UserId>, Path(id): Path<i64>, Json(body): Json<Value>) -> Reply {

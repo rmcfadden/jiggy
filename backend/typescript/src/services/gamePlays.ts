@@ -10,6 +10,8 @@ import type { GameServiceRegistry } from './gameplay/registry.ts'
 import { GameError, parseAction, type PuzzleState, type StateRow } from './gameplay/types.ts'
 
 export type PlayDto = { id: number; gameId: number; finished: Date | null; state: PuzzleState }
+/** An unfinished play to carry on with: `lastPlayed` is its newest state change (the start, when nothing was played yet). */
+export type UnfinishedPlayDto = { id: number; gameId: number; lastPlayed: Date }
 export type ActionDto = { id: number; userId: number; action: unknown; created: Date }
 
 /**
@@ -65,6 +67,20 @@ export class GamePlaysService {
       if (result.state.solved) finished = await this.markFinished(playId)
       return { accepted: result.result !== 'denied', result: result.result, reason: result.reason, correct: result.correct, solved: result.state.solved, finished, events: result.events, state: result.state }
     })
+  }
+
+  /** The user's plays that are not finished, newest activity first: plays they are a participant of (`game_play_user`). */
+  async unfinished(userId: number): Promise<UnfinishedPlayDto[]> {
+    const ids = new Set<number>()
+    for await (const row of this.users.read()) if (Number(row.userId) === userId) ids.add(Number(row.gamePlayId))
+    const found: UnfinishedPlayDto[] = []
+    for (const id of ids) {
+      const play = await this.plays.readSingleById(id)
+      if (!play || play.finished) continue
+      const times = play.states.map((s) => new Date(s.created).getTime())
+      found.push({ id, gameId: Number(play.gameId), lastPlayed: new Date(Math.max(new Date(play.created).getTime(), ...times)) })
+    }
+    return found.sort((a, b) => b.lastPlayed.getTime() - a.lastPlayed.getTime() || b.id - a.id)
   }
 
   async state(playId: number, userId: number): Promise<PlayDto> {

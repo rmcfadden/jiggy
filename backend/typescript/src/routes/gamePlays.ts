@@ -17,6 +17,15 @@ export function gamePlaysRouter(service: GamePlaysService): Router {
     }
   })
 
+  router.get('/', async (req, res, next) => {
+    try {
+      if (req.query.finished !== 'false') throw new GameError(400, 'only finished=false is supported')
+      res.json(await service.unfinished(user(res)))
+    } catch (err) {
+      next(err)
+    }
+  })
+
   router.post('/:id/action', async (req, res, next) => {
     try {
       res.json(await service.action(Number(req.params.id), user(res), req.body))
