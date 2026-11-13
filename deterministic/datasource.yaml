@@ -9,3 +9,4 @@ includes:
   - file: templates_datasource.yaml
   - file: contacts_datasource.yaml
   - file: settings_datasource.yaml
+  - file: applications_datasource.yaml

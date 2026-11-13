@@ -931,7 +931,7 @@ GO
 CREATE TRIGGER trg_application_visibilities_updated_at BEFORE UPDATE ON application_visibilities
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
-CREATE TABLE applications_bases (
+CREATE TABLE applications (
     id BIGINT AUTO_INCREMENT NOT NULL,
     uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
     created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
@@ -945,16 +945,16 @@ CREATE TABLE applications_bases (
     is_enabled TINYINT(1) DEFAULT 1 NOT NULL,
     is_deleted TINYINT(1) DEFAULT 0 NOT NULL,
     is_builtin TINYINT(1) DEFAULT 0 NOT NULL,
-    CONSTRAINT applications_bases_primary_key PRIMARY KEY (id),
-    CONSTRAINT applications_bases_uuid_unique_constraint UNIQUE (uuid),
-    CONSTRAINT applications_bases_application_type_id_foreign_key FOREIGN KEY (application_type_id) REFERENCES application_types (id),
-    CONSTRAINT applications_bases_application_visibility_id_foreign_key FOREIGN KEY (application_visibility_id) REFERENCES application_visibilities (id)
+    CONSTRAINT applications_primary_key PRIMARY KEY (id),
+    CONSTRAINT applications_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT applications_application_type_id_foreign_key FOREIGN KEY (application_type_id) REFERENCES application_types (id),
+    CONSTRAINT applications_application_visibility_id_foreign_key FOREIGN KEY (application_visibility_id) REFERENCES application_visibilities (id)
 );
 GO
-CREATE TRIGGER trg_applications_bases_updated_at BEFORE UPDATE ON applications_bases
+CREATE TRIGGER trg_applications_updated_at BEFORE UPDATE ON applications
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
-CREATE TABLE application_settings_bases (
+CREATE TABLE application_settings (
     id BIGINT AUTO_INCREMENT NOT NULL,
     uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
     created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
@@ -963,12 +963,12 @@ CREATE TABLE application_settings_bases (
     application_id BIGINT NOT NULL,
     name VARCHAR(256) NOT NULL,
     value TEXT NOT NULL,
-    CONSTRAINT application_settings_bases_primary_key PRIMARY KEY (id),
-    CONSTRAINT application_settings_bases_uuid_unique_constraint UNIQUE (uuid),
-    CONSTRAINT application_settings_bases_application_id_foreign_key FOREIGN KEY (application_id) REFERENCES applications_bases (id)
+    CONSTRAINT application_settings_primary_key PRIMARY KEY (id),
+    CONSTRAINT application_settings_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT application_settings_application_id_foreign_key FOREIGN KEY (application_id) REFERENCES applications (id)
 );
 GO
-CREATE TRIGGER trg_application_settings_bases_updated_at BEFORE UPDATE ON application_settings_bases
+CREATE TRIGGER trg_application_settings_updated_at BEFORE UPDATE ON application_settings
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
 CREATE TABLE application_uris (
@@ -981,7 +981,7 @@ CREATE TABLE application_uris (
     uri_id BIGINT NOT NULL,
     CONSTRAINT application_uris_primary_key PRIMARY KEY (id),
     CONSTRAINT application_uris_uuid_unique_constraint UNIQUE (uuid),
-    CONSTRAINT application_uris_application_id_foreign_key FOREIGN KEY (application_id) REFERENCES applications_bases (id),
+    CONSTRAINT application_uris_application_id_foreign_key FOREIGN KEY (application_id) REFERENCES applications (id),
     CONSTRAINT application_uris_uri_id_foreign_key FOREIGN KEY (uri_id) REFERENCES uris_bases (id)
 );
 GO
@@ -998,14 +998,14 @@ CREATE TABLE application_users (
     user_id BIGINT NOT NULL,
     CONSTRAINT application_users_primary_key PRIMARY KEY (id),
     CONSTRAINT application_users_uuid_unique_constraint UNIQUE (uuid),
-    CONSTRAINT application_users_application_id_foreign_key FOREIGN KEY (application_id) REFERENCES applications_bases (id),
+    CONSTRAINT application_users_application_id_foreign_key FOREIGN KEY (application_id) REFERENCES applications (id),
     CONSTRAINT application_users_user_id_foreign_key FOREIGN KEY (user_id) REFERENCES users (id)
 );
 GO
 CREATE TRIGGER trg_application_users_updated_at BEFORE UPDATE ON application_users
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
-CREATE TABLE services_bases (
+CREATE TABLE services (
     id BIGINT AUTO_INCREMENT NOT NULL,
     uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
     created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
@@ -1013,11 +1013,11 @@ CREATE TABLE services_bases (
     version BLOB DEFAULT (X'00') NOT NULL,
     name VARCHAR(512) NOT NULL,
     description TEXT,
-    CONSTRAINT services_bases_primary_key PRIMARY KEY (id),
-    CONSTRAINT services_bases_uuid_unique_constraint UNIQUE (uuid)
+    CONSTRAINT services_primary_key PRIMARY KEY (id),
+    CONSTRAINT services_uuid_unique_constraint UNIQUE (uuid)
 );
 GO
-CREATE TRIGGER trg_services_bases_updated_at BEFORE UPDATE ON services_bases
+CREATE TRIGGER trg_services_updated_at BEFORE UPDATE ON services
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
 CREATE TABLE application_services (
@@ -1030,8 +1030,8 @@ CREATE TABLE application_services (
     service_id BIGINT NOT NULL,
     CONSTRAINT application_services_primary_key PRIMARY KEY (id),
     CONSTRAINT application_services_uuid_unique_constraint UNIQUE (uuid),
-    CONSTRAINT application_services_application_id_foreign_key FOREIGN KEY (application_id) REFERENCES applications_bases (id),
-    CONSTRAINT application_services_service_id_foreign_key FOREIGN KEY (service_id) REFERENCES services_bases (id)
+    CONSTRAINT application_services_application_id_foreign_key FOREIGN KEY (application_id) REFERENCES applications (id),
+    CONSTRAINT application_services_service_id_foreign_key FOREIGN KEY (service_id) REFERENCES services (id)
 );
 GO
 CREATE TRIGGER trg_application_services_updated_at BEFORE UPDATE ON application_services
@@ -1047,14 +1047,14 @@ CREATE TABLE service_uris (
     uri_id BIGINT NOT NULL,
     CONSTRAINT service_uris_primary_key PRIMARY KEY (id),
     CONSTRAINT service_uris_uuid_unique_constraint UNIQUE (uuid),
-    CONSTRAINT service_uris_service_id_foreign_key FOREIGN KEY (service_id) REFERENCES services_bases (id),
+    CONSTRAINT service_uris_service_id_foreign_key FOREIGN KEY (service_id) REFERENCES services (id),
     CONSTRAINT service_uris_uri_id_foreign_key FOREIGN KEY (uri_id) REFERENCES uris_bases (id)
 );
 GO
 CREATE TRIGGER trg_service_uris_updated_at BEFORE UPDATE ON service_uris
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
-CREATE TABLE service_settings_bases (
+CREATE TABLE service_settings (
     id BIGINT AUTO_INCREMENT NOT NULL,
     uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
     created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
@@ -1063,12 +1063,12 @@ CREATE TABLE service_settings_bases (
     service_id BIGINT NOT NULL,
     name VARCHAR(512) NOT NULL,
     value TEXT NOT NULL,
-    CONSTRAINT service_settings_bases_primary_key PRIMARY KEY (id),
-    CONSTRAINT service_settings_bases_uuid_unique_constraint UNIQUE (uuid),
-    CONSTRAINT service_settings_bases_service_id_foreign_key FOREIGN KEY (service_id) REFERENCES services_bases (id)
+    CONSTRAINT service_settings_primary_key PRIMARY KEY (id),
+    CONSTRAINT service_settings_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT service_settings_service_id_foreign_key FOREIGN KEY (service_id) REFERENCES services (id)
 );
 GO
-CREATE TRIGGER trg_service_settings_bases_updated_at BEFORE UPDATE ON service_settings_bases
+CREATE TRIGGER trg_service_settings_updated_at BEFORE UPDATE ON service_settings
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
 CREATE TABLE oauth_grant_types (

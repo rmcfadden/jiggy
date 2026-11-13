@@ -45,21 +45,21 @@ DROP TABLE IF EXISTS secret_types;
 GO
 DROP TABLE IF EXISTS oauth_grant_types;
 GO
-DROP TABLE IF EXISTS service_settings_bases;
+DROP TABLE IF EXISTS service_settings;
 GO
 DROP TABLE IF EXISTS service_uris;
 GO
 DROP TABLE IF EXISTS application_services;
 GO
-DROP TABLE IF EXISTS services_bases;
+DROP TABLE IF EXISTS services;
 GO
 DROP TABLE IF EXISTS application_users;
 GO
 DROP TABLE IF EXISTS application_uris;
 GO
-DROP TABLE IF EXISTS application_settings_bases;
+DROP TABLE IF EXISTS application_settings;
 GO
-DROP TABLE IF EXISTS applications_bases;
+DROP TABLE IF EXISTS applications;
 GO
 DROP TABLE IF EXISTS application_visibilities;
 GO

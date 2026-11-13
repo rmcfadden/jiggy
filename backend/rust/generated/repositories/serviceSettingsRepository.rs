@@ -17,7 +17,7 @@ impl ServiceSettingsRepository {
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "ServiceSetting".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("ServiceSetting".into(), "service_settings_bases".into()),
+            ("ServiceSetting".into(), "service_settings".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -39,7 +39,7 @@ impl ServiceSettingsRepository {
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "ServiceSetting".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("ServiceSetting".into(), "service_settings_bases".into()),
+            ("ServiceSetting".into(), "service_settings".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -67,7 +67,7 @@ impl ServiceSettingsRepository {
         let mut options = ReadonlyRepositoryMappingOptions::default();
         options.entity = "ServiceSetting".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("ServiceSetting".into(), "service_settings_bases".into()),
+            ("ServiceSetting".into(), "service_settings".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -188,7 +188,7 @@ pub fn service_settings_row_repository(connection: Arc<dyn Connection>) -> Resul
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "ServiceSetting".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("ServiceSetting".into(), "service_settings_bases".into()),
+            ("ServiceSetting".into(), "service_settings".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -210,7 +210,7 @@ pub fn service_settings_row_repository(connection: Arc<dyn Connection>) -> Resul
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "ServiceSetting".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("ServiceSetting".into(), "service_settings_bases".into()),
+            ("ServiceSetting".into(), "service_settings".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
