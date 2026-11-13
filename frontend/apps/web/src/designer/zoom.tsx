@@ -103,7 +103,10 @@ export type PuzzlePreview = {
 
 /** The finished picture laid exactly over the puzzle on the board, at its current size and zoom. */
 function PreviewOverlay({ preview, onClose }: { preview: PuzzlePreview; onClose: () => void }) {
-  const [rect, setRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null)
+  type Rect = { left: number; top: number; width: number; height: number }
+  const [rect, setRect] = useState<Rect | null>(null)
+  const [frozen, setFrozen] = useState<Rect | null>(null)
+  const [offset, setOffset] = useState({ x: 0, y: 0 })
   useEffect(() => {
     const measure = () => {
       const svg = preview.svg.current
@@ -121,25 +124,69 @@ function PreviewOverlay({ preview, onClose }: { preview: PuzzlePreview; onClose:
     }
   }, [preview])
   if (!rect) return null
+  const shown = frozen ?? rect
+  const left = shown.left + offset.x
+  const top = shown.top + offset.y
+  // Dragging the picture (or the move handle) turns the modal overlay into a pinned one: the backdrop goes
+  // away and the picture floats where it was dropped, so the puzzle stays playable underneath.
+  const startDrag = (e: React.PointerEvent) => {
+    if (e.button !== 0) return
+    e.preventDefault()
+    e.stopPropagation()
+    const start = { x: e.clientX, y: e.clientY, ox: offset.x, oy: offset.y }
+    let moved = false
+    const move = (ev: PointerEvent) => {
+      if (!moved && Math.hypot(ev.clientX - start.x, ev.clientY - start.y) < 4) return
+      if (!moved) {
+        moved = true
+        setFrozen((f) => f ?? rect)
+      }
+      setOffset({ x: start.ox + ev.clientX - start.x, y: start.oy + ev.clientY - start.y })
+    }
+    const end = () => {
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', end)
+      window.removeEventListener('pointercancel', end)
+    }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', end)
+    window.addEventListener('pointercancel', end)
+  }
+  const pinned = frozen !== null
   return (
-    <div className="fixed inset-0 z-50 bg-white/70" onClick={onClose}>
-      <img
-        src={preview.photo}
-        alt="Finished puzzle"
-        draggable={false}
-        className="absolute max-w-none object-cover shadow-lg"
-        style={{ left: rect.left, top: rect.top, width: rect.width, height: rect.height }}
-      />
-      <button
-        type="button"
-        autoFocus
-        aria-label="Close"
-        className="absolute rounded border border-slate-300 bg-white px-2 py-1 text-sm font-medium shadow hover:bg-slate-200"
-        style={{ left: Math.max(8, rect.left + rect.width - 70), top: Math.max(8, rect.top + 8) }}
-        onClick={onClose}
-      >
-        Close
-      </button>
+    <div className={`fixed inset-0 z-50 ${pinned ? 'pointer-events-none' : 'bg-white/70'}`} onClick={pinned ? undefined : onClose}>
+      <div className="pointer-events-auto absolute" style={{ left, top, width: shown.width, height: shown.height }}>
+        <img
+          src={preview.photo}
+          alt="Finished puzzle"
+          draggable={false}
+          onPointerDown={startDrag}
+          onClick={(e) => e.stopPropagation()}
+          className="h-full w-full max-w-none cursor-move select-none touch-none object-cover shadow-lg"
+        />
+        <div className="absolute right-2 top-2 flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+          <button
+            type="button"
+            aria-label="Move"
+            title="Drag to move"
+            className="cursor-move touch-none rounded border border-slate-300 bg-white p-1 shadow hover:bg-slate-200"
+            onPointerDown={startDrag}
+          >
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M12 2v20M2 12h20M12 2l-3 3M12 2l3 3M12 22l-3-3M12 22l3-3M2 12l3-3M2 12l3 3M22 12l-3-3M22 12l-3 3" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            autoFocus
+            aria-label="Close"
+            className="rounded border border-slate-300 bg-white px-2 py-1 text-sm font-medium shadow hover:bg-slate-200"
+            onClick={onClose}
+          >
+            Close
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
@@ -176,7 +223,14 @@ export function ZoomControls({
         Reset
       </button>
       {preview && (
-        <button type="button" className={`${btn} ${vertical ? 'order-5' : ''}`} aria-label="Show finished puzzle" title="Show finished puzzle" onClick={() => setOpen(true)}>
+        <button
+          type="button"
+          className={`${btn} ${vertical ? 'order-5' : ''} ${open ? 'bg-sky-200 text-sky-900 ring-1 ring-sky-500' : ''}`}
+          aria-label="Show finished puzzle"
+          aria-pressed={open}
+          title={open ? 'Hide finished puzzle' : 'Show finished puzzle'}
+          onClick={() => setOpen((o) => !o)}
+        >
           <svg viewBox="0 0 24 24" className="mx-auto h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" />
             <circle cx="12" cy="12" r="3" />
