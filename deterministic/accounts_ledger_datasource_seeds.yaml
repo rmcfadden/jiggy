@@ -1,0 +1,849 @@
+version: 1.0.0
+seeds:
+  - currency:
+      - id1:
+          code: "AED"
+          description: "United Arab Emirates dirham"
+      - id2:
+          code: "AFN"
+          description: "Afghan afghani"
+      - id3:
+          code: "ALL"
+          description: "Albanian lek"
+      - id4:
+          code: "AMD"
+          description: "Armenian dram"
+      - id5:
+          code: "ANG"
+          description: "Netherlands Antillean guilder"
+      - id6:
+          code: "AOA"
+          description: "Angolan kwanza"
+      - id7:
+          code: "ARS"
+          description: "Argentine peso"
+      - id8:
+          code: "AUD"
+          description: "Australian dollar"
+      - id9:
+          code: "AWG"
+          description: "Aruban florin"
+      - id10:
+          code: "AZN"
+          description: "Azerbaijani manat"
+      - id11:
+          code: "BAM"
+          description: "Bosnia and Herzegovina convertible mark"
+      - id12:
+          code: "BBD"
+          description: "Barbados dollar"
+      - id13:
+          code: "BDT"
+          description: "Bangladeshi taka"
+      - id14:
+          code: "BGN"
+          description: "Bulgarian lev"
+      - id15:
+          code: "BHD"
+          description: "Bahraini dinar"
+      - id16:
+          code: "BIF"
+          description: "Burundian franc"
+      - id17:
+          code: "BMD"
+          description: "Bermudian dollar"
+      - id18:
+          code: "BND"
+          description: "Brunei dollar"
+      - id19:
+          code: "BOB"
+          description: "Boliviano"
+      - id20:
+          code: "BOV"
+          description: "Bolivian Mvdol (funds code)"
+      - id21:
+          code: "BRL"
+          description: "Brazilian real"
+      - id22:
+          code: "BSD"
+          description: "Bahamian dollar"
+      - id23:
+          code: "BTN"
+          description: "Bhutanese ngultrum"
+      - id24:
+          code: "BWP"
+          description: "Botswana pula"
+      - id25:
+          code: "BYN"
+          description: "Belarusian ruble"
+      - id26:
+          code: "BZD"
+          description: "Belize dollar"
+      - id27:
+          code: "CAD"
+          description: "Canadian dollar"
+      - id28:
+          code: "CDF"
+          description: "Congolese franc"
+      - id29:
+          code: "CHE"
+          description: "WIR euro (complementary currency)"
+      - id30:
+          code: "CHF"
+          description: "Swiss franc"
+      - id31:
+          code: "CHW"
+          description: "WIR franc (complementary currency)"
+      - id32:
+          code: "CLF"
+          description: "Unidad de Fomento (funds code)"
+      - id33:
+          code: "CLP"
+          description: "Chilean peso"
+      - id34:
+          code: "CNY"
+          description: "Chinese yuan renminbi"
+      - id35:
+          code: "COP"
+          description: "Colombian peso"
+      - id36:
+          code: "COU"
+          description: "Unidad de Valor Real (funds code)"
+      - id37:
+          code: "CRC"
+          description: "Costa Rican colon"
+      - id38:
+          code: "CUC"
+          description: "Cuban convertible peso"
+      - id39:
+          code: "CUP"
+          description: "Cuban peso"
+      - id40:
+          code: "CVE"
+          description: "Cape Verdean escudo"
+      - id41:
+          code: "CZK"
+          description: "Czech koruna"
+      - id42:
+          code: "DJF"
+          description: "Djiboutian franc"
+      - id43:
+          code: "DKK"
+          description: "Danish krone"
+      - id44:
+          code: "DOP"
+          description: "Dominican peso"
+      - id45:
+          code: "DZD"
+          description: "Algerian dinar"
+      - id46:
+          code: "EGP"
+          description: "Egyptian pound"
+      - id47:
+          code: "ERN"
+          description: "Eritrean nakfa"
+      - id48:
+          code: "ETB"
+          description: "Ethiopian birr"
+      - id49:
+          code: "EUR"
+          description: "Euro"
+      - id50:
+          code: "FJD"
+          description: "Fiji dollar"
+      - id51:
+          code: "FKP"
+          description: "Falkland Islands pound"
+      - id52:
+          code: "GBP"
+          description: "Pound sterling"
+      - id53:
+          code: "GEL"
+          description: "Georgian lari"
+      - id54:
+          code: "GHS"
+          description: "Ghanaian cedi"
+      - id55:
+          code: "GIP"
+          description: "Gibraltar pound"
+      - id56:
+          code: "GMD"
+          description: "Gambian dalasi"
+      - id57:
+          code: "GNF"
+          description: "Guinean franc"
+      - id58:
+          code: "GTQ"
+          description: "Guatemalan quetzal"
+      - id59:
+          code: "GYD"
+          description: "Guyanese dollar"
+      - id60:
+          code: "HKD"
+          description: "Hong Kong dollar"
+      - id61:
+          code: "HNL"
+          description: "Honduran lempira"
+      - id62:
+          code: "HRK"
+          description: "Croatian kuna (replaced by the euro in 2023)"
+      - id63:
+          code: "HTG"
+          description: "Haitian gourde"
+      - id64:
+          code: "HUF"
+          description: "Hungarian forint"
+      - id65:
+          code: "IDR"
+          description: "Indonesian rupiah"
+      - id66:
+          code: "ILS"
+          description: "Israeli new shekel"
+      - id67:
+          code: "INR"
+          description: "Indian rupee"
+      - id68:
+          code: "IQD"
+          description: "Iraqi dinar"
+      - id69:
+          code: "IRR"
+          description: "Iranian rial"
+      - id70:
+          code: "ISK"
+          description: "Icelandic króna"
+      - id71:
+          code: "JMD"
+          description: "Jamaican dollar"
+      - id72:
+          code: "JOD"
+          description: "Jordanian dinar"
+      - id73:
+          code: "JPY"
+          description: "Japanese yen"
+      - id74:
+          code: "KES"
+          description: "Kenyan shilling"
+      - id75:
+          code: "KGS"
+          description: "Kyrgyzstani som"
+      - id76:
+          code: "KHR"
+          description: "Cambodian riel"
+      - id77:
+          code: "KMF"
+          description: "Comoro franc"
+      - id78:
+          code: "KPW"
+          description: "North Korean won"
+      - id79:
+          code: "KRW"
+          description: "South Korean won"
+      - id80:
+          code: "KWD"
+          description: "Kuwaiti dinar"
+      - id81:
+          code: "KYD"
+          description: "Cayman Islands dollar"
+      - id82:
+          code: "KZT"
+          description: "Kazakhstani tenge"
+      - id83:
+          code: "LAK"
+          description: "Lao kip"
+      - id84:
+          code: "LBP"
+          description: "Lebanese pound"
+      - id85:
+          code: "LKR"
+          description: "Sri Lankan rupee"
+      - id86:
+          code: "LRD"
+          description: "Liberian dollar"
+      - id87:
+          code: "LSL"
+          description: "Lesotho loti"
+      - id88:
+          code: "LYD"
+          description: "Libyan dinar"
+      - id89:
+          code: "MAD"
+          description: "Moroccan dirham"
+      - id90:
+          code: "MDL"
+          description: "Moldovan leu"
+      - id91:
+          code: "MGA"
+          description: "Malagasy ariary"
+      - id92:
+          code: "MKD"
+          description: "Macedonian denar"
+      - id93:
+          code: "MMK"
+          description: "Myanmar kyat"
+      - id94:
+          code: "MNT"
+          description: "Mongolian tögrög"
+      - id95:
+          code: "MOP"
+          description: "Macanese pataca"
+      - id96:
+          code: "MRU"
+          description: "Mauritanian ouguiya"
+      - id97:
+          code: "MUR"
+          description: "Mauritian rupee"
+      - id98:
+          code: "MVR"
+          description: "Maldivian rufiyaa"
+      - id99:
+          code: "MWK"
+          description: "Malawian kwacha"
+      - id100:
+          code: "MXN"
+          description: "Mexican peso"
+      - id101:
+          code: "MXV"
+          description: "Mexican Unidad de Inversion (funds code)"
+      - id102:
+          code: "MYR"
+          description: "Malaysian ringgit"
+      - id103:
+          code: "MZN"
+          description: "Mozambican metical"
+      - id104:
+          code: "NAD"
+          description: "Namibian dollar"
+      - id105:
+          code: "NGN"
+          description: "Nigerian naira"
+      - id106:
+          code: "NIO"
+          description: "Nicaraguan córdoba"
+      - id107:
+          code: "NOK"
+          description: "Norwegian krone"
+      - id108:
+          code: "NPR"
+          description: "Nepalese rupee"
+      - id109:
+          code: "NZD"
+          description: "New Zealand dollar"
+      - id110:
+          code: "OMR"
+          description: "Omani rial"
+      - id111:
+          code: "PAB"
+          description: "Panamanian balboa"
+      - id112:
+          code: "PEN"
+          description: "Peruvian sol"
+      - id113:
+          code: "PGK"
+          description: "Papua New Guinean kina"
+      - id114:
+          code: "PHP"
+          description: "Philippine peso"
+      - id115:
+          code: "PKR"
+          description: "Pakistani rupee"
+      - id116:
+          code: "PLN"
+          description: "Polish złoty"
+      - id117:
+          code: "PYG"
+          description: "Paraguayan guaraní"
+      - id118:
+          code: "QAR"
+          description: "Qatari riyal"
+      - id119:
+          code: "RON"
+          description: "Romanian leu"
+      - id120:
+          code: "RSD"
+          description: "Serbian dinar"
+      - id121:
+          code: "RUB"
+          description: "Russian ruble"
+      - id122:
+          code: "RWF"
+          description: "Rwandan franc"
+      - id123:
+          code: "SAR"
+          description: "Saudi riyal"
+      - id124:
+          code: "SBD"
+          description: "Solomon Islands dollar"
+      - id125:
+          code: "SCR"
+          description: "Seychelles rupee"
+      - id126:
+          code: "SDG"
+          description: "Sudanese pound"
+      - id127:
+          code: "SEK"
+          description: "Swedish krona"
+      - id128:
+          code: "SGD"
+          description: "Singapore dollar"
+      - id129:
+          code: "SHP"
+          description: "Saint Helena pound"
+      - id130:
+          code: "SLE"
+          description: "Sierra Leonean leone"
+      - id131:
+          code: "SOS"
+          description: "Somali shilling"
+      - id132:
+          code: "SRD"
+          description: "Surinamese dollar"
+      - id133:
+          code: "SSP"
+          description: "South Sudanese pound"
+      - id134:
+          code: "STN"
+          description: "São Tomé and Príncipe dobra"
+      - id135:
+          code: "SVC"
+          description: "Salvadoran colón"
+      - id136:
+          code: "SYP"
+          description: "Syrian pound"
+      - id137:
+          code: "SZL"
+          description: "Swazi lilangeni"
+      - id138:
+          code: "THB"
+          description: "Thai baht"
+      - id139:
+          code: "TJS"
+          description: "Tajikistani somoni"
+      - id140:
+          code: "TMT"
+          description: "Turkmenistan manat"
+      - id141:
+          code: "TND"
+          description: "Tunisian dinar"
+      - id142:
+          code: "TOP"
+          description: "Tongan paʻanga"
+      - id143:
+          code: "TRY"
+          description: "Turkish lira"
+      - id144:
+          code: "TTD"
+          description: "Trinidad and Tobago dollar"
+      - id145:
+          code: "TWD"
+          description: "New Taiwan dollar"
+      - id146:
+          code: "TZS"
+          description: "Tanzanian shilling"
+      - id147:
+          code: "UAH"
+          description: "Ukrainian hryvnia"
+      - id148:
+          code: "UGX"
+          description: "Ugandan shilling"
+      - id149:
+          code: "USD"
+          description: "United States dollar"
+      - id150:
+          code: "USN"
+          description: "United States dollar (next day) (funds code)"
+      - id151:
+          code: "UYI"
+          description: "Uruguay Peso en Unidades Indexadas (funds code)"
+      - id152:
+          code: "UYU"
+          description: "Uruguayan peso"
+      - id153:
+          code: "UYW"
+          description: "Unidad previsional (Uruguay)"
+      - id154:
+          code: "UZS"
+          description: "Uzbekistan som"
+      - id155:
+          code: "VED"
+          description: "Venezuelan digital bolívar"
+      - id156:
+          code: "VES"
+          description: "Venezuelan bolívar soberano"
+      - id157:
+          code: "VND"
+          description: "Vietnamese đồng"
+      - id158:
+          code: "VUV"
+          description: "Vanuatu vatu"
+      - id159:
+          code: "WST"
+          description: "Samoan tala"
+      - id160:
+          code: "XAF"
+          description: "CFA franc BEAC"
+      - id161:
+          code: "XAG"
+          description: "Silver (one troy ounce)"
+      - id162:
+          code: "XAU"
+          description: "Gold (one troy ounce)"
+      - id163:
+          code: "XBA"
+          description: "European Composite Unit (EURCO) (bond market unit)"
+      - id164:
+          code: "XBB"
+          description: "European Monetary Unit (E.M.U.-6) (bond market unit)"
+      - id165:
+          code: "XBC"
+          description: "European Unit of Account 9 (E.U.A.-9) (bond market unit)"
+      - id166:
+          code: "XBD"
+          description: "European Unit of Account 17 (E.U.A.-17) (bond market unit)"
+      - id167:
+          code: "XCD"
+          description: "East Caribbean dollar"
+      - id168:
+          code: "XDR"
+          description: "Special drawing rights (International Monetary Fund)"
+      - id169:
+          code: "XOF"
+          description: "CFA franc BCEAO"
+      - id170:
+          code: "XPD"
+          description: "Palladium (one troy ounce)"
+      - id171:
+          code: "XPF"
+          description: "CFP franc"
+      - id172:
+          code: "XPT"
+          description: "Platinum (one troy ounce)"
+      - id173:
+          code: "XSU"
+          description: "SUCRE (Unified System for Regional Compensation)"
+      - id174:
+          code: "XTS"
+          description: "Code reserved for testing purposes"
+      - id175:
+          code: "XUA"
+          description: "ADB Unit of Account (African Development Bank)"
+      - id176:
+          code: "XXX"
+          description: "No currency (transaction involves no currency)"
+      - id177:
+          code: "YER"
+          description: "Yemeni rial"
+      - id178:
+          code: "ZAR"
+          description: "South African rand"
+      - id179:
+          code: "ZMW"
+          description: "Zambian kwacha"
+      - id180:
+          code: "ZWL"
+          description: "Zimbabwean dollar"
+      - id181:
+          code: "BTC"
+          description: "Bitcoin"
+      - id182:
+          code: "ETH"
+          description: "Ethereum"
+      - id183:
+          code: "USDT"
+          description: "Tether"
+      - id184:
+          code: "XRP"
+          description: "XRP"
+      - id185:
+          code: "BNB"
+          description: "BNB"
+      - id186:
+          code: "SOL"
+          description: "Solana"
+      - id187:
+          code: "USDC"
+          description: "USD Coin"
+      - id188:
+          code: "DOGE"
+          description: "Dogecoin"
+      - id189:
+          code: "TRX"
+          description: "TRON"
+      - id190:
+          code: "ADA"
+          description: "Cardano"
+      - id191:
+          code: "STETH"
+          description: "Lido Staked Ether"
+      - id192:
+          code: "WBTC"
+          description: "Wrapped Bitcoin"
+      - id193:
+          code: "LINK"
+          description: "Chainlink"
+      - id194:
+          code: "AVAX"
+          description: "Avalanche"
+      - id195:
+          code: "HYPE"
+          description: "Hyperliquid"
+      - id196:
+          code: "XLM"
+          description: "Stellar"
+      - id197:
+          code: "BCH"
+          description: "Bitcoin Cash"
+      - id198:
+          code: "SUI"
+          description: "Sui"
+      - id199:
+          code: "LEO"
+          description: "UNUS SED LEO"
+      - id200:
+          code: "HBAR"
+          description: "Hedera"
+      - id201:
+          code: "SHIB"
+          description: "Shiba Inu"
+      - id202:
+          code: "TON"
+          description: "Toncoin"
+      - id203:
+          code: "LTC"
+          description: "Litecoin"
+      - id204:
+          code: "DOT"
+          description: "Polkadot"
+      - id205:
+          code: "XMR"
+          description: "Monero"
+      - id206:
+          code: "USDE"
+          description: "Ethena USDe"
+      - id207:
+          code: "DAI"
+          description: "Dai"
+      - id208:
+          code: "BGB"
+          description: "Bitget Token"
+      - id209:
+          code: "UNI"
+          description: "Uniswap"
+      - id210:
+          code: "PEPE"
+          description: "Pepe"
+      - id211:
+          code: "AAVE"
+          description: "Aave"
+      - id212:
+          code: "CRO"
+          description: "Cronos"
+      - id213:
+          code: "TAO"
+          description: "Bittensor"
+      - id214:
+          code: "NEAR"
+          description: "NEAR Protocol"
+      - id215:
+          code: "ICP"
+          description: "Internet Computer"
+      - id216:
+          code: "ETC"
+          description: "Ethereum Classic"
+      - id217:
+          code: "APT"
+          description: "Aptos"
+      - id218:
+          code: "ONDO"
+          description: "Ondo"
+      - id219:
+          code: "OKB"
+          description: "OKB"
+      - id220:
+          code: "KAS"
+          description: "Kaspa"
+      - id221:
+          code: "POL"
+          description: "Polygon"
+      - id222:
+          code: "ALGO"
+          description: "Algorand"
+      - id223:
+          code: "ATOM"
+          description: "Cosmos"
+      - id224:
+          code: "VET"
+          description: "VeChain"
+      - id225:
+          code: "ARB"
+          description: "Arbitrum"
+      - id226:
+          code: "FIL"
+          description: "Filecoin"
+      - id227:
+          code: "RENDER"
+          description: "Render"
+      - id228:
+          code: "FET"
+          description: "Artificial Superintelligence Alliance"
+      - id229:
+          code: "JUP"
+          description: "Jupiter"
+      - id230:
+          code: "INJ"
+          description: "Injective"
+      - id231:
+          code: "OP"
+          description: "Optimism"
+      - id232:
+          code: "SEI"
+          description: "Sei"
+      - id233:
+          code: "BONK"
+          description: "Bonk"
+      - id234:
+          code: "TIA"
+          description: "Celestia"
+      - id235:
+          code: "STX"
+          description: "Stacks"
+      - id236:
+          code: "IMX"
+          description: "Immutable"
+      - id237:
+          code: "GRT"
+          description: "The Graph"
+      - id238:
+          code: "LDO"
+          description: "Lido DAO"
+      - id239:
+          code: "CRV"
+          description: "Curve DAO Token"
+      - id240:
+          code: "FLOKI"
+          description: "Floki"
+      - id241:
+          code: "WLD"
+          description: "Worldcoin"
+      - id242:
+          code: "QNT"
+          description: "Quant"
+      - id243:
+          code: "SAND"
+          description: "The Sandbox"
+      - id244:
+          code: "MANA"
+          description: "Decentraland"
+      - id245:
+          code: "THETA"
+          description: "Theta Network"
+      - id246:
+          code: "XTZ"
+          description: "Tezos"
+      - id247:
+          code: "EOS"
+          description: "EOS"
+      - id248:
+          code: "IOTA"
+          description: "IOTA"
+      - id249:
+          code: "NEO"
+          description: "Neo"
+      - id250:
+          code: "FLOW"
+          description: "Flow"
+      - id251:
+          code: "AXS"
+          description: "Axie Infinity"
+      - id252:
+          code: "GALA"
+          description: "Gala"
+      - id253:
+          code: "CHZ"
+          description: "Chiliz"
+      - id254:
+          code: "EGLD"
+          description: "MultiversX"
+      - id255:
+          code: "KAVA"
+          description: "Kava"
+      - id256:
+          code: "RUNE"
+          description: "THORChain"
+      - id257:
+          code: "MKR"
+          description: "Maker"
+      - id258:
+          code: "SNX"
+          description: "Synthetix"
+      - id259:
+          code: "COMP"
+          description: "Compound"
+      - id260:
+          code: "ZEC"
+          description: "Zcash"
+      - id261:
+          code: "DASH"
+          description: "Dash"
+      - id262:
+          code: "XEM"
+          description: "NEM"
+      - id263:
+          code: "ENS"
+          description: "Ethereum Name Service"
+      - id264:
+          code: "1INCH"
+          description: "1inch"
+      - id265:
+          code: "BAT"
+          description: "Basic Attention Token"
+      - id266:
+          code: "ZIL"
+          description: "Zilliqa"
+      - id267:
+          code: "ENJ"
+          description: "Enjin Coin"
+      - id268:
+          code: "LRC"
+          description: "Loopring"
+      - id269:
+          code: "YFI"
+          description: "yearn.finance"
+      - id270:
+          code: "SUSHI"
+          description: "SushiSwap"
+      - id271:
+          code: "CAKE"
+          description: "PancakeSwap"
+      - id272:
+          code: "PYTH"
+          description: "Pyth Network"
+      - id273:
+          code: "WIF"
+          description: "dogwifhat"
+      - id274:
+          code: "JASMY"
+          description: "JasmyCoin"
+      - id275:
+          code: "TUSD"
+          description: "TrueUSD"
+      - id276:
+          code: "PYUSD"
+          description: "PayPal USD"
+      - id277:
+          code: "FDUSD"
+          description: "First Digital USD"
+      - id278:
+          code: "USDS"
+          description: "USDS"
+      - id279:
+          code: "BSV"
+          description: "Bitcoin SV"
+      - id280:
+          code: "ZRO"
+          description: "LayerZero"
+      - id281:
+          code: "PRZPT"
+          description: "Prize points"
+      - id282:
+          code: "GAMEPT"
+          description: "Game points"

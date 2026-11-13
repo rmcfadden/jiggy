@@ -1,0 +1,84 @@
+version: 1.0.0
+includes:
+  - file: base.yaml
+  - file: users.yaml
+
+types:
+  - account:
+      tags: [datasource_type]
+      inherits: base
+      fields:
+        - user_id:
+          references: user_base.id
+        - name:
+            type: string
+            size: 128
+        - is_enabled:
+            type: boolean
+            default_value: true
+        - is_deleted:
+            type: boolean
+            default_value: false
+
+  - transaction_base:
+      tags: [datasource_type]
+      inherits: base
+      fields:
+        - account_id:
+          references: account.id
+
+  - currency:
+      tags:
+        - datasource_type
+        - readonly_lookup
+      inherits: base
+      fields:
+        - code:
+            # ISO 4217 alphabetic code (USD) or crypto ticker (BTC)
+            type: string
+            size: 10
+            is_unique: true
+        - description:
+            type: string
+            size: 128
+
+  - item_type:
+      tags: [datasource_type]
+      inherits: base
+      fields:
+        - name:
+            type: string
+            size: 128
+
+  - item_base:
+      tags: [datasource_type]
+      inherits: base
+      fields:
+        - account_id:
+          references: account.id
+        - item_type_id:
+          references: item_type.id
+        - currency_id:
+          references: currency.id
+        - amount:
+            type: double
+
+  - item:
+      tags: [view_type]
+      inherits: item_base
+      union:
+        - item_type
+        - currency
+      extract:
+        - item_type.name
+        - currency.code
+      mapping:
+        name: item_typename
+        currency.code: currency_code
+
+  - transaction:
+      tags: [view_type]
+      inherits: transaction
+      items:
+        - type: item[]
+          references: item_base.id
