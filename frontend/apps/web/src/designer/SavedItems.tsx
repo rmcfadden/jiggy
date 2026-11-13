@@ -53,6 +53,7 @@ export function SavedItems({ noun, items, onLoad, onAdd, onSave, isChanged, onRe
   useEffect(() => {
     if (!required || loading || selectedId || items.length === 0) return
     setSelectedId(items[0].id)
+    onSelectedChange?.(items[0].id)
     onLoad(items[0].id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [required, loading, selectedId, items])

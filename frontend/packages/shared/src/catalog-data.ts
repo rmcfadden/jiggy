@@ -68,7 +68,7 @@ const puzzle = (s: Spec): Puzzle => ({
 
 export const PUZZLES: Puzzle[] = [
   puzzle({ id: "matterhorn", name: "Matterhorn at Sunset", category: "mountains", size: "48", reviews: [r(5, "Gorgeous colours, the sky is a fun challenge."), r(4, "Lots of similar rock pieces.")] }),
-  puzzle({ id: "mount-rainier", name: "Over Mount Rainier", category: "mountains", size: "100", style: "varied", settings: scrambled({ viewPercent: 60, spread: 50 }), reviews: [r(4, "Great mix of sky and snow.")] }),
+  puzzle({ id: "mount-rainier", name: "Over Mount Rainier", category: "mountains", size: "100", style: "varied", settings: scrambled({ spread: 50 }), reviews: [r(4, "Great mix of sky and snow.")] }),
   puzzle({ id: "misty-forest", name: "Forest Path", category: "forests", also: ["autumn"], size: "20", settings: nextPieces({ panelSize: 4 }), reviews: [r(3, "Lots of green, but relaxing."), r(4, "Nice beginner puzzle.")] }),
   puzzle({ id: "tropical-beach", name: "Tropical Beach Scene", category: "beaches", size: "48", reviews: [r(4, "Cheerful and bright.")] }),
   puzzle({ id: "iguazu-falls", name: "Iguazu Falls", category: "waterfalls", also: ["forests"], size: "100", style: "varied", reviews: [r(5, "Water texture makes this a real test."), r(5, "Stunning.")] }),
@@ -81,7 +81,7 @@ export const PUZZLES: Puzzle[] = [
   puzzle({ id: "andromeda", name: "Andromeda Galaxy", category: "galaxies", size: "100", settings: nextPieces({ panelSize: 5, order: "random" }), reviews: [r(3, "Lots of black pieces!"), r(5, "Beautiful when finished.")] }),
   puzzle({ id: "ocean-sunset", name: "Ocean Sunset", category: "sunsets", also: ["beaches"], size: "48", reviews: [r(4, "Gradient sky is the hard part.")] }),
   puzzle({ id: "fruit-market", name: "A Fruit Stall in a Market", category: "food", also: ["art"], size: "48", style: "varied", reviews: [r(4, "Rich painted detail.")] }),
-  puzzle({ id: "starry-night", name: "The Starry Night", category: "art", size: "100", settings: scrambled({ viewPercent: 50 }), reviews: [r(5, "Swirls are mesmerising."), r(4, "Tough but fair.")] }),
+  puzzle({ id: "starry-night", name: "The Starry Night", category: "art", size: "100", settings: scrambled(), reviews: [r(5, "Swirls are mesmerising."), r(4, "Tough but fair.")] }),
   puzzle({ id: "great-wave", name: "The Great Wave", category: "art", size: "48", reviews: [r(5, "A classic.")] }),
   puzzle({ id: "steam-locomotive", name: "Steam Locomotive", category: "vehicles", size: "20", reviews: [r(4, "Fun for train fans.")] }),
   puzzle({ id: "autumn-leaves", name: "Autumn Leaves in a Stream", category: "autumn", also: ["forests"], size: "100", style: "varied", reviews: [r(4, "Warm colours, plenty of detail.")] }),

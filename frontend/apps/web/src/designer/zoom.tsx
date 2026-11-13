@@ -43,8 +43,12 @@ export function useZoom(aspect: number) {
   }, [])
 
   const change = (f: (z: number) => number) => setZoom((z) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, f(z))))
-  const svgStyle: CSSProperties | undefined =
-    zoom > 1 && fit ? { width: fit.width * zoom, height: fit.height * zoom, maxWidth: 'none', maxHeight: 'none', flexShrink: 0 } : undefined
+  // At 1x the svg fills the frame (as large as its aspect ratio allows); zoomed in it outgrows the frame.
+  const svgStyle: CSSProperties | undefined = !fit
+    ? undefined
+    : zoom > 1
+      ? { width: fit.width * zoom, height: fit.height * zoom, maxWidth: 'none', maxHeight: 'none', flexShrink: 0 }
+      : { width: fit.width, height: fit.height }
 
   return {
     frameRef,

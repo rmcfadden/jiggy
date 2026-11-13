@@ -39,7 +39,7 @@ export type ScatterOptions = {
   side?: StartSide;
   /** How many pieces start loose; the rest start placed. Default: all. */
   count?: number;
-  /** Share of the window the puzzle board fills, 20-80. Default 40. */
+  /** Share of the window the puzzle board fills, 20-90. Default 70. */
   viewPercent?: number;
   /** How hard to keep loose pieces apart, 0-100; 0 is purely random. Default 30. */
   spread?: number;
@@ -49,7 +49,7 @@ export type ScatterOptions = {
   aspect?: number;
 };
 
-export const DEFAULT_VIEW_PERCENT = 40;
+export const DEFAULT_VIEW_PERCENT = 70;
 export const DEFAULT_SPREAD = 30;
 
 /** Free space around the board (per side) so the board fills `viewPercent` of the view. */
@@ -59,7 +59,7 @@ export function viewMargins(
   cell = { width: PIECE_SIZE, height: PIECE_SIZE },
   aspect?: number,
 ): Offset {
-  const f = Math.min(0.8, Math.max(0.2, viewPercent / 100));
+  const f = Math.min(0.9, Math.max(0.2, viewPercent / 100));
   const w = spec.cols * cell.width;
   const h = spec.rows * cell.height;
   // Never so tight that a piece can't rest beside the board.

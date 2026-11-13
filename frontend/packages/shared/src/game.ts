@@ -42,7 +42,7 @@ export const DEFAULT_GAME_CONFIG: GameConfig = {
   order: "sequential",
   panelDock: "bottom",
   remaining: 5,
-  viewPercent: 40,
+  viewPercent: 70,
   startSide: "random",
   looseCount: 0,
   spread: 30,
