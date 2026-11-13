@@ -8,3 +8,4 @@ includes:
   - file: games_datasource.yaml
   - file: templates_datasource.yaml
   - file: contacts_datasource.yaml
+  - file: settings_datasource.yaml

@@ -2,6 +2,10 @@ version: 1.0.0
 includes:
   - file: base.yaml
   - file: user-roles.yaml
+  - file: applications.yaml
+    combine_options:
+      source:
+        remove_types: [base]
 types:
   - oauth_grant_type:
       tags:

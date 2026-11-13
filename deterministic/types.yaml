@@ -7,28 +7,50 @@ includes:
         remove_types: [base, user_base, role, group, user_group, user_role, user_setting, user_setting_map, user]
   - file: sessions.yaml
 types:
-  - game_summary:
-      tags: [view_type, readonly]
+
+  - setting:
+      tags:
+        - datasource_type
+      inherits: base
       fields:
-        - id:
-            # the game's id
-            type: biginteger
-            is_id: true
+        - app_id:
+            references: app_base.id
+        - name:
+            type: string
+            size: 255
+        - value:
+            type: string
+            size: unlimited
+
+  - app_base:
+      # host row that owns the app-wide settings dictionary
+      tags:
+        - datasource_type
+      inherits: base
+      fields:
         - name:
             type: string
             size: 128
-        - description:
+
+  - settings_map:
+      tags:
+        - view_type
+      inherits: dictionary
+      fields:
+        - key:
+            type: string
+            size: 255
+            references: setting.name
+        - value:
             type: string
             size: unlimited
-        - parent_name:
-            type: string
-            size: 128
-        - thumbname_location:
-            type: string
-            size: 128
-        - categories:
-            type: category[]
-            references: game_category.game_id
-        - attributes:
-            type: game_attribute_map{}
-            references: game_attribute.game_id
+            references: setting.value
+
+  - app:
+      tags:
+        - view_type
+      inherits: app_base
+      fields:
+        - settings:
+            type: settings_map{}
+            references: setting.app_id

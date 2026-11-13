@@ -9,6 +9,22 @@ impl SchemaObject for AddressAttribute {}
 
 impl SchemaObject for AddressLabel {}
 
+impl SchemaObject for App {}
+
+impl SchemaObject for Application {}
+
+impl SchemaObject for ApplicationService {}
+
+impl SchemaObject for ApplicationSetting {}
+
+impl SchemaObject for ApplicationType {}
+
+impl SchemaObject for ApplicationUri {}
+
+impl SchemaObject for ApplicationUser {}
+
+impl SchemaObject for ApplicationVisibility {}
+
 impl SchemaObject for AuthenticationMethod {}
 
 impl SchemaObject for AuthorizationCode {}
@@ -105,6 +121,12 @@ impl SchemaObject for Secret {}
 
 impl SchemaObject for SecretType {}
 
+impl SchemaObject for Service {}
+
+impl SchemaObject for ServiceSetting {}
+
+impl SchemaObject for ServiceUri {}
+
 impl SchemaObject for Session {}
 
 impl SchemaObject for SessionHit {}
@@ -113,6 +135,8 @@ impl SchemaObject for SessionStatesBase {}
 
 impl SchemaObject for SessionType {}
 
+impl SchemaObject for Setting {}
+
 impl SchemaObject for Template {}
 
 impl SchemaObject for TemplateType {}
@@ -120,6 +144,10 @@ impl SchemaObject for TemplateType {}
 impl SchemaObject for Token {}
 
 impl SchemaObject for TokenType {}
+
+impl SchemaObject for Uri {}
+
+impl SchemaObject for UriType {}
 
 impl SchemaObject for UserGroup {}
 

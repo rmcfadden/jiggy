@@ -178,6 +178,8 @@ CREATE TABLE contacts (
     CONSTRAINT contacts_user_id_foreign_key FOREIGN KEY (user_id) REFERENCES users (id)
 );
 GO
+CREATE INDEX contacts_contact_base_gender_type_id_index_index ON contacts (gender_type_id);
+GO
 CREATE TRIGGER trg_contacts_updated_at BEFORE UPDATE ON contacts
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
@@ -215,6 +217,8 @@ CREATE TABLE emails (
 );
 GO
 CREATE UNIQUE INDEX emails_contact_id_email_type_id_index_index ON emails (contact_id, email_type_id);
+GO
+CREATE INDEX emails_email_base_email_type_id_index_index ON emails (email_type_id);
 GO
 CREATE TRIGGER trg_emails_updated_at BEFORE UPDATE ON emails
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
@@ -257,6 +261,8 @@ CREATE TABLE phones (
 GO
 CREATE UNIQUE INDEX phones_contact_id_phone_type_id_index_index ON phones (contact_id, phone_type_id);
 GO
+CREATE INDEX phones_phone_base_phone_type_id_index_index ON phones (phone_type_id);
+GO
 CREATE TRIGGER trg_phones_updated_at BEFORE UPDATE ON phones
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
@@ -285,6 +291,8 @@ CREATE TABLE addresses (
     CONSTRAINT addresses_uuid_unique_constraint UNIQUE (uuid),
     CONSTRAINT addresses_contact_id_foreign_key FOREIGN KEY (contact_id) REFERENCES contacts (id)
 );
+GO
+CREATE INDEX addresses_address_base_contact_id_index_index ON addresses (contact_id);
 GO
 CREATE TRIGGER trg_addresses_updated_at BEFORE UPDATE ON addresses
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
@@ -345,6 +353,8 @@ CREATE TABLE email_attributes (
     CONSTRAINT email_attributes_email_id_foreign_key FOREIGN KEY (email_id) REFERENCES emails (id)
 );
 GO
+CREATE INDEX email_attributes_email_attribute_email_id_index_index ON email_attributes (email_id);
+GO
 CREATE UNIQUE INDEX email_attributes_owner_key_index ON email_attributes (email_id, name);
 GO
 CREATE TRIGGER trg_email_attributes_updated_at BEFORE UPDATE ON email_attributes
@@ -363,6 +373,8 @@ CREATE TABLE phone_attributes (
     CONSTRAINT phone_attributes_uuid_unique_constraint UNIQUE (uuid),
     CONSTRAINT phone_attributes_phone_id_foreign_key FOREIGN KEY (phone_id) REFERENCES phones (id)
 );
+GO
+CREATE INDEX phone_attributes_phone_attribute_phone_id_index_index ON phone_attributes (phone_id);
 GO
 CREATE UNIQUE INDEX phone_attributes_owner_key_index ON phone_attributes (phone_id, name);
 GO
@@ -422,6 +434,8 @@ CREATE TABLE address_labels (
 GO
 CREATE UNIQUE INDEX address_labels_address_label_address_id_label_id_index ON address_labels (address_id, label_id);
 GO
+CREATE INDEX address_labels_address_label_label_id_index_index ON address_labels (label_id);
+GO
 CREATE TRIGGER trg_address_labels_updated_at BEFORE UPDATE ON address_labels
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
@@ -441,6 +455,8 @@ CREATE TABLE email_labels (
 GO
 CREATE UNIQUE INDEX email_labels_email_label_email_id_label_id_index ON email_labels (email_id, label_id);
 GO
+CREATE INDEX email_labels_email_label_label_id_index_index ON email_labels (label_id);
+GO
 CREATE TRIGGER trg_email_labels_updated_at BEFORE UPDATE ON email_labels
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
@@ -459,6 +475,8 @@ CREATE TABLE phone_labels (
 );
 GO
 CREATE UNIQUE INDEX phone_labels_phone_label_phone_id_label_id_index ON phone_labels (phone_id, label_id);
+GO
+CREATE INDEX phone_labels_phone_label_label_id_index_index ON phone_labels (label_id);
 GO
 CREATE TRIGGER trg_phone_labels_updated_at BEFORE UPDATE ON phone_labels
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
@@ -849,6 +867,210 @@ GO
 CREATE TRIGGER trg_game_reviews_updated_at BEFORE UPDATE ON game_reviews
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
+CREATE TABLE uri_types (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    name VARCHAR(256) NOT NULL,
+    description TEXT,
+    CONSTRAINT uri_types_primary_key PRIMARY KEY (id),
+    CONSTRAINT uri_types_uuid_unique_constraint UNIQUE (uuid)
+);
+GO
+CREATE TRIGGER trg_uri_types_updated_at BEFORE UPDATE ON uri_types
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE uris_bases (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    uri_type_id BIGINT NOT NULL,
+    location TEXT NOT NULL,
+    is_public TINYINT(1) DEFAULT 0 NOT NULL,
+    is_enabled TINYINT(1) DEFAULT 1 NOT NULL,
+    is_deleted TINYINT(1) DEFAULT 0 NOT NULL,
+    CONSTRAINT uris_bases_primary_key PRIMARY KEY (id),
+    CONSTRAINT uris_bases_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT uris_bases_uri_type_id_foreign_key FOREIGN KEY (uri_type_id) REFERENCES uri_types (id)
+);
+GO
+CREATE TRIGGER trg_uris_bases_updated_at BEFORE UPDATE ON uris_bases
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE application_types (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    name VARCHAR(256) NOT NULL,
+    description TEXT,
+    CONSTRAINT application_types_primary_key PRIMARY KEY (id),
+    CONSTRAINT application_types_uuid_unique_constraint UNIQUE (uuid)
+);
+GO
+CREATE TRIGGER trg_application_types_updated_at BEFORE UPDATE ON application_types
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE application_visibilities (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    name VARCHAR(512) NOT NULL,
+    description TEXT,
+    CONSTRAINT application_visibilities_primary_key PRIMARY KEY (id),
+    CONSTRAINT application_visibilities_uuid_unique_constraint UNIQUE (uuid)
+);
+GO
+CREATE TRIGGER trg_application_visibilities_updated_at BEFORE UPDATE ON application_visibilities
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE applications_bases (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    name VARCHAR(512) NOT NULL,
+    application_type_id BIGINT NOT NULL,
+    application_visibility_id BIGINT NOT NULL,
+    client_id VARCHAR(512) NOT NULL,
+    description TEXT,
+    is_enabled TINYINT(1) DEFAULT 1 NOT NULL,
+    is_deleted TINYINT(1) DEFAULT 0 NOT NULL,
+    is_builtin TINYINT(1) DEFAULT 0 NOT NULL,
+    CONSTRAINT applications_bases_primary_key PRIMARY KEY (id),
+    CONSTRAINT applications_bases_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT applications_bases_application_type_id_foreign_key FOREIGN KEY (application_type_id) REFERENCES application_types (id),
+    CONSTRAINT applications_bases_application_visibility_id_foreign_key FOREIGN KEY (application_visibility_id) REFERENCES application_visibilities (id)
+);
+GO
+CREATE TRIGGER trg_applications_bases_updated_at BEFORE UPDATE ON applications_bases
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE application_settings_bases (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    application_id BIGINT NOT NULL,
+    name VARCHAR(256) NOT NULL,
+    value TEXT NOT NULL,
+    CONSTRAINT application_settings_bases_primary_key PRIMARY KEY (id),
+    CONSTRAINT application_settings_bases_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT application_settings_bases_application_id_foreign_key FOREIGN KEY (application_id) REFERENCES applications_bases (id)
+);
+GO
+CREATE TRIGGER trg_application_settings_bases_updated_at BEFORE UPDATE ON application_settings_bases
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE application_uris (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    application_id BIGINT NOT NULL,
+    uri_id BIGINT NOT NULL,
+    CONSTRAINT application_uris_primary_key PRIMARY KEY (id),
+    CONSTRAINT application_uris_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT application_uris_application_id_foreign_key FOREIGN KEY (application_id) REFERENCES applications_bases (id),
+    CONSTRAINT application_uris_uri_id_foreign_key FOREIGN KEY (uri_id) REFERENCES uris_bases (id)
+);
+GO
+CREATE TRIGGER trg_application_uris_updated_at BEFORE UPDATE ON application_uris
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE application_users (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    application_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    CONSTRAINT application_users_primary_key PRIMARY KEY (id),
+    CONSTRAINT application_users_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT application_users_application_id_foreign_key FOREIGN KEY (application_id) REFERENCES applications_bases (id),
+    CONSTRAINT application_users_user_id_foreign_key FOREIGN KEY (user_id) REFERENCES users (id)
+);
+GO
+CREATE TRIGGER trg_application_users_updated_at BEFORE UPDATE ON application_users
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE services_bases (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    name VARCHAR(512) NOT NULL,
+    description TEXT,
+    CONSTRAINT services_bases_primary_key PRIMARY KEY (id),
+    CONSTRAINT services_bases_uuid_unique_constraint UNIQUE (uuid)
+);
+GO
+CREATE TRIGGER trg_services_bases_updated_at BEFORE UPDATE ON services_bases
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE application_services (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    application_id BIGINT NOT NULL,
+    service_id BIGINT NOT NULL,
+    CONSTRAINT application_services_primary_key PRIMARY KEY (id),
+    CONSTRAINT application_services_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT application_services_application_id_foreign_key FOREIGN KEY (application_id) REFERENCES applications_bases (id),
+    CONSTRAINT application_services_service_id_foreign_key FOREIGN KEY (service_id) REFERENCES services_bases (id)
+);
+GO
+CREATE TRIGGER trg_application_services_updated_at BEFORE UPDATE ON application_services
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE service_uris (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    service_id BIGINT NOT NULL,
+    uri_id BIGINT NOT NULL,
+    CONSTRAINT service_uris_primary_key PRIMARY KEY (id),
+    CONSTRAINT service_uris_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT service_uris_service_id_foreign_key FOREIGN KEY (service_id) REFERENCES services_bases (id),
+    CONSTRAINT service_uris_uri_id_foreign_key FOREIGN KEY (uri_id) REFERENCES uris_bases (id)
+);
+GO
+CREATE TRIGGER trg_service_uris_updated_at BEFORE UPDATE ON service_uris
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE service_settings_bases (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    service_id BIGINT NOT NULL,
+    name VARCHAR(512) NOT NULL,
+    value TEXT NOT NULL,
+    CONSTRAINT service_settings_bases_primary_key PRIMARY KEY (id),
+    CONSTRAINT service_settings_bases_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT service_settings_bases_service_id_foreign_key FOREIGN KEY (service_id) REFERENCES services_bases (id)
+);
+GO
+CREATE TRIGGER trg_service_settings_bases_updated_at BEFORE UPDATE ON service_settings_bases
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
 CREATE TABLE oauth_grant_types (
     id BIGINT AUTO_INCREMENT NOT NULL,
     uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
@@ -1206,6 +1428,41 @@ CREATE TABLE session_states (
 );
 GO
 CREATE TRIGGER trg_session_states_updated_at BEFORE UPDATE ON session_states
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE apps (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    name VARCHAR(128) NOT NULL,
+    CONSTRAINT apps_primary_key PRIMARY KEY (id),
+    CONSTRAINT apps_uuid_unique_constraint UNIQUE (uuid)
+);
+GO
+CREATE UNIQUE INDEX apps_app_base_name_index ON apps (name);
+GO
+CREATE TRIGGER trg_apps_updated_at BEFORE UPDATE ON apps
+FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
+GO
+CREATE TABLE settings (
+    id BIGINT AUTO_INCREMENT NOT NULL,
+    uuid CHAR(36) DEFAULT (UUID()) NOT NULL,
+    created DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    updated DATETIME(3) DEFAULT (UTC_TIMESTAMP(3)) NOT NULL,
+    version BLOB DEFAULT (X'00') NOT NULL,
+    app_id BIGINT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    value TEXT NOT NULL,
+    CONSTRAINT settings_primary_key PRIMARY KEY (id),
+    CONSTRAINT settings_uuid_unique_constraint UNIQUE (uuid),
+    CONSTRAINT settings_app_id_foreign_key FOREIGN KEY (app_id) REFERENCES apps (id)
+);
+GO
+CREATE UNIQUE INDEX settings_setting_app_id_name_index ON settings (app_id, name);
+GO
+CREATE TRIGGER trg_settings_updated_at BEFORE UPDATE ON settings
 FOR EACH ROW SET NEW.updated = (UTC_TIMESTAMP(3));
 GO
 -- Seed data

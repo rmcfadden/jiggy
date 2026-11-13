@@ -3,14 +3,35 @@
 use super::*;
 use std::collections::HashMap;
 /// View GameSummary.
-#[derive(Clone, Debug, PartialEq, Default, datasources::Facet)]
+#[derive(Clone, Debug, PartialEq, datasources::Facet)]
 #[facet(crate = ::datasources::facet)]
 pub struct GameSummary {
     pub id: i64,
+    pub uuid: datasources::uuid::Uuid,
+    pub created: datasources::chrono::DateTime<datasources::chrono::Utc>,
+    pub updated: datasources::chrono::DateTime<datasources::chrono::Utc>,
+    pub version: Vec<u8>,
     pub name: String,
     pub description: String,
     pub parent_name: String,
     pub thumbname_location: String,
     pub categories: Vec<Category>,
     pub attributes: HashMap<String, String>,
+}
+impl Default for GameSummary {
+    fn default() -> Self {
+        Self {
+            id: 0,
+            uuid: datasources::uuid::Uuid::new_v4(),
+            created: datasources::chrono::Utc::now(),
+            updated: datasources::chrono::Utc::now(),
+            version: vec![0],
+            name: String::new(),
+            description: String::new(),
+            parent_name: String::new(),
+            thumbname_location: String::new(),
+            categories: vec![],
+            attributes: HashMap::new(),
+        }
+    }
 }

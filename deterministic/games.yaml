@@ -273,3 +273,26 @@ types:
         - review_id:
             references: review.id
 
+  - game_summary:
+      tags: [view_type, readonly]
+      inherits: base
+      fields:
+        - name:
+            type: string
+            size: 128
+        - description:
+            type: string
+            size: unlimited
+        - parent_name:
+            type: string
+            size: 128
+        - thumbname_location:
+            type: string
+            size: 128
+        - categories:
+            type: category[]
+            references: game_category.game_id
+        - attributes:
+            type: game_attribute_map{}
+            references: game_attribute.game_id
+
