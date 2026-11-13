@@ -612,9 +612,9 @@ dependencies = [
 
 [[package]]
 name = "datasources"
-version = "0.1.63"
+version = "0.1.65"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4c4d05fe81b50a5b70fa6142dbdd17b22b2319da5300f2b6c4f409efa1a3f36f"
+checksum = "5c2edf5daa35c17a767eb9a0067e7858268e05687926094e85b92a9ee4c53c86"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -632,9 +632,9 @@ dependencies = [
 
 [[package]]
 name = "datasources-mysql"
-version = "0.1.63"
+version = "0.1.65"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96a5e6e0a944a2c95c6956e854f3df4bc3ac874a0812f6ad43ad844deceefba2"
+checksum = "d0d493631f0b55f46a89f7d48d08e75787ce239e11f694d8dfdd028349215875"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -651,9 +651,9 @@ dependencies = [
 
 [[package]]
 name = "datasources-postgres"
-version = "0.1.63"
+version = "0.1.65"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "897c8e1bdbf9e6c5a077a578e49c4733899cd3c821ee404b12b3ea85abcaf1b6"
+checksum = "ea87accbd2653786bd4cdfa8829de8a1fb94cb2e85726587dcc42fe26b692536"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -672,9 +672,9 @@ dependencies = [
 
 [[package]]
 name = "datasources-sqlite"
-version = "0.1.63"
+version = "0.1.65"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aacea739650496dff80022b75182137f7fbbf201121a9efd85c7feb8bb4bdaa8"
+checksum = "6e056dd8967995689adf5e3a7b3f71146603e5bbcf504101f78f19c8f43db70f"
 dependencies = [
  "async-trait",
  "chrono",
