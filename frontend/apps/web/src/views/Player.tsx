@@ -1,4 +1,4 @@
-import { ZoomControls, useZoom } from '../designer/zoom'
+import { ActionStrip, ZoomControls, useZoom } from '../designer/zoom'
 import { PieceSparkles } from '../designer/sparkles'
 import { NEAR_COLOR, DEFAULT_EFFECTS, effectClass, sparklePieces, useFlash, type PieceEffects } from '../designer/effects'
 import { DEFAULT_PIECE_BORDERS, PieceBorderPath, SET_ALPHA, type PieceBorders } from '../designer/controls'
@@ -541,6 +541,7 @@ export function Game({
       </div>
       {problem && <p role="alert" className="absolute left-2 top-2 rounded bg-white/90 px-2 py-1 text-sm text-red-700">{problem}</p>}
       <ZoomControls z={z} orientation={zoomOrientation} preview={photo ? { photo, svg: svgRef, box: { x: minX, y: minY, width: puzzle.width, height: puzzle.height } } : undefined} />
+      <ActionStrip />
       </div>
     </div>
   )

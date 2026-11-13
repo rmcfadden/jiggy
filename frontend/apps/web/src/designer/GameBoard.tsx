@@ -1,7 +1,7 @@
 import { PieceBorderPath, SET_ALPHA, borderScale, type PieceBorders, DEFAULT_PIECE_BORDERS } from './controls'
 import { PieceSparkles } from './sparkles'
 import { NEAR_COLOR, DEFAULT_EFFECTS, effectClass, sparklePieces, useFlash, type PieceEffects } from './effects'
-import { ZoomControls, useZoom } from './zoom'
+import { ActionStrip, ZoomControls, useZoom } from './zoom'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { JigsawVectorizer, toSvgPath, trayPieces, type GameState, type PanelDock, type ZoomOrientation, type JigsawVector } from '@jiggy/shared'
 
@@ -218,6 +218,7 @@ export function GameBoard({ jigsaw, photo, game, selected, showGuide, borders = 
         </svg>
       </div>
       <ZoomControls z={z} orientation={zoomOrientation} preview={{ photo, svg: boardSvg, box: { x: minX, y: minY, width: jigsaw.width, height: jigsaw.height } }} />
+      <ActionStrip />
       </div>
       <div
         className={`flex shrink-0 items-center gap-3 rounded border border-slate-200 bg-slate-50 p-3 [&::-webkit-scrollbar-thumb]:rounded [&::-webkit-scrollbar-thumb]:bg-slate-400 [&::-webkit-scrollbar-track]:bg-slate-200 ${

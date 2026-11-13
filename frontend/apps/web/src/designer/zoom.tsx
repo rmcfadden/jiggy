@@ -242,3 +242,55 @@ export function ZoomControls({
     </>
   )
 }
+
+const ICONS = {
+  info: (
+    <>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 16v-4M12 8h.01" />
+    </>
+  ),
+  cheat: (
+    <>
+      <path d="M9 18h6M10 22h4" />
+      <path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2z" />
+    </>
+  ),
+  share: (
+    <>
+      <circle cx="18" cy="5" r="3" />
+      <circle cx="6" cy="12" r="3" />
+      <circle cx="18" cy="19" r="3" />
+      <path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4" />
+    </>
+  ),
+}
+
+/** Floating Info / Cheat / Share buttons in the bottom-right; place inside the same `relative` wrapper as `ZoomControls`. */
+export function ActionStrip({ onInfo, onCheat, onShare }: { onInfo?: () => void; onCheat?: () => void; onShare?: () => void }) {
+  // Share defaults to the native share sheet, falling back to copying the page link.
+  const share = async () => {
+    try {
+      if (navigator.share) await navigator.share({ url: window.location.href })
+      else await navigator.clipboard?.writeText(window.location.href)
+    } catch {
+      /* cancelled or unavailable */
+    }
+  }
+  const items = [
+    { key: 'cheat', label: 'Cheat', onClick: onCheat },
+    { key: 'info', label: 'Info', onClick: onInfo },
+    { key: 'share', label: 'Share', onClick: onShare ?? share },
+  ] as const
+  return (
+    <div role="group" aria-label="Actions" className="absolute bottom-3 right-3 z-20 flex items-center gap-0.5 rounded border border-slate-300 bg-white/90 p-0.5 shadow">
+      {items.map(({ key, label, onClick }) => (
+        <button key={key} type="button" className="h-9 min-w-9 rounded px-2 text-sm font-medium hover:bg-slate-200" aria-label={label} title={label} onClick={onClick}>
+          <svg viewBox="0 0 24 24" className="mx-auto h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            {ICONS[key]}
+          </svg>
+        </button>
+      ))}
+    </div>
+  )
+}
