@@ -6,10 +6,10 @@
     "sitemap": "cargo run -- sitemap"
   },
   "dependencies": {
-    "@deterministic-code/datasources": "^0.1.63",
-    "@deterministic-code/datasources-mysql": "^0.1.63",
-    "@deterministic-code/datasources-postgres": "^0.1.63",
-    "@deterministic-code/datasources-sqlite": "^0.1.63",
+    "@deterministic-code/datasources": "^0.1.65",
+    "@deterministic-code/datasources-mysql": "^0.1.65",
+    "@deterministic-code/datasources-postgres": "^0.1.65",
+    "@deterministic-code/datasources-sqlite": "^0.1.65",
     "@deterministic-code/migraters": "^0.0.16"
   }
 }
