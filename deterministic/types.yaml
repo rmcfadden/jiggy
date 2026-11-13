@@ -6,6 +6,10 @@ includes:
       source:
         remove_types: [base, user_base, role, group, user_group, user_role, user_setting, user_setting_map, user]
   - file: sessions.yaml
+  - file: accounts_ledger.yaml
+    combine_options:
+      source:
+        remove_types: [base, user_base, role, group, user_group, user_role, user_setting, user_setting_map, user]
 types:
 
   - setting:

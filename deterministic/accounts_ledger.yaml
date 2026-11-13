@@ -4,7 +4,7 @@ includes:
   - file: users.yaml
 
 types:
-  - account:
+  - account_base:
       tags: [datasource_type]
       inherits: base
       fields:
@@ -20,12 +20,21 @@ types:
             type: boolean
             default_value: false
 
+  - account_currency:
+      tags: [datasource_type, many_to_many]
+      inherits: base
+      fields:
+        - account_id:
+            references: account_base.id
+        - currency_id:
+            references: currency.id
+
   - transaction_base:
       tags: [datasource_type]
       inherits: base
       fields:
         - account_id:
-          references: account.id
+          references: account_base.id
 
   - currency:
       tags:
@@ -55,7 +64,7 @@ types:
       inherits: base
       fields:
         - account_id:
-          references: account.id
+          references: account_base.id
         - item_type_id:
           references: item_type.id
         - currency_id:
@@ -82,3 +91,14 @@ types:
       items:
         - type: item[]
           references: item_base.id
+
+  - account:
+      tags: [view_type]
+      inherits: account_base
+      fields:
+        - currencies:
+            type: currency[]
+            references: account_currency.account_id
+        - transactions:
+            type: transaction[]
+            references: transaction_base.account_id
