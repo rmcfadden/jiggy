@@ -2182,6 +2182,26 @@ INSERT INTO token_types (id, uuid, name, description) VALUES (4, 'cd47f747-f368-
 GO
 INSERT INTO token_types (id, uuid, name, description) VALUES (5, '0ee8e7da-925d-5595-b865-77c620798be9', 'signin_token', 'Single-use signin token exchanged for access and refresh tokens');
 GO
+-- Seeds: identity_provider_types
+GO
+INSERT INTO identity_provider_types (id, uuid, name, description) VALUES (1, '98c8fb88-c868-5b82-ab5c-719f5220c55b', 'oidc', 'OpenID Connect provider (Google, Apple, Microsoft); identity comes from the id_token');
+GO
+INSERT INTO identity_provider_types (id, uuid, name, description) VALUES (2, '3f1582a8-db5c-5103-89fe-95d3bc7a1ed9', 'oauth2', 'Plain OAuth 2.0 provider (Facebook, GitHub); identity comes from the userinfo endpoint');
+GO
+-- Seeds: identity_provider_linked_user_field_types
+GO
+INSERT INTO identity_provider_linked_user_field_types (id, uuid, name) VALUES (1, '0f4dcbc7-2eca-5ace-8e81-df63f50c6685', 'subject');
+GO
+INSERT INTO identity_provider_linked_user_field_types (id, uuid, name) VALUES (2, '06f33c03-9290-58f9-b11d-f570adce6d2f', 'email');
+GO
+INSERT INTO identity_provider_linked_user_field_types (id, uuid, name) VALUES (3, 'b63ee1b1-6192-5e26-b3cc-a239c392daf7', 'email_verified');
+GO
+INSERT INTO identity_provider_linked_user_field_types (id, uuid, name) VALUES (4, 'e9f9739b-5551-5ee4-9d91-a9daa1182df5', 'first_name');
+GO
+INSERT INTO identity_provider_linked_user_field_types (id, uuid, name) VALUES (5, 'f1a00e4b-ca94-5aef-86d8-854826d0592d', 'last_name');
+GO
+INSERT INTO identity_provider_linked_user_field_types (id, uuid, name) VALUES (6, '85375f6d-a5d7-5f6c-aa9e-076dd7a592f1', 'avatar_url');
+GO
 -- Seeds: session_types
 GO
 INSERT INTO session_types (id, uuid, name) VALUES (1, 'c188cb23-ccea-5a69-b437-43e991dd8230', 'Signin');

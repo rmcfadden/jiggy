@@ -48,3 +48,25 @@ seeds:
       - id5:
           name: signin_token
           description: Single-use signin token exchanged for access and refresh tokens
+
+  - identity_provider_type:
+      - id1:
+          name: oidc
+          description: OpenID Connect provider (Google, Apple, Microsoft); identity comes from the id_token
+      - id2:
+          name: oauth2
+          description: Plain OAuth 2.0 provider (Facebook, GitHub); identity comes from the userinfo endpoint
+
+  - identity_provider_linked_user_field_type:
+      - id1:
+          name: subject
+      - id2:
+          name: email
+      - id3:
+          name: email_verified
+      - id4:
+          name: first_name
+      - id5:
+          name: last_name
+      - id6:
+          name: avatar_url

@@ -28,6 +28,8 @@
     "sitemap": "tsx src/cli.ts sitemap",
     "add-user": "tsx src/cli.ts add-user",
     "update-user": "tsx src/cli.ts update-user",
+    "add-identity-provider": "tsx src/cli.ts add-identity-provider",
+    "update-identity-provider": "tsx src/cli.ts update-identity-provider",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test \"src/**/*.test.ts\""
   }
