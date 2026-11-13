@@ -1,6 +1,10 @@
 -- Rollback initial migration for mysql
 
 -- DROP tables (reverse dependency order)
+DROP TABLE IF EXISTS settings;
+GO
+DROP TABLE IF EXISTS apps;
+GO
 DROP TABLE IF EXISTS session_states;
 GO
 DROP TABLE IF EXISTS session_hits;
@@ -40,6 +44,30 @@ GO
 DROP TABLE IF EXISTS secret_types;
 GO
 DROP TABLE IF EXISTS oauth_grant_types;
+GO
+DROP TABLE IF EXISTS service_settings_bases;
+GO
+DROP TABLE IF EXISTS service_uris;
+GO
+DROP TABLE IF EXISTS application_services;
+GO
+DROP TABLE IF EXISTS services_bases;
+GO
+DROP TABLE IF EXISTS application_users;
+GO
+DROP TABLE IF EXISTS application_uris;
+GO
+DROP TABLE IF EXISTS application_settings_bases;
+GO
+DROP TABLE IF EXISTS applications_bases;
+GO
+DROP TABLE IF EXISTS application_visibilities;
+GO
+DROP TABLE IF EXISTS application_types;
+GO
+DROP TABLE IF EXISTS uris_bases;
+GO
+DROP TABLE IF EXISTS uri_types;
 GO
 DROP TABLE IF EXISTS game_reviews;
 GO

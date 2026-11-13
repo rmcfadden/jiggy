@@ -29,6 +29,17 @@ types:
         - game_parent_setting_game_parent_id_name:
             fields: [game_parent_id, name]
             is_unique: true
+  - app_base:
+      mapping: apps
+      indexes:
+        - app_base_name:
+            fields: [name]
+            is_unique: true
+  - setting:
+      indexes:
+        - setting_app_id_name:
+            fields: [app_id, name]
+            is_unique: true
   - game_setting:
       indexes:
         - game_setting_game_id_name:

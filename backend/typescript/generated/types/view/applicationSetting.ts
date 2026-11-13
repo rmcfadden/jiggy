@@ -1,0 +1,13 @@
+// schema-version: 1.0
+/** View ApplicationSetting. */
+export const applicationSetting = (init: Partial<ApplicationSetting>): ApplicationSetting => Object.assign(new ApplicationSetting(), init);
+export class ApplicationSetting {
+  id!: number;
+  uuid: string = crypto.randomUUID();
+  created: Date = new Date();
+  updated: Date = new Date();
+  version: string = Buffer.from([0]).toString("base64");
+  applicationId!: number;
+  name: string = "";
+  value: string = "";
+}

@@ -1,0 +1,212 @@
+version: 1.0.0
+includes:
+  - file: base.yaml
+types:
+  - uri_type:
+      tags:
+        - datasource_type
+        - readonly_lookup
+      inherits: base
+      fields:
+        - name:
+            type: string
+            size: 256
+            min_size: 1
+        - description:
+            type: string
+            size: unlimited
+            is_nullable: true
+  - uris_base:
+      tags:
+        - datasource_type
+      inherits: base
+      fields:
+        - uri_type_id:
+            references: uri_type.id
+        - location:
+            type: string
+            size: unlimited
+            min_size: 1
+        - is_public:
+            type: boolean
+            default_value: false
+        - is_enabled:
+            type: boolean
+            default_value: true
+        - is_deleted:
+            type: boolean
+            default_value: false
+  - uri:
+      tags:
+        - view_type
+      inherits: uris_base
+      fields: []
+      union:
+        - uri_type
+      mapping:
+        name: uri_type_name
+      remove_fields:
+        - uri_type.id
+        - uri_type.uuid
+        - uri_type.created
+        - uri_type.updated
+        - uri_type.version
+  - application_type:
+      tags:
+        - datasource_type
+        - readonly_lookup
+      inherits: base
+      fields:
+        - name:
+            type: string
+            size: 256
+            min_size: 1
+        - description:
+            type: string
+            size: unlimited
+            is_nullable: true
+  - application_visibility:
+      tags:
+        - datasource_type
+        - readonly_lookup
+      inherits: base
+      fields:
+        - name:
+            type: string
+            size: 512
+            min_size: 1
+        - description:
+            type: string
+            size: unlimited
+            is_nullable: true
+  - applications_base:
+      tags:
+        - datasource_type
+      inherits: base
+      fields:
+        - name:
+            type: string
+            size: 512
+            min_size: 1
+        - application_type_id:
+            references: application_type.id
+        - application_visibility_id:
+            references: application_visibility.id
+        - client_id:
+            type: string
+            size: 512
+            min_size: 1
+        - description:
+            type: string
+            size: unlimited
+            is_nullable: true
+        - is_enabled:
+            type: boolean
+            default_value: true
+        - is_deleted:
+            type: boolean
+            default_value: false
+        - is_builtin:
+            type: boolean
+            default_value: false
+  - application:
+      tags:
+        - view_type
+      inherits: applications_base
+      fields: []
+  - application_settings_base:
+      tags:
+        - datasource_type
+      inherits: base
+      fields:
+        - application_id:
+            references: applications_base.id
+        - name:
+            type: string
+            size: 256
+            min_size: 1
+        - value:
+            type: string
+            min_size: 1
+  - application_setting:
+      tags:
+        - view_type
+      inherits: application_settings_base
+      fields: []
+  - application_service:
+      tags:
+        - datasource_type
+        - many_to_many
+      inherits: base
+      fields:
+        - application_id:
+            references: applications_base.id
+        - service_id:
+            references: services_base.id
+  - application_uri:
+      tags:
+        - datasource_type
+        - many_to_many
+      inherits: base
+      fields:
+        - application_id:
+            references: applications_base.id
+        - uri_id:
+            references: uris_base.id
+  - application_user:
+      tags:
+        - datasource_type
+        - many_to_many
+      inherits: base
+      fields:
+        - application_id:
+            references: applications_base.id
+        - user_id:
+            references: user_base.id
+  - service_uri:
+      tags:
+        - datasource_type
+        - many_to_many
+      inherits: base
+      fields:
+        - service_id:
+            references: services_base.id
+        - uri_id:
+            references: uris_base.id
+  - services_base:
+      tags:
+        - datasource_type
+      inherits: base
+      fields:
+        - name:
+            type: string
+            size: 512
+            min_size: 1
+        - description:
+            type: string
+            size: unlimited
+            is_nullable: true
+  - service:
+      tags:
+        - view_type
+      inherits: services_base
+      fields: []
+  - service_settings_base:
+      tags:
+        - datasource_type
+      inherits: base
+      fields:
+        - service_id:
+            references: services_base.id
+        - name:
+            type: string
+            size: 512
+            min_size: 1
+        - value:
+            type: string
+            min_size: 1
+  - service_setting:
+      tags:
+        - view_type
+      inherits: service_settings_base
+      fields: []

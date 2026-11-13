@@ -2,6 +2,14 @@ use datasources::{Datasource, DatasourceError, ICRUDRepository, IReadonlyReposit
 use super::super::Address;
 use super::super::AddressAttribute;
 use super::super::AddressLabel;
+use super::super::App;
+use super::super::Application;
+use super::super::ApplicationService;
+use super::super::ApplicationSetting;
+use super::super::ApplicationType;
+use super::super::ApplicationUri;
+use super::super::ApplicationUser;
+use super::super::ApplicationVisibility;
 use super::super::AuthenticationMethod;
 use super::super::AuthorizationCode;
 use super::super::Category;
@@ -50,14 +58,20 @@ use super::super::ReviewFeedback;
 use super::super::Role;
 use super::super::Secret;
 use super::super::SecretType;
+use super::super::Service;
+use super::super::ServiceSetting;
+use super::super::ServiceUri;
 use super::super::Session;
 use super::super::SessionHit;
 use super::super::SessionStatesBase;
 use super::super::SessionType;
+use super::super::Setting;
 use super::super::Template;
 use super::super::TemplateType;
 use super::super::Token;
 use super::super::TokenType;
+use super::super::Uri;
+use super::super::UriType;
 use super::super::User;
 use super::super::UserGroup;
 use super::super::UserRole;
@@ -84,6 +98,54 @@ pub fn register(factory: &RepositoryFactory) {
         "address_labels",
         |connection| Ok(Arc::new(super::addressLabelsRepository::AddressLabelsRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<AddressLabel>>),
         |connection| Arc::new(super::addressLabelsRepository::AddressLabelsRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<AddressLabel>>,
+    );
+    factory.register_named(
+        "App",
+        "apps",
+        |connection| Ok(Arc::new(super::appsRepository::AppsRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<App>>),
+        |connection| Arc::new(super::appsRepository::AppsRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<App>>,
+    );
+    factory.register_named(
+        "Application",
+        "applications",
+        |connection| Ok(Arc::new(super::applicationsRepository::ApplicationsRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<Application>>),
+        |connection| Arc::new(super::applicationsRepository::ApplicationsRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<Application>>,
+    );
+    factory.register_named(
+        "ApplicationService",
+        "application_services",
+        |connection| Ok(Arc::new(super::applicationServicesRepository::ApplicationServicesRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<ApplicationService>>),
+        |connection| Arc::new(super::applicationServicesRepository::ApplicationServicesRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<ApplicationService>>,
+    );
+    factory.register_named(
+        "ApplicationSetting",
+        "application_settings",
+        |connection| Ok(Arc::new(super::applicationSettingsRepository::ApplicationSettingsRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<ApplicationSetting>>),
+        |connection| Arc::new(super::applicationSettingsRepository::ApplicationSettingsRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<ApplicationSetting>>,
+    );
+    factory.register_named(
+        "ApplicationType",
+        "application_types",
+        |_connection| Err(DatasourceError::message("ApplicationType is a readonly lookup")),
+        |connection| Arc::new(super::applicationTypesRepository::ApplicationTypesRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<ApplicationType>>,
+    );
+    factory.register_named(
+        "ApplicationUri",
+        "application_uris",
+        |connection| Ok(Arc::new(super::applicationUrisRepository::ApplicationUrisRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<ApplicationUri>>),
+        |connection| Arc::new(super::applicationUrisRepository::ApplicationUrisRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<ApplicationUri>>,
+    );
+    factory.register_named(
+        "ApplicationUser",
+        "application_users",
+        |connection| Ok(Arc::new(super::applicationUsersRepository::ApplicationUsersRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<ApplicationUser>>),
+        |connection| Arc::new(super::applicationUsersRepository::ApplicationUsersRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<ApplicationUser>>,
+    );
+    factory.register_named(
+        "ApplicationVisibility",
+        "application_visibilities",
+        |_connection| Err(DatasourceError::message("ApplicationVisibility is a readonly lookup")),
+        |connection| Arc::new(super::applicationVisibilitiesRepository::ApplicationVisibilitiesRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<ApplicationVisibility>>,
     );
     factory.register_named(
         "AuthenticationMethod",
@@ -374,6 +436,24 @@ pub fn register(factory: &RepositoryFactory) {
         |connection| Arc::new(super::secretTypesRepository::SecretTypesRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<SecretType>>,
     );
     factory.register_named(
+        "Service",
+        "services",
+        |connection| Ok(Arc::new(super::servicesRepository::ServicesRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<Service>>),
+        |connection| Arc::new(super::servicesRepository::ServicesRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<Service>>,
+    );
+    factory.register_named(
+        "ServiceSetting",
+        "service_settings",
+        |connection| Ok(Arc::new(super::serviceSettingsRepository::ServiceSettingsRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<ServiceSetting>>),
+        |connection| Arc::new(super::serviceSettingsRepository::ServiceSettingsRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<ServiceSetting>>,
+    );
+    factory.register_named(
+        "ServiceUri",
+        "service_uris",
+        |connection| Ok(Arc::new(super::serviceUrisRepository::ServiceUrisRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<ServiceUri>>),
+        |connection| Arc::new(super::serviceUrisRepository::ServiceUrisRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<ServiceUri>>,
+    );
+    factory.register_named(
         "Session",
         "sessions",
         |connection| Ok(Arc::new(super::sessionsRepository::SessionsRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<Session>>),
@@ -398,6 +478,12 @@ pub fn register(factory: &RepositoryFactory) {
         |connection| Arc::new(super::sessionTypesRepository::SessionTypesRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<SessionType>>,
     );
     factory.register_named(
+        "Setting",
+        "settings",
+        |connection| Ok(Arc::new(super::settingsRepository::SettingsRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<Setting>>),
+        |connection| Arc::new(super::settingsRepository::SettingsRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<Setting>>,
+    );
+    factory.register_named(
         "Template",
         "templates",
         |connection| Ok(Arc::new(super::templatesRepository::TemplatesRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<Template>>),
@@ -420,6 +506,18 @@ pub fn register(factory: &RepositoryFactory) {
         "token_types",
         |_connection| Err(DatasourceError::message("TokenType is a readonly lookup")),
         |connection| Arc::new(super::tokenTypesRepository::TokenTypesRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<TokenType>>,
+    );
+    factory.register_named(
+        "Uri",
+        "uris",
+        |connection| Ok(Arc::new(super::urisRepository::UrisRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<Uri>>),
+        |connection| Arc::new(super::urisRepository::UrisRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<Uri>>,
+    );
+    factory.register_named(
+        "UriType",
+        "uri_types",
+        |_connection| Err(DatasourceError::message("UriType is a readonly lookup")),
+        |connection| Arc::new(super::uriTypesRepository::UriTypesRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<UriType>>,
     );
     factory.register_named(
         "User",
@@ -465,6 +563,14 @@ pub trait Repositories {
     fn addresses(&self) -> Arc<super::addressesRepository::AddressesRepository>;
     fn address_attributes(&self) -> Arc<super::addressAttributesRepository::AddressAttributesRepository>;
     fn address_labels(&self) -> Arc<super::addressLabelsRepository::AddressLabelsRepository>;
+    fn apps(&self) -> Arc<super::appsRepository::AppsRepository>;
+    fn applications(&self) -> Arc<super::applicationsRepository::ApplicationsRepository>;
+    fn application_services(&self) -> Arc<super::applicationServicesRepository::ApplicationServicesRepository>;
+    fn application_settings(&self) -> Arc<super::applicationSettingsRepository::ApplicationSettingsRepository>;
+    fn application_types(&self) -> Arc<super::applicationTypesRepository::ApplicationTypesRepository>;
+    fn application_uris(&self) -> Arc<super::applicationUrisRepository::ApplicationUrisRepository>;
+    fn application_users(&self) -> Arc<super::applicationUsersRepository::ApplicationUsersRepository>;
+    fn application_visibilities(&self) -> Arc<super::applicationVisibilitiesRepository::ApplicationVisibilitiesRepository>;
     fn authentication_methods(&self) -> Arc<super::authenticationMethodsRepository::AuthenticationMethodsRepository>;
     fn authorization_codes(&self) -> Arc<super::authorizationCodesRepository::AuthorizationCodesRepository>;
     fn categories(&self) -> Arc<super::categoriesRepository::CategoriesRepository>;
@@ -513,14 +619,20 @@ pub trait Repositories {
     fn roles(&self) -> Arc<super::rolesRepository::RolesRepository>;
     fn secrets(&self) -> Arc<super::secretsRepository::SecretsRepository>;
     fn secret_types(&self) -> Arc<super::secretTypesRepository::SecretTypesRepository>;
+    fn services(&self) -> Arc<super::servicesRepository::ServicesRepository>;
+    fn service_settings(&self) -> Arc<super::serviceSettingsRepository::ServiceSettingsRepository>;
+    fn service_uris(&self) -> Arc<super::serviceUrisRepository::ServiceUrisRepository>;
     fn sessions(&self) -> Arc<super::sessionsRepository::SessionsRepository>;
     fn session_hits(&self) -> Arc<super::sessionHitsRepository::SessionHitsRepository>;
     fn session_states_bases(&self) -> Arc<super::sessionStatesBasesRepository::SessionStatesBasesRepository>;
     fn session_types(&self) -> Arc<super::sessionTypesRepository::SessionTypesRepository>;
+    fn settings(&self) -> Arc<super::settingsRepository::SettingsRepository>;
     fn templates(&self) -> Arc<super::templatesRepository::TemplatesRepository>;
     fn template_types(&self) -> Arc<super::templateTypesRepository::TemplateTypesRepository>;
     fn tokens(&self) -> Arc<super::tokensRepository::TokensRepository>;
     fn token_types(&self) -> Arc<super::tokenTypesRepository::TokenTypesRepository>;
+    fn uris(&self) -> Arc<super::urisRepository::UrisRepository>;
+    fn uri_types(&self) -> Arc<super::uriTypesRepository::UriTypesRepository>;
     fn users(&self) -> Arc<super::usersRepository::UsersRepository>;
     fn user_groups(&self) -> Arc<super::userGroupsRepository::UserGroupsRepository>;
     fn user_roles(&self) -> Arc<super::userRolesRepository::UserRolesRepository>;
@@ -538,6 +650,30 @@ impl Repositories for Arc<dyn Datasource> {
     }
     fn address_labels(&self) -> Arc<super::addressLabelsRepository::AddressLabelsRepository> {
         Arc::new(super::addressLabelsRepository::AddressLabelsRepository::new(self.bind_connection(None)).expect("address_labels"))
+    }
+    fn apps(&self) -> Arc<super::appsRepository::AppsRepository> {
+        Arc::new(super::appsRepository::AppsRepository::new(self.bind_connection(None)).expect("apps"))
+    }
+    fn applications(&self) -> Arc<super::applicationsRepository::ApplicationsRepository> {
+        Arc::new(super::applicationsRepository::ApplicationsRepository::new(self.bind_connection(None)).expect("applications"))
+    }
+    fn application_services(&self) -> Arc<super::applicationServicesRepository::ApplicationServicesRepository> {
+        Arc::new(super::applicationServicesRepository::ApplicationServicesRepository::new(self.bind_connection(None)).expect("application_services"))
+    }
+    fn application_settings(&self) -> Arc<super::applicationSettingsRepository::ApplicationSettingsRepository> {
+        Arc::new(super::applicationSettingsRepository::ApplicationSettingsRepository::new(self.bind_connection(None)).expect("application_settings"))
+    }
+    fn application_types(&self) -> Arc<super::applicationTypesRepository::ApplicationTypesRepository> {
+        Arc::new(super::applicationTypesRepository::ApplicationTypesRepository::new(self.bind_connection(None)).expect("application_types"))
+    }
+    fn application_uris(&self) -> Arc<super::applicationUrisRepository::ApplicationUrisRepository> {
+        Arc::new(super::applicationUrisRepository::ApplicationUrisRepository::new(self.bind_connection(None)).expect("application_uris"))
+    }
+    fn application_users(&self) -> Arc<super::applicationUsersRepository::ApplicationUsersRepository> {
+        Arc::new(super::applicationUsersRepository::ApplicationUsersRepository::new(self.bind_connection(None)).expect("application_users"))
+    }
+    fn application_visibilities(&self) -> Arc<super::applicationVisibilitiesRepository::ApplicationVisibilitiesRepository> {
+        Arc::new(super::applicationVisibilitiesRepository::ApplicationVisibilitiesRepository::new(self.bind_connection(None)).expect("application_visibilities"))
     }
     fn authentication_methods(&self) -> Arc<super::authenticationMethodsRepository::AuthenticationMethodsRepository> {
         Arc::new(super::authenticationMethodsRepository::AuthenticationMethodsRepository::new(self.bind_connection(None)).expect("authentication_methods"))
@@ -683,6 +819,15 @@ impl Repositories for Arc<dyn Datasource> {
     fn secret_types(&self) -> Arc<super::secretTypesRepository::SecretTypesRepository> {
         Arc::new(super::secretTypesRepository::SecretTypesRepository::new(self.bind_connection(None)).expect("secret_types"))
     }
+    fn services(&self) -> Arc<super::servicesRepository::ServicesRepository> {
+        Arc::new(super::servicesRepository::ServicesRepository::new(self.bind_connection(None)).expect("services"))
+    }
+    fn service_settings(&self) -> Arc<super::serviceSettingsRepository::ServiceSettingsRepository> {
+        Arc::new(super::serviceSettingsRepository::ServiceSettingsRepository::new(self.bind_connection(None)).expect("service_settings"))
+    }
+    fn service_uris(&self) -> Arc<super::serviceUrisRepository::ServiceUrisRepository> {
+        Arc::new(super::serviceUrisRepository::ServiceUrisRepository::new(self.bind_connection(None)).expect("service_uris"))
+    }
     fn sessions(&self) -> Arc<super::sessionsRepository::SessionsRepository> {
         Arc::new(super::sessionsRepository::SessionsRepository::new(self.bind_connection(None)).expect("sessions"))
     }
@@ -695,6 +840,9 @@ impl Repositories for Arc<dyn Datasource> {
     fn session_types(&self) -> Arc<super::sessionTypesRepository::SessionTypesRepository> {
         Arc::new(super::sessionTypesRepository::SessionTypesRepository::new(self.bind_connection(None)).expect("session_types"))
     }
+    fn settings(&self) -> Arc<super::settingsRepository::SettingsRepository> {
+        Arc::new(super::settingsRepository::SettingsRepository::new(self.bind_connection(None)).expect("settings"))
+    }
     fn templates(&self) -> Arc<super::templatesRepository::TemplatesRepository> {
         Arc::new(super::templatesRepository::TemplatesRepository::new(self.bind_connection(None)).expect("templates"))
     }
@@ -706,6 +854,12 @@ impl Repositories for Arc<dyn Datasource> {
     }
     fn token_types(&self) -> Arc<super::tokenTypesRepository::TokenTypesRepository> {
         Arc::new(super::tokenTypesRepository::TokenTypesRepository::new(self.bind_connection(None)).expect("token_types"))
+    }
+    fn uris(&self) -> Arc<super::urisRepository::UrisRepository> {
+        Arc::new(super::urisRepository::UrisRepository::new(self.bind_connection(None)).expect("uris"))
+    }
+    fn uri_types(&self) -> Arc<super::uriTypesRepository::UriTypesRepository> {
+        Arc::new(super::uriTypesRepository::UriTypesRepository::new(self.bind_connection(None)).expect("uri_types"))
     }
     fn users(&self) -> Arc<super::usersRepository::UsersRepository> {
         Arc::new(super::usersRepository::UsersRepository::new(self.bind_connection(None)).expect("users"))
