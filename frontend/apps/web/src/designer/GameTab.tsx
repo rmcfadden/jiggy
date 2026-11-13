@@ -123,7 +123,7 @@ export function GameTab() {
   const games = {
     items: saved.map((g) => ({ id: String(g.id), name: g.name })),
     loading: gameRows.isLoading,
-    promptWhenEmpty: true,
+    required: true,
     onSelectedChange: setSelectedGameId,
     error: [gameRows.error, loadError, createSaved.error, updateSaved.error, deleteSaved.error].find(Boolean)?.message ?? null,
     onLoad: async (id: string) => {

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { START_SIDES, type GameConfig, type GameType, type JigsawVector } from '@jiggy/shared'
 import type { PieceEffects } from './effects'
 import { PieceSettings } from './PieceSettings'
@@ -142,6 +142,12 @@ export function GamePanel(p: Props) {
   const { data: parents } = useGameParents()
   // Parent games come from the server; nothing is offered until they load.
   const gameTypes = (parents ?? []).filter((g) => g.isEnabled).map((g) => ({ id: g.location as GameType, name: g.name, description: g.description }))
+  // With no matching parent game chosen yet, default to the top one.
+  const topType = gameTypes[0]?.id
+  const hasType = gameTypes.some((t) => t.id === config.type)
+  useEffect(() => {
+    if (topType && !hasType) onConfig({ ...config, type: topType })
+  }, [topType, hasType]) // eslint-disable-line react-hooks/exhaustive-deps
   const type = gameTypes.find((t) => t.id === config.type) ?? { id: config.type, name: config.type, description: '' }
   const chosenPhoto = p.photos.find((ph) => ph.id === p.photoId)
   const [query, setQuery] = useState('')
@@ -364,7 +370,7 @@ export function GamePanel(p: Props) {
             )}
             {config.type === 'scrambled' && (
               <>
-                <NumberField label="Puzzle size (% of window)" min={20} max={80} value={config.viewPercent} onChange={(viewPercent) => set({ viewPercent })} />
+                <NumberField label="Puzzle size (% of window)" min={20} max={90} value={config.viewPercent} onChange={(viewPercent) => set({ viewPercent })} />
                 <label className={field}>
                   Initial pieces location
                   <select className={input} value={config.startSide} onChange={(e) => set({ startSide: e.target.value as GameConfig['startSide'] })}>
