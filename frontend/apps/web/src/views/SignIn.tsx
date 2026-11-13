@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Link, Navigate, useLocation } from 'react-router-dom'
+import { Link, Navigate, useLocation, useSearchParams } from 'react-router-dom'
 import AuthCard from '../auth/AuthCard'
 import { useSession, useSignIn } from '../auth/hooks'
 import { destinationAfterAuth } from '../auth/redirect'
@@ -9,6 +9,7 @@ export default function SignIn() {
   const location = useLocation()
   const session = useSession().data
   const signIn = useSignIn()
+  const ssoError = useSearchParams()[0].get('sso_error')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
 
@@ -41,6 +42,11 @@ export default function SignIn() {
           Password
           <input className={input} type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
         </label>
+        {ssoError && !signIn.error && (
+          <p role="alert" className="text-sm text-red-600">
+            {ssoError}
+          </p>
+        )}
         {signIn.error && (
           <p role="alert" className="text-sm text-red-600">
             {signIn.error.message}

@@ -14,6 +14,7 @@ export class Email {
   address: string = "";
   displayName: string = "";
   isPrimary: boolean = false;
+  isVerified: boolean = false;
   emailTypeName: string = "";
   description: string = "";
   attributes: Dictionary<string, string> = {};

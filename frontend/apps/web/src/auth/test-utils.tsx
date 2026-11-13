@@ -18,7 +18,7 @@ export function mockAuthApi(handlers: Record<string, Handler>): Call[] {
   const calls: Call[] = []
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input)
-    if (!url.startsWith('/api/signin') && !url.startsWith('/api/signup') && !url.startsWith('/api/oauth')) {
+    if (!url.startsWith('/api/signin') && !url.startsWith('/api/signup') && !url.startsWith('/api/oauth') && !url.startsWith('/api/emails')) {
       return new Response(JSON.stringify(stubApi(url)))
     }
     const body = init?.body ? (JSON.parse(String(init.body)) as Record<string, unknown>) : {}

@@ -1,6 +1,7 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto'
 import type { ICRUDRepository } from '@deterministic-code/datasources'
 import type { TokenType } from '../../generated/types/datasource/tokenType.ts'
+import { emailToken, type EmailToken } from '../../generated/types/datasource/emailToken.ts'
 import { userToken, type UserToken } from '../../generated/types/datasource/userToken.ts'
 import { token, type Token } from '../../generated/types/view/token.ts'
 import { signJwt, verifyJwt, type JwtClaims } from './jwt.ts'
@@ -8,11 +9,12 @@ import { signJwt, verifyJwt, type JwtClaims } from './jwt.ts'
 export const SIGNIN_TOKEN_TYPE = 'signin_token'
 export const ACCESS_TOKEN_TYPE = 'jwt_access_token'
 export const REFRESH_TOKEN_TYPE = 'jwt_refresh_token'
+export const EMAIL_CONFIRMATION_TOKEN_TYPE = 'email_confirmation'
 
-export type TokenSettings = { jwtSecret: string; signinTtl: number; accessTtl: number; refreshTtl: number }
+export type TokenSettings = { jwtSecret: string; signinTtl: number; accessTtl: number; refreshTtl: number; emailConfirmationTtl: number }
 export type IssuedToken = { value: string; expiresIn: number }
 
-/** Reads JWT_SECRET (required) and the optional TTLs (seconds) from the environment. */
+/** Reads JWT_SECRET (required) and the optional TTLs (seconds; EMAIL_CONFIRMATION_TTL defaults to 24 hours) from the environment. */
 export function tokenSettingsFromEnv(env: NodeJS.ProcessEnv = process.env): TokenSettings {
   if (env === process.env) {
     // .env, then .env.development (test-only dev defaults, skipped in production), in the working directory.
@@ -29,7 +31,7 @@ export function tokenSettingsFromEnv(env: NodeJS.ProcessEnv = process.env): Toke
   const jwtSecret = env.JWT_SECRET
   if (!jwtSecret || jwtSecret.length < 32) throw new Error('JWT_SECRET must be set to at least 32 characters')
   const seconds = (name: string, fallback: number) => (env[name] ? Number(env[name]) : fallback)
-  return { jwtSecret, signinTtl: seconds('SIGNIN_TOKEN_TTL', 300), accessTtl: seconds('JWT_ACCESS_TTL', 86_400), refreshTtl: seconds('JWT_REFRESH_TTL', 86_400) }
+  return { jwtSecret, signinTtl: seconds('SIGNIN_TOKEN_TTL', 300), accessTtl: seconds('JWT_ACCESS_TTL', 86_400), refreshTtl: seconds('JWT_REFRESH_TTL', 86_400), emailConfirmationTtl: seconds('EMAIL_CONFIRMATION_TTL', 86_400) }
 }
 
 const sha256 = (value: string) => createHash('sha256').update(value).digest('hex')
@@ -39,6 +41,7 @@ export class TokenService {
   constructor(
     private readonly tokens: ICRUDRepository<Token>,
     private readonly userTokens: ICRUDRepository<UserToken>,
+    private readonly emailTokens: ICRUDRepository<EmailToken>,
     private readonly tokenTypes: ICRUDRepository<TokenType>,
     private readonly settings: TokenSettings,
   ) {}
@@ -46,6 +49,36 @@ export class TokenService {
   /** Short-lived, single-use opaque token handed back by signin and exchanged at /api/oauth/token. */
   issueSignin(userId: number): Promise<IssuedToken> {
     return this.store(userId, SIGNIN_TOKEN_TYPE, `signin:${randomUUID()}`, randomBytes(32).toString('base64url'), this.settings.signinTtl)
+  }
+
+  /**
+   * A long random code for the link in a confirmation email, tied to the user and to the email it confirms. Only its hash is
+   * stored; it expires after EMAIL_CONFIRMATION_TTL and works once (see `revoke`).
+   */
+  async issueEmailConfirmation(userId: number, emailId: number): Promise<IssuedToken> {
+    const { issued, tokenId } = await this.storeRow(userId, EMAIL_CONFIRMATION_TOKEN_TYPE, `email:${emailId}:${randomUUID()}`, randomBytes(32).toString('base64url'), this.settings.emailConfirmationTtl)
+    try {
+      await this.emailTokens.create(emailToken({ emailId, tokenId }))
+    } catch (error) {
+      for await (const row of this.tokens.read()) if (Number(row.id) === tokenId) await this.tokens.delete(row)
+      throw error
+    }
+    return issued
+  }
+
+  /** The email a confirmation token was issued for. */
+  async emailIdOf(row: Token): Promise<number | undefined> {
+    for await (const link of this.emailTokens.read()) if (Number(link.tokenId) === Number(row.id)) return Number(link.emailId)
+    return undefined
+  }
+
+  /** When the newest confirmation token for the email was issued, to rate-limit resends. */
+  async lastEmailConfirmation(emailId: number): Promise<Date | undefined> {
+    const ids = new Set<number>()
+    for await (const link of this.emailTokens.read()) if (Number(link.emailId) === emailId) ids.add(Number(link.tokenId))
+    let newest: Date | undefined
+    for await (const row of this.tokens.read()) if (ids.has(Number(row.id)) && (!newest || row.created > newest)) newest = row.created
+    return newest
   }
 
   issueAccess(userId: number, userUuid: string, sessionUuid: string): Promise<IssuedToken> {
@@ -58,7 +91,7 @@ export class TokenService {
 
   /** The stored row when `plain` is a live token of `typeName` (enabled, not deleted, not revoked, not expired). */
   async validate(plain: string, typeName: string): Promise<Token | undefined> {
-    if (typeName !== SIGNIN_TOKEN_TYPE) {
+    if (typeName === ACCESS_TOKEN_TYPE || typeName === REFRESH_TOKEN_TYPE) {
       const claims = verifyJwt(plain, this.settings.jwtSecret)
       if (!claims || claims.typ !== (typeName === ACCESS_TOKEN_TYPE ? 'access' : 'refresh')) return undefined
     }
@@ -95,6 +128,10 @@ export class TokenService {
   }
 
   private async store(userId: number, typeName: string, name: string, value: string, ttl: number): Promise<IssuedToken> {
+    return (await this.storeRow(userId, typeName, name, value, ttl)).issued
+  }
+
+  private async storeRow(userId: number, typeName: string, name: string, value: string, ttl: number): Promise<{ issued: IssuedToken; tokenId: number }> {
     const tokenTypeId = await this.typeId(typeName)
     const created = await this.tokens.create(token({ tokenTypeId, name, secret: sha256(value), isEnabled: true, expires: new Date(Date.now() + ttl * 1000), revoked: null, isDeleted: false }))
     try {
@@ -103,7 +140,7 @@ export class TokenService {
       await this.tokens.delete(created) // an unlinked token could never be traced back to its user
       throw error
     }
-    return { value, expiresIn: ttl }
+    return { issued: { value, expiresIn: ttl }, tokenId: Number(created.id) }
   }
 
   private async typeId(name: string): Promise<number> {

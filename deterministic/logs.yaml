@@ -1,0 +1,70 @@
+version: 1.0.0
+includes:
+  - file: base.yaml
+
+types:
+  - log_type:
+      tags: [datasource_type]
+      inherits: base
+      fields:
+        - name:
+            type: string
+            size: 128
+        - description:
+            type: string
+            size: unlimited
+            default_value: ""
+
+  - log_base:
+      tags: [datasource_type]
+      inherits: base
+      fields:
+        - log_type_id:
+            references: log_type.id
+        - message:
+            type: string
+            size: unlimited
+
+  - log_attribute:
+      tags:
+        - datasource_type
+      inherits: base
+      fields:
+        - log_id:
+            references: log_base.id
+        - name:
+            type: string
+            size: 255
+        - value:
+            type: string
+            size: unlimited
+
+  - log_attribute_map:
+      tags:
+        - view_type
+      inherits: dictionary
+      fields:
+        - key:
+            type: string
+            size: 255
+            references: log_attribute.name
+        - value:
+            type: string
+            size: unlimited
+            references: log_attribute.value
+
+  - log:
+      tags: [view_type]
+      inherits: log_base
+      remove_fields:
+        - log_type_id
+      union:
+        - log_type
+      extract:
+        - log_type.name
+      mapping:
+        log_type.name: log_type_name
+      fields:
+        - attributes:
+            type: log_attribute_map{}
+            references: log_attribute.log_id

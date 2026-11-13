@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { UnknownTemplateTypeError, type TemplatesService } from '../services/templates.ts'
+import { UnknownTemplateTypeError, UnknownLanguageError, type TemplatesService } from '../services/templates.ts'
 
 export function templatesRouter(service: TemplatesService): Router {
   const router = Router()
@@ -26,7 +26,7 @@ export function templatesRouter(service: TemplatesService): Router {
     try {
       res.status(201).json(await service.create(req.body))
     } catch (err) {
-      if (err instanceof UnknownTemplateTypeError) res.status(400).json({ error: err.message })
+      if (err instanceof UnknownTemplateTypeError || err instanceof UnknownLanguageError) res.status(400).json({ error: err.message })
       else next(err)
     }
   })
@@ -37,7 +37,7 @@ export function templatesRouter(service: TemplatesService): Router {
       if (row) res.json(row)
       else res.sendStatus(404)
     } catch (err) {
-      if (err instanceof UnknownTemplateTypeError) res.status(400).json({ error: err.message })
+      if (err instanceof UnknownTemplateTypeError || err instanceof UnknownLanguageError) res.status(400).json({ error: err.message })
       else next(err)
     }
   })

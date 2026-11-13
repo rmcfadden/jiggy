@@ -93,6 +93,9 @@ types:
             default_value: ""
         - is_primary:
             type: boolean
+        - is_verified:
+            type: boolean
+            default_value: false
   - phone_type:
       tags:
         - datasource_type

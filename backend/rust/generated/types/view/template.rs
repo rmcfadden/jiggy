@@ -13,6 +13,7 @@ pub struct Template {
     pub name: String,
     pub content: String,
     pub template_type_name: String,
+    pub language_code: String,
 }
 impl Default for Template {
     fn default() -> Self {
@@ -25,6 +26,7 @@ impl Default for Template {
             name: String::new(),
             content: String::new(),
             template_type_name: String::new(),
+            language_code: String::new(),
         }
     }
 }

@@ -3,7 +3,7 @@ includes:
   - file: base.yaml
 
 types:
-  - languages:
+  - language:
       tags: [datasource_type, view_type]
       inherits: base
       fields:
@@ -39,7 +39,7 @@ types:
         - localized_string_name_id:
             references: localized_string_name.id
         - language_id:
-            references: languages.id
+            references: language.id
         - value:
             type: string
             size: unlimited
@@ -57,12 +57,12 @@ types:
         - language_id
       union:
         - localized_string_name
-        - languages
+        - language
       extract:
         - localized_string_name.name
-        - languages.name
+        - language.name
       mapping:
-        languages.name: language_name
+        language.name: language_name
   - mime_type:
       tags:
         - datasource_type
@@ -127,6 +127,8 @@ types:
       fields:
         - template_type_id:
             references: template_type.id
+        - language_id:
+            references: language.id
         - name:
             type: string
             size: 128
@@ -139,12 +141,13 @@ types:
       inherits: template_base
       remove_fields:
         - template_type_id
+        - language_id
       union:
         - template_type
+        - language
       extract:
         - template_type.name
+        - language.code
       mapping:
         template_type.name: template_type_name
-
-
-
+        language.code: language_code

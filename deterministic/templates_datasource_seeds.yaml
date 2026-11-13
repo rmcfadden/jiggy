@@ -4,3 +4,6 @@ seeds:
       - id1:
           name: "jigsaw"
           description: "Jigsaw template settings"
+      - id2:
+          name: "confirm_email"
+          description: "Email sent to confirm an address; content is JSON with subject, text and html using {{username}} and {{confirm_url}}"

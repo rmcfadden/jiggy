@@ -1,6 +1,7 @@
 use datasources::{Connection, CRUDRepository, CRUDRepositoryBuilder, CRUDRepositoryOptions, DictionaryMapper, Enrichment, EnrichmentPropertyType, EnrichmentVia, ICRUDRepository, IReadonlyRepository, IRepository, IWhere, ReadonlyRepository, ReadonlyRepositoryMappingOptions, Schema, SchemaColumn, Statement, Result, async_trait, CommandMiddleware, IdKey, Response, Stream};
 use super::super::Template;
 use super::templateTypesRepository::TemplateTypesRepository;
+use super::languagesRepository::LanguagesRepository;
 use std::any::TypeId;
 use std::collections::HashMap;
 use std::ops::Deref;
@@ -10,6 +11,7 @@ use std::sync::Arc;
 pub struct TemplatesRepository {
     pub(crate) inner: Arc<CRUDRepository<Template>>,
     pub template_type: TemplateTypesRepository,
+    pub language: LanguagesRepository,
 }
 
 impl TemplatesRepository {
@@ -30,9 +32,10 @@ impl TemplatesRepository {
             ("name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("content".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("template_type_name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
+            ("language_code".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "name".into(), "content".into(), "template_type_id".into()];
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "name".into(), "content".into(), "template_type_id".into(), "language_id".into()];
         options.create_properties = Some(vec!["name".into(), "content".into()]);
         options.update_properties = Some(vec!["uuid".into(), "name".into(), "content".into()]);
         options
@@ -52,9 +55,10 @@ impl TemplatesRepository {
             ("name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("content".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("template_type_name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
+            ("language_code".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "name".into(), "content".into(), "template_type_id".into()];
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "name".into(), "content".into(), "template_type_id".into(), "language_id".into()];
         options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "name".into(), "content".into()]);
         options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "name".into(), "content".into()]);
         options
@@ -62,9 +66,11 @@ impl TemplatesRepository {
     .for_connection(connection.as_ref())?;
 
         let template_type = TemplateTypesRepository::new(Arc::clone(&connection))?;
+        let language = LanguagesRepository::new(Arc::clone(&connection))?;
         let mut repo = CRUDRepository::<Template>::new(Arc::clone(&connection), options)?;
         repo.add_enriched(Enrichment::new("template_type_name", "template_type_id", "id", Some("name".into()), EnrichmentPropertyType::Object), &template_type, None);
-        Ok(Self { inner: Arc::new(repo), template_type })
+        repo.add_enriched(Enrichment::new("language_code", "language_id", "id", Some("code".into()), EnrichmentPropertyType::Object), &language, None);
+        Ok(Self { inner: Arc::new(repo), template_type, language })
     }
 
     pub fn create_readonly(connection: Arc<dyn Connection>) -> Result<ReadonlyRepository<Template>> {
@@ -82,11 +88,14 @@ impl TemplatesRepository {
             ("name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("content".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("template_type_name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
+            ("language_code".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
         ]));
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "name".into(), "content".into(), "template_type_id".into()];
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "name".into(), "content".into(), "template_type_id".into(), "language_id".into()];
         let template_type = TemplateTypesRepository::new(Arc::clone(&connection))?;
+        let language = LanguagesRepository::new(Arc::clone(&connection))?;
         let mut repo = ReadonlyRepository::<Template>::new(connection, options)?;
         repo.add_enriched(Enrichment::new("template_type_name", "template_type_id", "id", Some("name".into()), EnrichmentPropertyType::Object), &template_type, None);
+        repo.add_enriched(Enrichment::new("language_code", "language_id", "id", Some("code".into()), EnrichmentPropertyType::Object), &language, None);
         Ok(repo)
     }
 }
@@ -205,9 +214,10 @@ pub fn templates_row_repository(connection: Arc<dyn Connection>) -> Result<CRUDR
             ("name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("content".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("template_type_name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
+            ("language_code".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "name".into(), "content".into(), "template_type_id".into()];
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "name".into(), "content".into(), "template_type_id".into(), "language_id".into()];
         options.create_properties = Some(vec!["name".into(), "content".into()]);
         options.update_properties = Some(vec!["uuid".into(), "name".into(), "content".into()]);
         options
@@ -227,9 +237,10 @@ pub fn templates_row_repository(connection: Arc<dyn Connection>) -> Result<CRUDR
             ("name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("content".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("template_type_name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
+            ("language_code".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "name".into(), "content".into(), "template_type_id".into()];
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "name".into(), "content".into(), "template_type_id".into(), "language_id".into()];
         options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "name".into(), "content".into()]);
         options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "name".into(), "content".into()]);
         options
@@ -237,7 +248,9 @@ pub fn templates_row_repository(connection: Arc<dyn Connection>) -> Result<CRUDR
     .for_connection(connection.as_ref())?;
 
         let template_type = Arc::new(super::templateTypesRepository::template_types_row_repository(Arc::clone(&connection))?);
+        let language = Arc::new(super::languagesRepository::languages_row_repository(Arc::clone(&connection))?);
         let mut repo = CRUDRepository::<datasources::Row>::new(Arc::clone(&connection), options)?;
         repo.add_enriched(Enrichment::new("template_type_name", "template_type_id", "id", Some("name".into()), EnrichmentPropertyType::Object), Arc::clone(&template_type), None);
+        repo.add_enriched(Enrichment::new("language_code", "language_id", "id", Some("code".into()), EnrichmentPropertyType::Object), Arc::clone(&language), None);
         Ok(repo)
 }

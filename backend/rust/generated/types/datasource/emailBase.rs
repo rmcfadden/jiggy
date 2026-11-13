@@ -13,6 +13,7 @@ pub struct EmailBase {
     pub address: String,
     pub display_name: String,
     pub is_primary: bool,
+    pub is_verified: bool,
 }
 impl Default for EmailBase {
     fn default() -> Self {
@@ -27,6 +28,7 @@ impl Default for EmailBase {
             address: String::new(),
             display_name: String::new(),
             is_primary: false,
+            is_verified: false,
         }
     }
 }

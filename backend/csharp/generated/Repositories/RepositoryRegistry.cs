@@ -28,6 +28,7 @@ public static class RepositoryRegistry
         factory.Register("Email", "Emails", connection => new EmailsRepository(connection), connection => EmailsRepository.CreateReadonly(connection));
         factory.Register("EmailAttribute", "EmailAttributes", connection => new EmailAttributesRepository(connection), connection => EmailAttributesRepository.CreateReadonly(connection));
         factory.Register("EmailLabel", "EmailLabels", connection => new EmailLabelsRepository(connection), connection => EmailLabelsRepository.CreateReadonly(connection));
+        factory.Register("EmailToken", "EmailTokens", connection => new EmailTokensRepository(connection), connection => EmailTokensRepository.CreateReadonly(connection));
         factory.Register("EmailType", "EmailTypes", connection => new EmailTypesRepository(connection), connection => EmailTypesRepository.CreateReadonly(connection));
         factory.Register("Game", "Games", connection => new GamesRepository(connection), connection => GamesRepository.CreateReadonly(connection));
         factory.Register("GameAttribute", "GameAttributes", connection => new GameAttributesRepository(connection), connection => GameAttributesRepository.CreateReadonly(connection));
@@ -55,6 +56,9 @@ public static class RepositoryRegistry
         factory.Register("Language", "Languages", connection => new LanguagesRepository(connection), connection => LanguagesRepository.CreateReadonly(connection));
         factory.Register("LocalizedString", "LocalizedStrings", connection => new LocalizedStringsRepository(connection), connection => LocalizedStringsRepository.CreateReadonly(connection));
         factory.Register("LocalizedStringName", "LocalizedStringNames", connection => new LocalizedStringNamesRepository(connection), connection => LocalizedStringNamesRepository.CreateReadonly(connection));
+        factory.Register("Log", "Logs", connection => new LogsRepository(connection), connection => LogsRepository.CreateReadonly(connection));
+        factory.Register("LogAttribute", "LogAttributes", connection => new LogAttributesRepository(connection), connection => LogAttributesRepository.CreateReadonly(connection));
+        factory.Register("LogType", "LogTypes", connection => new LogTypesRepository(connection), connection => LogTypesRepository.CreateReadonly(connection));
         factory.Register("MimeType", "MimeTypes", connection => new MimeTypesRepository(connection), connection => MimeTypesRepository.CreateReadonly(connection));
         factory.Register("OauthGrantType", "OauthGrantTypes", connection => new OauthGrantTypesRepository(connection), connection => OauthGrantTypesRepository.CreateReadonly(connection));
         factory.Register("Phone", "Phones", connection => new PhonesRepository(connection), connection => PhonesRepository.CreateReadonly(connection));

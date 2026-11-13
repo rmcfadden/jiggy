@@ -3,23 +3,23 @@ using Datasources;
 public sealed class LocalizedStringsRepository : CRUDRepository<Backend.Types.View.LocalizedString>
 {
     public LocalizedStringNamesRepository LocalizedStringName { get; }
-    public LanguagesRepository Languages { get; }
+    public LanguagesRepository Language { get; }
 
     public LocalizedStringsRepository(IConnection connection) : base(connection, Options(connection))
     {
         LocalizedStringName = new LocalizedStringNamesRepository(connection);
-        Languages = new LanguagesRepository(connection);
+        Language = new LanguagesRepository(connection);
         AddEnriched(new("Name", "LocalizedStringNameId", "Id", "Name"), LocalizedStringName);
-        AddEnriched(new("LanguageName", "LanguageId", "Id", "Name"), Languages);
+        AddEnriched(new("LanguageName", "LanguageId", "Id", "Name"), Language);
     }
 
     public static IReadonlyRepository<Backend.Types.View.LocalizedString> CreateReadonly(IConnection connection)
     {
         var repo = new ReadonlyRepository<Backend.Types.View.LocalizedString>(connection, Options(connection));
         var LocalizedStringName = new LocalizedStringNamesRepository(connection);
-        var Languages = new LanguagesRepository(connection);
+        var Language = new LanguagesRepository(connection);
         repo.AddEnriched(new("Name", "LocalizedStringNameId", "Id", "Name"), LocalizedStringName);
-        repo.AddEnriched(new("LanguageName", "LanguageId", "Id", "Name"), Languages);
+        repo.AddEnriched(new("LanguageName", "LanguageId", "Id", "Name"), Language);
         return repo;
     }
 

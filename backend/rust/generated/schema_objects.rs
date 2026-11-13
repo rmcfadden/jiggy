@@ -45,6 +45,8 @@ impl SchemaObject for EmailAttribute {}
 
 impl SchemaObject for EmailLabel {}
 
+impl SchemaObject for EmailToken {}
+
 impl SchemaObject for EmailType {}
 
 impl SchemaObject for Game {}
@@ -98,6 +100,12 @@ impl SchemaObject for Language {}
 impl SchemaObject for LocalizedString {}
 
 impl SchemaObject for LocalizedStringName {}
+
+impl SchemaObject for Log {}
+
+impl SchemaObject for LogAttribute {}
+
+impl SchemaObject for LogType {}
 
 impl SchemaObject for MimeType {}
 

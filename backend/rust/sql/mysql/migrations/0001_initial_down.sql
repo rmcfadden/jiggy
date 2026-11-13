@@ -31,6 +31,8 @@ DROP TABLE IF EXISTS identity_provider_types;
 GO
 DROP TABLE IF EXISTS authentication_methods;
 GO
+DROP TABLE IF EXISTS email_tokens;
+GO
 DROP TABLE IF EXISTS user_tokens;
 GO
 DROP TABLE IF EXISTS tokens;
@@ -96,6 +98,12 @@ GO
 DROP TABLE IF EXISTS game_parents;
 GO
 DROP TABLE IF EXISTS categories;
+GO
+DROP TABLE IF EXISTS log_attributes;
+GO
+DROP TABLE IF EXISTS logs;
+GO
+DROP TABLE IF EXISTS log_types;
 GO
 DROP TABLE IF EXISTS templates;
 GO

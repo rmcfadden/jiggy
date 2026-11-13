@@ -2,12 +2,14 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ColorsDialog, ModeToggle } from '../ThemeControls'
 import { PALETTES, loadPalette } from '../theme'
-import { useSession, useSignOut } from './hooks'
+import { useAvatar, useSession, useSignOut } from './hooks'
 
 /** The signed-in user's initial in a round button that opens a small menu; a Sign in link when signed out. */
 export default function Avatar() {
   const session = useSession().data
   const signOut = useSignOut()
+  const avatar = useAvatar()
+  const [broken, setBroken] = useState<string | null>(null)
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const [open, setOpen] = useState(false)
@@ -43,10 +45,14 @@ export default function Avatar() {
         aria-haspopup="menu"
         aria-expanded={open}
         title={session.username}
-        className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-500 text-sm font-semibold uppercase text-[#0f172a] hover:bg-amber-400"
+        className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-amber-500 text-sm font-semibold uppercase text-[#0f172a] hover:bg-amber-400"
         onClick={() => setOpen(!open)}
       >
-        {session.username.trim().charAt(0) || '?'}
+        {avatar && broken !== avatar ? (
+          <img src={avatar} alt="" referrerPolicy="no-referrer" className="h-full w-full rounded-full object-cover" onError={() => setBroken(avatar)} />
+        ) : (
+          session.username.trim().charAt(0) || '?'
+        )}
       </button>
       {open && (
         <div role="menu" aria-label="Profile" className="absolute right-0 z-40 mt-2 w-52 rounded-lg border border-slate-200 bg-white p-1 text-slate-900 shadow-lg">

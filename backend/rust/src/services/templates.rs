@@ -4,6 +4,7 @@ use futures_util::TryStreamExt;
 use serde_json::{json, Value};
 use std::sync::Arc;
 
+#[derive(Debug)]
 pub enum TemplateError {
     Datasource(datasources::DatasourceError),
 }
@@ -40,6 +41,12 @@ impl TemplatesService {
             .collect())
     }
 
+    /// The content of the template of `kind` (for example "confirm_email") written in `language` (an ISO 639-1 code).
+    pub async fn content_for(&self, kind: &str, language: &str) -> Result<Option<Value>> {
+        let rows: Vec<Template> = self.repo.read(None, None).try_collect().await?;
+        Ok(rows.iter().find(|t| t.template_type_name == kind && t.language_code == language).map(|t| serde_json::from_str(&t.content).unwrap_or(Value::Null)))
+    }
+
     pub async fn get(&self, id: i64) -> Result<Option<Value>> {
         Ok(self.find(id).await?.as_ref().map(to_json))
     }
@@ -66,25 +73,25 @@ impl TemplatesService {
         Ok(true)
     }
 
-    /// Creates the templates in the seed file at `path` that are missing, matching on (type, name); existing rows are
+    /// Creates the templates in the seed file at `path` that are missing, matching on (type, language, name); existing rows are
     /// never changed. Returns the names added.
     pub async fn add_templates(&self, path: &std::path::Path) -> std::result::Result<Vec<String>, Box<dyn std::error::Error>> {
         let seeds: Vec<Value> = serde_json::from_str(&std::fs::read_to_string(path)?)?;
-        let mut have: Vec<(String, String)> = self
+        let mut have: Vec<(String, String, String)> = self
             .list(None)
             .await
             .map_err(|_| "could not read templates")?
             .iter()
-            .map(|t| (t["type"].as_str().unwrap_or_default().to_string(), t["name"].as_str().unwrap_or_default().to_string()))
+            .map(|t| (t["type"].as_str().unwrap_or_default().to_string(), t["language"].as_str().unwrap_or_default().to_string(), t["name"].as_str().unwrap_or_default().to_string()))
             .collect();
         let mut added = vec![];
         for seed in &seeds {
-            let key = (seed["type"].as_str().unwrap_or_default().to_string(), seed["name"].as_str().unwrap_or_default().to_string());
+            let key = (seed["type"].as_str().unwrap_or_default().to_string(), seed["language"].as_str().unwrap_or("en").to_string(), seed["name"].as_str().unwrap_or_default().to_string());
             if have.contains(&key) {
                 continue;
             }
-            self.create(seed).await.map_err(|_| format!("could not create template {}", key.1))?;
-            added.push(key.1.clone());
+            self.create(seed).await.map_err(|e| format!("could not create template {}: {e:?}", key.2))?;
+            added.push(key.2.clone());
             have.push(key);
         }
         Ok(added)
@@ -99,6 +106,12 @@ fn apply(item: &mut Template, input: &Value) {
     if let Some(kind) = input["type"].as_str() {
         item.template_type_name = kind.into();
     }
+    // Templates exist per language; English unless the input names another (an ISO 639-1 code).
+    match input["language"].as_str() {
+        Some(code) => item.language_code = code.into(),
+        None if item.language_code.is_empty() => item.language_code = "en".into(),
+        None => {}
+    }
     if let Some(v) = input["name"].as_str() {
         item.name = v.into();
     }
@@ -112,6 +125,7 @@ fn to_json(t: &Template) -> Value {
         "id": t.id,
         "uuid": t.uuid.to_string(),
         "type": t.template_type_name,
+        "language": t.language_code,
         "name": t.name,
         "content": serde_json::from_str::<Value>(&t.content).unwrap_or(Value::Null),
         "created": t.created.to_rfc3339(),

@@ -1,5 +1,6 @@
 pub mod auth;
 pub mod categories;
+pub mod emails;
 pub mod game_parents;
 pub mod game_plays;
 pub mod game_summaries;
@@ -10,4 +11,5 @@ pub mod puzzles;
 pub mod reviews;
 pub mod signin;
 pub mod signup;
+pub mod sso;
 pub mod templates;

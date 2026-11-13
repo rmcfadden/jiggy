@@ -152,6 +152,18 @@ types:
         - token_id:
             references: tokens_base.id
 
+  - email_token:
+      # links an email confirmation token to the email it confirms
+      tags:
+        - datasource_type
+        - many_to_many
+      inherits: base
+      fields:
+        - email_id:
+            references: email_base.id
+        - token_id:
+            references: tokens_base.id
+
   - authorization_codes_base:
       tags:
         - datasource_type

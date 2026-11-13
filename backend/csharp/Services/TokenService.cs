@@ -8,24 +8,17 @@ using Datasources;
 
 namespace Backend.Services;
 
-/// <summary>JWT_SECRET (required, 32+ characters) and the optional TTLs in seconds.</summary>
-public record TokenSettings(string JwtSecret, long SigninTtl, long AccessTtl, long RefreshTtl)
+/// <summary>JWT_SECRET (required, 32+ characters) and the optional TTLs in seconds (EMAIL_CONFIRMATION_TTL defaults to 24 hours).</summary>
+public record TokenSettings(string JwtSecret, long SigninTtl, long AccessTtl, long RefreshTtl, long EmailConfirmationTtl)
 {
     /// <summary>Reads configuration/environment, falling back to <c>.env</c> then <c>.env.development</c> (test-only dev defaults, skipped in production) in the working directory. The real environment wins, then <c>.env</c>.</summary>
     public static TokenSettings From(IConfiguration config)
     {
-        var production = new[] { "APP_ENV", "NODE_ENV", "ASPNETCORE_ENVIRONMENT" }.Any(k => string.Equals(config[k], "production", StringComparison.OrdinalIgnoreCase));
-        var file = (production ? new[] { ".env" } : new[] { ".env", ".env.development" }).Where(File.Exists).SelectMany(File.ReadAllLines).ToArray();
-        string? Get(string key)
-        {
-            var value = config[key];
-            if (!string.IsNullOrEmpty(value)) return value;
-            return file.Select(l => l.Split('=', 2)).Where(p => p.Length == 2 && p[0].Trim() == key).Select(p => p[1].Trim()).FirstOrDefault(v => v.Length > 0);
-        }
+        var Get = Settings.Lookup(config);
         long Seconds(string key, long fallback) => long.TryParse(Get(key), out var v) ? v : fallback;
         var secret = Get("JWT_SECRET");
         if (secret is null || secret.Length < 32) throw new InvalidOperationException("JWT_SECRET must be set to at least 32 characters");
-        return new TokenSettings(secret, Seconds("SIGNIN_TOKEN_TTL", 300), Seconds("JWT_ACCESS_TTL", 86_400), Seconds("JWT_REFRESH_TTL", 86_400));
+        return new TokenSettings(secret, Seconds("SIGNIN_TOKEN_TTL", 300), Seconds("JWT_ACCESS_TTL", 86_400), Seconds("JWT_REFRESH_TTL", 86_400), Seconds("EMAIL_CONFIRMATION_TTL", 86_400));
     }
 }
 
@@ -35,18 +28,60 @@ public record IssuedToken(string Value, long ExpiresIn);
 public class TokenService(
     ICRUDRepository<Token> tokens,
     ICRUDRepository<UserToken> userTokens,
+    ICRUDRepository<EmailToken> emailTokens,
     IReadonlyRepository<TokenType> tokenTypes,
     TokenSettings settings)
 {
     public const string SigninTokenType = "signin_token";
     public const string AccessTokenType = "jwt_access_token";
     public const string RefreshTokenType = "jwt_refresh_token";
+    public const string EmailConfirmationTokenType = "email_confirmation";
 
     static string Sha256(string value) => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
 
     /// <summary>Short-lived, single-use opaque token handed back by signin and exchanged at /api/oauth/token.</summary>
     public Task<IssuedToken> IssueSignin(long userId) =>
         Store(userId, SigninTokenType, $"signin:{Guid.NewGuid()}", Base64Url.EncodeToString(RandomNumberGenerator.GetBytes(32)), settings.SigninTtl);
+
+    /// <summary>
+    /// A long random code for the link in a confirmation email, tied to the user and to the email it confirms. Only its hash is
+    /// stored; it expires after EMAIL_CONFIRMATION_TTL and works once (see <see cref="Revoke"/>).
+    /// </summary>
+    public async Task<IssuedToken> IssueEmailConfirmation(long userId, long emailId)
+    {
+        var (issued, tokenId) = await StoreRow(userId, EmailConfirmationTokenType, $"email:{emailId}:{Guid.NewGuid()}", Base64Url.EncodeToString(RandomNumberGenerator.GetBytes(32)), settings.EmailConfirmationTtl);
+        try
+        {
+            await emailTokens.Create(new EmailToken { EmailId = emailId, TokenId = tokenId });
+        }
+        catch
+        {
+            await foreach (var row in tokens.Read())
+                if (row.Id == tokenId) { await tokens.Delete(row); break; }
+            throw;
+        }
+        return issued;
+    }
+
+    /// <summary>The email a confirmation token was issued for.</summary>
+    public async Task<long?> EmailIdOf(Token row)
+    {
+        await foreach (var link in emailTokens.Read())
+            if (link.TokenId == row.Id) return link.EmailId;
+        return null;
+    }
+
+    /// <summary>When the newest confirmation token for the email was issued, to rate-limit resends.</summary>
+    public async Task<DateTime?> LastEmailConfirmation(long emailId)
+    {
+        var ids = new HashSet<long>();
+        await foreach (var link in emailTokens.Read())
+            if (link.EmailId == emailId) ids.Add(link.TokenId);
+        DateTime? newest = null;
+        await foreach (var row in tokens.Read())
+            if (ids.Contains(row.Id) && (newest is null || row.Created > newest)) newest = row.Created;
+        return newest;
+    }
 
     public Task<IssuedToken> IssueAccess(long userId, string userUuid, string sessionUuid) =>
         IssueJwt(userId, userUuid, sessionUuid, "access", AccessTokenType, settings.AccessTtl);
@@ -57,7 +92,7 @@ public class TokenService(
     /// <summary>The stored row when <paramref name="plain"/> is a live token of <paramref name="typeName"/> (enabled, not deleted, not revoked, not expired).</summary>
     public async Task<Token?> Validate(string plain, string typeName)
     {
-        if (typeName != SigninTokenType)
+        if (typeName == AccessTokenType || typeName == RefreshTokenType)
         {
             var claims = Jwt.Verify(plain, settings.JwtSecret, DateTimeOffset.UtcNow.ToUnixTimeSeconds());
             if (claims?["typ"]?.GetValue<string>() != (typeName == AccessTokenType ? "access" : "refresh")) return null;
@@ -106,7 +141,9 @@ public class TokenService(
         return Store(userId, typeName, $"session:{sessionUuid}:{jti}", Jwt.Sign(claims, settings.JwtSecret), ttl);
     }
 
-    async Task<IssuedToken> Store(long userId, string typeName, string name, string value, long ttl)
+    async Task<IssuedToken> Store(long userId, string typeName, string name, string value, long ttl) => (await StoreRow(userId, typeName, name, value, ttl)).Issued;
+
+    async Task<(IssuedToken Issued, long TokenId)> StoreRow(long userId, string typeName, string name, string value, long ttl)
     {
         var created = await tokens.Create(new Token
         {
@@ -124,7 +161,7 @@ public class TokenService(
             await tokens.Delete(created); // an unlinked token could never be traced back to its user
             throw;
         }
-        return new IssuedToken(value, ttl);
+        return (new IssuedToken(value, ttl), created.Id);
     }
 
     async Task<long> TypeId(string name)

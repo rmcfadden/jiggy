@@ -306,5 +306,15 @@
       "fixOverlap": true,
       "seed": 30
     }
+  },
+  {
+    "type": "confirm_email",
+    "language": "en",
+    "name": "Confirm your email",
+    "content": {
+      "subject": "Confirm your email address",
+      "text": "Hi {{username}},\n\nPlease confirm your email address by opening this link:\n\n{{confirm_url}}\n\nThe link expires in 24 hours and works once. If you did not create an account, you can ignore this message.",
+      "html": "<p>Hi {{username}},</p><p>Please confirm your email address:</p><p><a href=\"{{confirm_url}}\">Confirm my email</a></p><p>The link expires in 24 hours and works once. If you did not create an account, you can ignore this message.</p>"
+    }
   }
 ]

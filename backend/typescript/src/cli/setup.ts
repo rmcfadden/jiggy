@@ -15,6 +15,7 @@ import type { MimeType } from '../../generated/types/datasource/mimeType.ts'
 import type { Resource } from '../../generated/types/view/resource.ts'
 import type { TemplateBase } from '../../generated/types/datasource/templateBase.ts'
 import type { TemplateType } from '../../generated/types/datasource/templateType.ts'
+import type { Language } from '../../generated/types/datasource/language.ts'
 
 /** The game types the designer ships with; `location` is the id the frontend matches on. */
 export const GAME_PARENTS = [
@@ -43,6 +44,7 @@ export async function setup(): Promise<void> {
     categories: ICRUDRepository<Category>
     templates: ICRUDRepository<TemplateBase>
     templateTypes: ICRUDRepository<TemplateType>
+    languages: ICRUDRepository<Language>
     games: ICRUDRepository<Game>
       gameCategories: ICRUDRepository<GameCategory>
     resources: ICRUDRepository<Resource>
@@ -50,7 +52,7 @@ export async function setup(): Promise<void> {
   }
   const gameParents = new GameParentsService(ds.gameParents)
   const categoriesService = new CategoriesService(ds.categories)
-  const templates = new TemplatesService(ds.templates, ds.templateTypes)
+  const templates = new TemplatesService(ds.templates, ds.templateTypes, ds.languages)
   const images = new ImagesService(ds.resources, ds.mimeTypes)
 
   const parents = await addParentGames(gameParents)

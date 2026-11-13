@@ -6,27 +6,38 @@ using TemplateView = Backend.Types.View.Template;
 namespace Backend.Services;
 
 /// <summary>What the API exchanges: <c>Content</c> is the template's settings as JSON, stored as text.</summary>
-public record TemplateDto(long Id, string Uuid, string Type, string Name, JsonElement Content, DateTime Created, DateTime Updated);
+public record TemplateDto(long Id, string Uuid, string Type, string Name, JsonElement Content, DateTime Created, DateTime Updated, string Language = "");
 
 /// <summary>A template as the list returns it: without <c>Content</c>, which <c>Get</c> loads for the one that is selected.</summary>
-public record TemplateListItem(long Id, string Uuid, string Type, string Name, DateTime Created, DateTime Updated);
+public record TemplateListItem(long Id, string Uuid, string Type, string Name, DateTime Created, DateTime Updated, string Language = "");
 
-public record TemplateInput(string? Type, string? Name, JsonElement? Content);
+/// <summary><c>Language</c> is an ISO 639-1 code and defaults to English.</summary>
+public record TemplateInput(string? Type, string? Name, JsonElement? Content, string? Language = null);
 
 /// <summary>One entry of the templates seed file (<c>backend/data/templates.json</c>).</summary>
-public record TemplateSeed(string Type, string Name, JsonElement Content);
+public record TemplateSeed(string Type, string Name, JsonElement Content, string? Language = null);
 
 public class UnknownTemplateTypeException(string type) : Exception($"unknown template type: {type}");
 
 public class TemplatesService(ICRUDRepository<TemplateView> repo, ICRUDRepository<TemplateType> types)
 {
+    public const string DefaultLanguage = "en";
+
     /// <summary>Templates of <paramref name="type"/> (a template type name such as "jigsaw"), or all of them when null.</summary>
     public async Task<List<TemplateListItem>> List(string? type = null)
     {
         var rows = new List<TemplateListItem>();
         await foreach (var row in repo.Read())
-            if (type is null || row.TemplateTypeName == type) rows.Add(new TemplateListItem(row.Id, row.Uuid.ToString(), row.TemplateTypeName, row.Name, row.Created, row.Updated));
+            if (type is null || row.TemplateTypeName == type) rows.Add(new TemplateListItem(row.Id, row.Uuid.ToString(), row.TemplateTypeName, row.Name, row.Created, row.Updated, row.LanguageCode));
         return rows;
+    }
+
+    /// <summary>The content of the template of <paramref name="type"/> (for example "confirm_email") written in <paramref name="language"/> (an ISO 639-1 code).</summary>
+    public async Task<JsonElement?> ContentFor(string type, string language)
+    {
+        await foreach (var row in repo.Read())
+            if (row.TemplateTypeName == type && row.LanguageCode == language) return JsonDocument.Parse(row.Content).RootElement.Clone();
+        return null;
     }
 
     public async Task<TemplateDto?> Get(long id)
@@ -38,7 +49,7 @@ public class TemplatesService(ICRUDRepository<TemplateView> repo, ICRUDRepositor
     public async Task<TemplateDto> Create(TemplateInput input)
     {
         var type = TypeName(await TypeNames(), input.Type ?? "");
-        var created = await repo.Create(new TemplateView { TemplateTypeName = type, Name = input.Name ?? "", Content = Json(input.Content) });
+        var created = await repo.Create(new TemplateView { TemplateTypeName = type, LanguageCode = input.Language ?? DefaultLanguage, Name = input.Name ?? "", Content = Json(input.Content) });
         return ToDto(await repo.ReadSingleById(created.Id) ?? created);
     }
 
@@ -48,6 +59,7 @@ public class TemplatesService(ICRUDRepository<TemplateView> repo, ICRUDRepositor
         var row = await repo.ReadSingleById(id);
         if (row is null) return null;
         if (input.Type is not null) row.TemplateTypeName = TypeName(await TypeNames(), input.Type);
+        if (input.Language is not null) row.LanguageCode = input.Language;
         row.Name = input.Name ?? row.Name;
         if (input.Content is not null) row.Content = Json(input.Content);
         await repo.Update(row);
@@ -63,10 +75,14 @@ public class TemplatesService(ICRUDRepository<TemplateView> repo, ICRUDRepositor
     }
 
     /// <summary>
-    /// Creates the templates in the seed file at <paramref name="path"/> that are missing, matching on (type, name);
+    /// Creates the templates in the seed file at <paramref name="path"/> that are missing, matching on (type, language, name);
     /// existing rows are never changed. Returns the names added.
     /// </summary>
-    static readonly (string Name, string Description)[] TemplateTypes = [("jigsaw", "Jigsaw template settings")];
+    static readonly (string Name, string Description)[] TemplateTypes =
+    [
+        ("jigsaw", "Jigsaw template settings"),
+        ("confirm_email", "Email sent to confirm an address; content is JSON with subject, text and html using {{username}} and {{confirm_url}}"),
+    ];
 
     /// <summary>Adds the built-in template types that are not there yet; returns the names it added.</summary>
     public async Task<List<string>> AddTypes()
@@ -85,12 +101,12 @@ public class TemplatesService(ICRUDRepository<TemplateView> repo, ICRUDRepositor
     public async Task<List<string>> AddTemplates(string path)
     {
         var seeds = JsonSerializer.Deserialize<List<TemplateSeed>>(await File.ReadAllTextAsync(path), new JsonSerializerOptions(JsonSerializerDefaults.Web)) ?? [];
-        var present = (await List()).Select(t => (t.Type, t.Name)).ToHashSet();
+        var present = (await List()).Select(t => (t.Type, t.Language, t.Name)).ToHashSet();
         var added = new List<string>();
         foreach (var seed in seeds)
         {
-            if (!present.Add((seed.Type, seed.Name))) continue;
-            await Create(new TemplateInput(seed.Type, seed.Name, seed.Content));
+            if (!present.Add((seed.Type, seed.Language ?? DefaultLanguage, seed.Name))) continue;
+            await Create(new TemplateInput(seed.Type, seed.Name, seed.Content, seed.Language));
             added.Add(seed.Name);
         }
         return added;
@@ -109,5 +125,5 @@ public class TemplatesService(ICRUDRepository<TemplateView> repo, ICRUDRepositor
     static string Json(JsonElement? content) => content?.GetRawText() ?? "{}";
 
     static TemplateDto ToDto(TemplateView row) =>
-        new(row.Id, row.Uuid.ToString(), row.TemplateTypeName, row.Name, JsonDocument.Parse(row.Content).RootElement.Clone(), row.Created, row.Updated);
+        new(row.Id, row.Uuid.ToString(), row.TemplateTypeName, row.Name, JsonDocument.Parse(row.Content).RootElement.Clone(), row.Created, row.Updated, row.LanguageCode);
 }

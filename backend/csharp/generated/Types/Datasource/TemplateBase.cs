@@ -5,6 +5,7 @@ namespace Backend.Types.Datasource;
 public class TemplateBase : Base
 {
     public long TemplateTypeId { get; set; }
+    public long LanguageId { get; set; }
     public string Name { get; set; } = "";
     public string Content { get; set; } = "";
 }

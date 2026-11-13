@@ -19,6 +19,7 @@ use super::super::ContactLabel;
 use super::super::Email;
 use super::super::EmailAttribute;
 use super::super::EmailLabel;
+use super::super::EmailToken;
 use super::super::EmailType;
 use super::super::Game;
 use super::super::GameAttribute;
@@ -46,6 +47,9 @@ use super::super::Label;
 use super::super::Language;
 use super::super::LocalizedString;
 use super::super::LocalizedStringName;
+use super::super::Log;
+use super::super::LogAttribute;
+use super::super::LogType;
 use super::super::MimeType;
 use super::super::OauthGrantType;
 use super::super::Phone;
@@ -200,6 +204,12 @@ pub fn register(factory: &RepositoryFactory) {
         "email_labels",
         |connection| Ok(Arc::new(super::emailLabelsRepository::EmailLabelsRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<EmailLabel>>),
         |connection| Arc::new(super::emailLabelsRepository::EmailLabelsRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<EmailLabel>>,
+    );
+    factory.register_named(
+        "EmailToken",
+        "email_tokens",
+        |connection| Ok(Arc::new(super::emailTokensRepository::EmailTokensRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<EmailToken>>),
+        |connection| Arc::new(super::emailTokensRepository::EmailTokensRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<EmailToken>>,
     );
     factory.register_named(
         "EmailType",
@@ -362,6 +372,24 @@ pub fn register(factory: &RepositoryFactory) {
         "localized_string_names",
         |connection| Ok(Arc::new(super::localizedStringNamesRepository::LocalizedStringNamesRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<LocalizedStringName>>),
         |connection| Arc::new(super::localizedStringNamesRepository::LocalizedStringNamesRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<LocalizedStringName>>,
+    );
+    factory.register_named(
+        "Log",
+        "logs",
+        |connection| Ok(Arc::new(super::logsRepository::LogsRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<Log>>),
+        |connection| Arc::new(super::logsRepository::LogsRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<Log>>,
+    );
+    factory.register_named(
+        "LogAttribute",
+        "log_attributes",
+        |connection| Ok(Arc::new(super::logAttributesRepository::LogAttributesRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<LogAttribute>>),
+        |connection| Arc::new(super::logAttributesRepository::LogAttributesRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<LogAttribute>>,
+    );
+    factory.register_named(
+        "LogType",
+        "log_types",
+        |connection| Ok(Arc::new(super::logTypesRepository::LogTypesRepository::new(connection).expect("repository")) as Arc<dyn ICRUDRepository<LogType>>),
+        |connection| Arc::new(super::logTypesRepository::LogTypesRepository::create_readonly(connection).expect("repository")) as Arc<dyn IReadonlyRepository<LogType>>,
     );
     factory.register_named(
         "MimeType",
@@ -580,6 +608,7 @@ pub trait Repositories {
     fn emails(&self) -> Arc<super::emailsRepository::EmailsRepository>;
     fn email_attributes(&self) -> Arc<super::emailAttributesRepository::EmailAttributesRepository>;
     fn email_labels(&self) -> Arc<super::emailLabelsRepository::EmailLabelsRepository>;
+    fn email_tokens(&self) -> Arc<super::emailTokensRepository::EmailTokensRepository>;
     fn email_types(&self) -> Arc<super::emailTypesRepository::EmailTypesRepository>;
     fn games(&self) -> Arc<super::gamesRepository::GamesRepository>;
     fn game_attributes(&self) -> Arc<super::gameAttributesRepository::GameAttributesRepository>;
@@ -607,6 +636,9 @@ pub trait Repositories {
     fn languages(&self) -> Arc<super::languagesRepository::LanguagesRepository>;
     fn localized_strings(&self) -> Arc<super::localizedStringsRepository::LocalizedStringsRepository>;
     fn localized_string_names(&self) -> Arc<super::localizedStringNamesRepository::LocalizedStringNamesRepository>;
+    fn logs(&self) -> Arc<super::logsRepository::LogsRepository>;
+    fn log_attributes(&self) -> Arc<super::logAttributesRepository::LogAttributesRepository>;
+    fn log_types(&self) -> Arc<super::logTypesRepository::LogTypesRepository>;
     fn mime_types(&self) -> Arc<super::mimeTypesRepository::MimeTypesRepository>;
     fn oauth_grant_types(&self) -> Arc<super::oauthGrantTypesRepository::OauthGrantTypesRepository>;
     fn phones(&self) -> Arc<super::phonesRepository::PhonesRepository>;
@@ -702,6 +734,9 @@ impl Repositories for Arc<dyn Datasource> {
     fn email_labels(&self) -> Arc<super::emailLabelsRepository::EmailLabelsRepository> {
         Arc::new(super::emailLabelsRepository::EmailLabelsRepository::new(self.bind_connection(None)).expect("email_labels"))
     }
+    fn email_tokens(&self) -> Arc<super::emailTokensRepository::EmailTokensRepository> {
+        Arc::new(super::emailTokensRepository::EmailTokensRepository::new(self.bind_connection(None)).expect("email_tokens"))
+    }
     fn email_types(&self) -> Arc<super::emailTypesRepository::EmailTypesRepository> {
         Arc::new(super::emailTypesRepository::EmailTypesRepository::new(self.bind_connection(None)).expect("email_types"))
     }
@@ -782,6 +817,15 @@ impl Repositories for Arc<dyn Datasource> {
     }
     fn localized_string_names(&self) -> Arc<super::localizedStringNamesRepository::LocalizedStringNamesRepository> {
         Arc::new(super::localizedStringNamesRepository::LocalizedStringNamesRepository::new(self.bind_connection(None)).expect("localized_string_names"))
+    }
+    fn logs(&self) -> Arc<super::logsRepository::LogsRepository> {
+        Arc::new(super::logsRepository::LogsRepository::new(self.bind_connection(None)).expect("logs"))
+    }
+    fn log_attributes(&self) -> Arc<super::logAttributesRepository::LogAttributesRepository> {
+        Arc::new(super::logAttributesRepository::LogAttributesRepository::new(self.bind_connection(None)).expect("log_attributes"))
+    }
+    fn log_types(&self) -> Arc<super::logTypesRepository::LogTypesRepository> {
+        Arc::new(super::logTypesRepository::LogTypesRepository::new(self.bind_connection(None)).expect("log_types"))
     }
     fn mime_types(&self) -> Arc<super::mimeTypesRepository::MimeTypesRepository> {
         Arc::new(super::mimeTypesRepository::MimeTypesRepository::new(self.bind_connection(None)).expect("mime_types"))

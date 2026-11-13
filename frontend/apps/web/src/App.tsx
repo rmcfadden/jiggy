@@ -7,8 +7,10 @@ import Explorer from './views/Explorer'
 import Player from './views/Player'
 import PuzzleByName from './views/PuzzleByName'
 import ReviewsPage from './views/ReviewsPage'
+import ConfirmEmail from './views/ConfirmEmail'
 import SignIn from './views/SignIn'
 import SignUp from './views/SignUp'
+import SsoCallback from './views/SsoCallback'
 
 export default function App() {
   return (
@@ -26,6 +28,8 @@ export default function App() {
         <Route path="profile" element={<ProfilePage />} />
         <Route path="signin" element={<SignIn />} />
         <Route path="signup" element={<SignUp />} />
+        <Route path="confirm-email" element={<ConfirmEmail />} />
+        <Route path="sso/callback" element={<SsoCallback />} />
       </Route>
     </Routes>
   )

@@ -8,6 +8,7 @@ export class TemplateBase {
   updated: Date = new Date();
   version: string = Buffer.from([0]).toString("base64");
   templateTypeId!: number;
+  languageId!: number;
   name: string = "";
   content: string = "";
 }

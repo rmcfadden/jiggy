@@ -425,6 +425,10 @@ impl IdentityProvidersService {
         Self { providers, types, site_base_url }
     }
 
+    pub async fn all(&self) -> Result<Vec<IdentityProvider>> {
+        Ok(self.providers.read(None, None).try_collect::<Vec<IdentityProvider>>().await?)
+    }
+
     pub async fn find(&self, name: &str) -> Result<Option<IdentityProvider>> {
         Ok(self.providers.read(None, None).try_collect::<Vec<IdentityProvider>>().await?.into_iter().find(|p| p.name == name))
     }

@@ -1,6 +1,6 @@
 version: 1.0.0
 seeds:
-  - languages:
+  - language:
       - id1:
           code: "aa"
           name: "Afar"
