@@ -1483,6 +1483,8 @@ CREATE TABLE "identity_providers" (
     CONSTRAINT "identity_providers_identity_provider_type_id_foreign_key" FOREIGN KEY ("identity_provider_type_id") REFERENCES "identity_provider_types" ("id")
 );
 GO
+CREATE UNIQUE INDEX "identity_providers_name_index" ON "identity_providers" ("name");
+GO
 CREATE TRIGGER "trg_identity_providers_updated_at"
 AFTER UPDATE ON "identity_providers"
 FOR EACH ROW
@@ -1503,6 +1505,8 @@ CREATE TABLE "identity_provider_settings" (
     CONSTRAINT "identity_provider_settings_uuid_unique_constraint" UNIQUE ("uuid"),
     CONSTRAINT "identity_provider_settings_identity_provider_id_foreign_key" FOREIGN KEY ("identity_provider_id") REFERENCES "identity_providers" ("id")
 );
+GO
+CREATE UNIQUE INDEX "identity_provider_settings_provider_id_name_index" ON "identity_provider_settings" ("identity_provider_id", "name");
 GO
 CREATE TRIGGER "trg_identity_provider_settings_updated_at"
 AFTER UPDATE ON "identity_provider_settings"

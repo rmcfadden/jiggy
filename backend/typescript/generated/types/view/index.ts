@@ -1,9 +1,4 @@
-export { userSettingMap, UserSettingMap } from "./userSettingMap";
 export { user, User } from "./user";
-export { contactAttributeMap, ContactAttributeMap } from "./contactAttributeMap";
-export { addressAttributeMap, AddressAttributeMap } from "./addressAttributeMap";
-export { emailAttributeMap, EmailAttributeMap } from "./emailAttributeMap";
-export { phoneAttributeMap, PhoneAttributeMap } from "./phoneAttributeMap";
 export { address, Address } from "./address";
 export { email, Email } from "./email";
 export { phone, Phone } from "./phone";
@@ -15,9 +10,6 @@ export { resource, Resource } from "./resource";
 export { template, Template } from "./template";
 export { category, Category } from "./category";
 export { gamePlay, GamePlay } from "./gamePlay";
-export { gameParentSettingMap, GameParentSettingMap } from "./gameParentSettingMap";
-export { gameAttributeMap, GameAttributeMap } from "./gameAttributeMap";
-export { gameSettingMap, GameSettingMap } from "./gameSettingMap";
 export { game, Game } from "./game";
 export { gameParent, GameParent } from "./gameParent";
 export { gameSummary, GameSummary } from "./gameSummary";
@@ -37,5 +29,4 @@ export { identityProviderAuthorizeSession, IdentityProviderAuthorizeSession } fr
 export { identityProviderSigninAttempt, IdentityProviderSigninAttempt } from "./identityProviderSigninAttempt";
 export { session, Session } from "./session";
 export { sessionHit, SessionHit } from "./sessionHit";
-export { settingsMap, SettingsMap } from "./settingsMap";
 export { app, App } from "./app";

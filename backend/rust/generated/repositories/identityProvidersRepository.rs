@@ -1,5 +1,6 @@
 use datasources::{Connection, CRUDRepository, CRUDRepositoryBuilder, CRUDRepositoryOptions, DictionaryMapper, Enrichment, EnrichmentPropertyType, EnrichmentVia, ICRUDRepository, IReadonlyRepository, IRepository, IWhere, ReadonlyRepository, ReadonlyRepositoryMappingOptions, Schema, SchemaColumn, Statement, Result, async_trait, CommandMiddleware, IdKey, Response, Stream};
 use super::super::IdentityProvider;
+use super::identityProviderSettingsRepository::IdentityProviderSettingsRepository;
 use super::identityProviderTypesRepository::IdentityProviderTypesRepository;
 use std::any::TypeId;
 use std::collections::HashMap;
@@ -9,6 +10,7 @@ use std::sync::Arc;
 
 pub struct IdentityProvidersRepository {
     pub(crate) inner: Arc<CRUDRepository<IdentityProvider>>,
+    pub identity_provider_setting: IdentityProviderSettingsRepository,
     pub identity_provider_type: IdentityProviderTypesRepository,
 }
 
@@ -67,10 +69,12 @@ impl IdentityProvidersRepository {
     })
     .for_connection(connection.as_ref())?;
 
+        let identity_provider_setting = IdentityProviderSettingsRepository::new(Arc::clone(&connection))?;
         let identity_provider_type = IdentityProviderTypesRepository::new(Arc::clone(&connection))?;
         let mut repo = CRUDRepository::<IdentityProvider>::new(Arc::clone(&connection), options)?;
+        repo.add_enriched(Enrichment::new("settings", "id", "identity_provider_id", Some("value".into()), EnrichmentPropertyType::Dictionary).with_dictionary_key("name"), &identity_provider_setting, None);
         repo.add_enriched(Enrichment::new("identity_provider_type_name", "identity_provider_type_id", "id", Some("name".into()), EnrichmentPropertyType::Object), &identity_provider_type, None);
-        Ok(Self { inner: Arc::new(repo), identity_provider_type })
+        Ok(Self { inner: Arc::new(repo), identity_provider_setting, identity_provider_type })
     }
 
     pub fn create_readonly(connection: Arc<dyn Connection>) -> Result<ReadonlyRepository<IdentityProvider>> {
@@ -93,8 +97,10 @@ impl IdentityProvidersRepository {
             ("identity_provider_type_name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
         ]));
         options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "name".into(), "description".into(), "is_enabled".into(), "is_builtin".into(), "is_deleted".into(), "identity_provider_type_id".into()];
+        let identity_provider_setting = IdentityProviderSettingsRepository::new(Arc::clone(&connection))?;
         let identity_provider_type = IdentityProviderTypesRepository::new(Arc::clone(&connection))?;
         let mut repo = ReadonlyRepository::<IdentityProvider>::new(connection, options)?;
+        repo.add_enriched(Enrichment::new("settings", "id", "identity_provider_id", Some("value".into()), EnrichmentPropertyType::Dictionary).with_dictionary_key("name"), &identity_provider_setting, None);
         repo.add_enriched(Enrichment::new("identity_provider_type_name", "identity_provider_type_id", "id", Some("name".into()), EnrichmentPropertyType::Object), &identity_provider_type, None);
         Ok(repo)
     }
@@ -251,8 +257,10 @@ pub fn identity_providers_row_repository(connection: Arc<dyn Connection>) -> Res
     })
     .for_connection(connection.as_ref())?;
 
+        let identity_provider_setting = Arc::new(super::identityProviderSettingsRepository::identity_provider_settings_row_repository(Arc::clone(&connection))?);
         let identity_provider_type = Arc::new(super::identityProviderTypesRepository::identity_provider_types_row_repository(Arc::clone(&connection))?);
         let mut repo = CRUDRepository::<datasources::Row>::new(Arc::clone(&connection), options)?;
+        repo.add_enriched(Enrichment::new("settings", "id", "identity_provider_id", Some("value".into()), EnrichmentPropertyType::Dictionary).with_dictionary_key("name"), Arc::clone(&identity_provider_setting), None);
         repo.add_enriched(Enrichment::new("identity_provider_type_name", "identity_provider_type_id", "id", Some("name".into()), EnrichmentPropertyType::Object), Arc::clone(&identity_provider_type), None);
         Ok(repo)
 }

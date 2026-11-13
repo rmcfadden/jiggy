@@ -249,6 +249,10 @@ types:
         - identity_provider_type.name
       mapping:
         identity_provider_type.name: identity_provider_type_name
+      fields:
+        - settings:
+            type: identity_provider_setting_map{}
+            references: identity_provider_settings_base.identity_provider_id
   - identity_provider_settings_base:
       tags:
         - datasource_type
@@ -269,6 +273,19 @@ types:
         - view_type
       inherits: identity_provider_settings_base
       fields: []
+  - identity_provider_setting_map:
+      tags:
+        - view_type
+      inherits: dictionary
+      fields:
+        - key:
+            type: string
+            size: 256
+            references: identity_provider_settings_base.name
+        - value:
+            type: string
+            size: unlimited
+            references: identity_provider_settings_base.value
   - identity_provider_linked_user_field_type:
       tags:
         - datasource_type

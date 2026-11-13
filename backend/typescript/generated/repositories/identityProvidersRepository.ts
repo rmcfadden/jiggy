@@ -1,5 +1,6 @@
 import { IdentityProvider } from "../types/view/identityProvider";
 import { CRUDRepository, CRUDRepositoryBuilder, DictionaryMapper, ReadonlyRepository, Schema, type IConnection } from "@deterministic-code/datasources";
+import { IdentityProviderSettingsRepository } from "./identityProviderSettingsRepository";
 import { IdentityProviderTypesRepository } from "./identityProviderTypesRepository";
 const options = (connection: IConnection) =>
   new CRUDRepositoryBuilder<IdentityProvider>()
@@ -14,15 +15,20 @@ const readonlyOptions = (connection: IConnection) =>
     .for(connection);
 
 export class IdentityProvidersRepository extends CRUDRepository<IdentityProvider> {
+  readonly identityProviderSetting: IdentityProviderSettingsRepository;
   readonly identityProviderType: IdentityProviderTypesRepository;
   constructor(connection: IConnection) {
     super(connection, options(connection));
+    this.identityProviderSetting = new IdentityProviderSettingsRepository(connection);
     this.identityProviderType = new IdentityProviderTypesRepository(connection);
+    this.addEnriched({ destinationProperty: "settings", sourceProperty: "id", relatedKey: "identityProviderId", relatedProperty: "value", dictionaryKey: "name", type: "dictionary" }, this.identityProviderSetting);
     this.addEnriched({ destinationProperty: "identityProviderTypeName", sourceProperty: "identityProviderTypeId", relatedKey: "id", relatedProperty: "name", type: "object" }, this.identityProviderType);
   }
   static createReadonly(connection: IConnection) {
     const repo = new ReadonlyRepository<IdentityProvider>(connection, readonlyOptions(connection));
+    const identityProviderSetting = new IdentityProviderSettingsRepository(connection);
     const identityProviderType = new IdentityProviderTypesRepository(connection);
+    repo.addEnriched({ destinationProperty: "settings", sourceProperty: "id", relatedKey: "identityProviderId", relatedProperty: "value", dictionaryKey: "name", type: "dictionary" }, identityProviderSetting);
     repo.addEnriched({ destinationProperty: "identityProviderTypeName", sourceProperty: "identityProviderTypeId", relatedKey: "id", relatedProperty: "name", type: "object" }, identityProviderType);
     return repo;
   }
