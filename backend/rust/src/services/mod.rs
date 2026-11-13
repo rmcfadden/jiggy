@@ -4,6 +4,7 @@ pub mod game_plays;
 pub mod game_summaries;
 pub mod gameplay;
 pub mod games;
+pub mod identity_providers;
 pub mod images;
 pub mod jwt;
 pub mod oauth;
