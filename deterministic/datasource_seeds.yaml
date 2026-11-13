@@ -6,3 +6,4 @@ includes:
   - file: contacts_datasource_seeds.yaml
   - file: languages_datasource_seeds.yaml
   - file: mime_types_datasource_seeds.yaml
+  - file: applications_datasource_seeds.yaml
