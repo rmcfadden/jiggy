@@ -1,0 +1,10 @@
+version: 1.0.0
+types:
+  - applications_base:
+      mapping: applications
+  - application_settings_base:
+      mapping: application_settings
+  - services_base:
+      mapping: services
+  - service_settings_base:
+      mapping: service_settings

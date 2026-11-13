@@ -12,7 +12,7 @@ public sealed class ServicesRepository : CRUDRepository<Backend.Types.View.Servi
             .Add(new()
             {
                 Entity = "Service",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["Service"] = "services_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["Service"] = "services" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",
@@ -41,7 +41,7 @@ public sealed class ServicesRepository : CRUDRepository<Backend.Types.View.Servi
             .Add("sqlite", new()
             {
                 Entity = "Service",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["Service"] = "services_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["Service"] = "services" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",

@@ -1105,52 +1105,52 @@ BEGIN
   UPDATE "application_visibilities" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "applications_bases" (
+CREATE TABLE "applications" (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    "uuid" TEXT CONSTRAINT "applications_bases_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
-    "created" TEXT CONSTRAINT "applications_bases_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-    "updated" TEXT CONSTRAINT "applications_bases_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-    "version" BLOB CONSTRAINT "applications_bases_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "uuid" TEXT CONSTRAINT "applications_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "applications_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "applications_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "applications_version_default_constraint" DEFAULT X'00' NOT NULL,
     "name" VARCHAR(512) NOT NULL,
     "application_type_id" INTEGER NOT NULL,
     "application_visibility_id" INTEGER NOT NULL,
     "client_id" VARCHAR(512) NOT NULL,
     "description" TEXT,
-    "is_enabled" BOOLEAN CONSTRAINT "applications_bases_is_enabled_default_constraint" DEFAULT 1 NOT NULL,
-    "is_deleted" BOOLEAN CONSTRAINT "applications_bases_is_deleted_default_constraint" DEFAULT 0 NOT NULL,
-    "is_builtin" BOOLEAN CONSTRAINT "applications_bases_is_builtin_default_constraint" DEFAULT 0 NOT NULL,
-    CONSTRAINT "applications_bases_uuid_unique_constraint" UNIQUE ("uuid"),
-    CONSTRAINT "applications_bases_application_type_id_foreign_key" FOREIGN KEY ("application_type_id") REFERENCES "application_types" ("id"),
-    CONSTRAINT "applications_bases_application_visibility_id_foreign_key" FOREIGN KEY ("application_visibility_id") REFERENCES "application_visibilities" ("id")
+    "is_enabled" BOOLEAN CONSTRAINT "applications_is_enabled_default_constraint" DEFAULT 1 NOT NULL,
+    "is_deleted" BOOLEAN CONSTRAINT "applications_is_deleted_default_constraint" DEFAULT 0 NOT NULL,
+    "is_builtin" BOOLEAN CONSTRAINT "applications_is_builtin_default_constraint" DEFAULT 0 NOT NULL,
+    CONSTRAINT "applications_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "applications_application_type_id_foreign_key" FOREIGN KEY ("application_type_id") REFERENCES "application_types" ("id"),
+    CONSTRAINT "applications_application_visibility_id_foreign_key" FOREIGN KEY ("application_visibility_id") REFERENCES "application_visibilities" ("id")
 );
 GO
-CREATE TRIGGER "trg_applications_bases_updated_at"
-AFTER UPDATE ON "applications_bases"
+CREATE TRIGGER "trg_applications_updated_at"
+AFTER UPDATE ON "applications"
 FOR EACH ROW
 WHEN NEW."updated" IS OLD."updated"
 BEGIN
-  UPDATE "applications_bases" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+  UPDATE "applications" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "application_settings_bases" (
+CREATE TABLE "application_settings" (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    "uuid" TEXT CONSTRAINT "application_settings_bases_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
-    "created" TEXT CONSTRAINT "application_settings_bases_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-    "updated" TEXT CONSTRAINT "application_settings_bases_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-    "version" BLOB CONSTRAINT "application_settings_bases_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "uuid" TEXT CONSTRAINT "application_settings_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "application_settings_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "application_settings_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "application_settings_version_default_constraint" DEFAULT X'00' NOT NULL,
     "application_id" INTEGER NOT NULL,
     "name" VARCHAR(256) NOT NULL,
     "value" TEXT NOT NULL,
-    CONSTRAINT "application_settings_bases_uuid_unique_constraint" UNIQUE ("uuid"),
-    CONSTRAINT "application_settings_bases_application_id_foreign_key" FOREIGN KEY ("application_id") REFERENCES "applications_bases" ("id")
+    CONSTRAINT "application_settings_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "application_settings_application_id_foreign_key" FOREIGN KEY ("application_id") REFERENCES "applications" ("id")
 );
 GO
-CREATE TRIGGER "trg_application_settings_bases_updated_at"
-AFTER UPDATE ON "application_settings_bases"
+CREATE TRIGGER "trg_application_settings_updated_at"
+AFTER UPDATE ON "application_settings"
 FOR EACH ROW
 WHEN NEW."updated" IS OLD."updated"
 BEGIN
-  UPDATE "application_settings_bases" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+  UPDATE "application_settings" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
 CREATE TABLE "application_uris" (
@@ -1162,7 +1162,7 @@ CREATE TABLE "application_uris" (
     "application_id" INTEGER NOT NULL,
     "uri_id" INTEGER NOT NULL,
     CONSTRAINT "application_uris_uuid_unique_constraint" UNIQUE ("uuid"),
-    CONSTRAINT "application_uris_application_id_foreign_key" FOREIGN KEY ("application_id") REFERENCES "applications_bases" ("id"),
+    CONSTRAINT "application_uris_application_id_foreign_key" FOREIGN KEY ("application_id") REFERENCES "applications" ("id"),
     CONSTRAINT "application_uris_uri_id_foreign_key" FOREIGN KEY ("uri_id") REFERENCES "uris_bases" ("id")
 );
 GO
@@ -1183,7 +1183,7 @@ CREATE TABLE "application_users" (
     "application_id" INTEGER NOT NULL,
     "user_id" INTEGER NOT NULL,
     CONSTRAINT "application_users_uuid_unique_constraint" UNIQUE ("uuid"),
-    CONSTRAINT "application_users_application_id_foreign_key" FOREIGN KEY ("application_id") REFERENCES "applications_bases" ("id"),
+    CONSTRAINT "application_users_application_id_foreign_key" FOREIGN KEY ("application_id") REFERENCES "applications" ("id"),
     CONSTRAINT "application_users_user_id_foreign_key" FOREIGN KEY ("user_id") REFERENCES "users" ("id")
 );
 GO
@@ -1195,23 +1195,23 @@ BEGIN
   UPDATE "application_users" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "services_bases" (
+CREATE TABLE "services" (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    "uuid" TEXT CONSTRAINT "services_bases_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
-    "created" TEXT CONSTRAINT "services_bases_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-    "updated" TEXT CONSTRAINT "services_bases_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-    "version" BLOB CONSTRAINT "services_bases_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "uuid" TEXT CONSTRAINT "services_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "services_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "services_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "services_version_default_constraint" DEFAULT X'00' NOT NULL,
     "name" VARCHAR(512) NOT NULL,
     "description" TEXT,
-    CONSTRAINT "services_bases_uuid_unique_constraint" UNIQUE ("uuid")
+    CONSTRAINT "services_uuid_unique_constraint" UNIQUE ("uuid")
 );
 GO
-CREATE TRIGGER "trg_services_bases_updated_at"
-AFTER UPDATE ON "services_bases"
+CREATE TRIGGER "trg_services_updated_at"
+AFTER UPDATE ON "services"
 FOR EACH ROW
 WHEN NEW."updated" IS OLD."updated"
 BEGIN
-  UPDATE "services_bases" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+  UPDATE "services" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
 CREATE TABLE "application_services" (
@@ -1223,8 +1223,8 @@ CREATE TABLE "application_services" (
     "application_id" INTEGER NOT NULL,
     "service_id" INTEGER NOT NULL,
     CONSTRAINT "application_services_uuid_unique_constraint" UNIQUE ("uuid"),
-    CONSTRAINT "application_services_application_id_foreign_key" FOREIGN KEY ("application_id") REFERENCES "applications_bases" ("id"),
-    CONSTRAINT "application_services_service_id_foreign_key" FOREIGN KEY ("service_id") REFERENCES "services_bases" ("id")
+    CONSTRAINT "application_services_application_id_foreign_key" FOREIGN KEY ("application_id") REFERENCES "applications" ("id"),
+    CONSTRAINT "application_services_service_id_foreign_key" FOREIGN KEY ("service_id") REFERENCES "services" ("id")
 );
 GO
 CREATE TRIGGER "trg_application_services_updated_at"
@@ -1244,7 +1244,7 @@ CREATE TABLE "service_uris" (
     "service_id" INTEGER NOT NULL,
     "uri_id" INTEGER NOT NULL,
     CONSTRAINT "service_uris_uuid_unique_constraint" UNIQUE ("uuid"),
-    CONSTRAINT "service_uris_service_id_foreign_key" FOREIGN KEY ("service_id") REFERENCES "services_bases" ("id"),
+    CONSTRAINT "service_uris_service_id_foreign_key" FOREIGN KEY ("service_id") REFERENCES "services" ("id"),
     CONSTRAINT "service_uris_uri_id_foreign_key" FOREIGN KEY ("uri_id") REFERENCES "uris_bases" ("id")
 );
 GO
@@ -1256,25 +1256,25 @@ BEGIN
   UPDATE "service_uris" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
-CREATE TABLE "service_settings_bases" (
+CREATE TABLE "service_settings" (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    "uuid" TEXT CONSTRAINT "service_settings_bases_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
-    "created" TEXT CONSTRAINT "service_settings_bases_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-    "updated" TEXT CONSTRAINT "service_settings_bases_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-    "version" BLOB CONSTRAINT "service_settings_bases_version_default_constraint" DEFAULT X'00' NOT NULL,
+    "uuid" TEXT CONSTRAINT "service_settings_uuid_default_constraint" DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-' || substr('89ab', abs(random()) % 4 + 1, 1) || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))) NOT NULL,
+    "created" TEXT CONSTRAINT "service_settings_created_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "updated" TEXT CONSTRAINT "service_settings_updated_default_constraint" DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+    "version" BLOB CONSTRAINT "service_settings_version_default_constraint" DEFAULT X'00' NOT NULL,
     "service_id" INTEGER NOT NULL,
     "name" VARCHAR(512) NOT NULL,
     "value" TEXT NOT NULL,
-    CONSTRAINT "service_settings_bases_uuid_unique_constraint" UNIQUE ("uuid"),
-    CONSTRAINT "service_settings_bases_service_id_foreign_key" FOREIGN KEY ("service_id") REFERENCES "services_bases" ("id")
+    CONSTRAINT "service_settings_uuid_unique_constraint" UNIQUE ("uuid"),
+    CONSTRAINT "service_settings_service_id_foreign_key" FOREIGN KEY ("service_id") REFERENCES "services" ("id")
 );
 GO
-CREATE TRIGGER "trg_service_settings_bases_updated_at"
-AFTER UPDATE ON "service_settings_bases"
+CREATE TRIGGER "trg_service_settings_updated_at"
+AFTER UPDATE ON "service_settings"
 FOR EACH ROW
 WHEN NEW."updated" IS OLD."updated"
 BEGIN
-  UPDATE "service_settings_bases" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
+  UPDATE "service_settings" SET "updated" = (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) WHERE "id" = OLD."id";
 END;
 GO
 CREATE TABLE "oauth_grant_types" (

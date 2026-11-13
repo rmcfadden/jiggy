@@ -12,7 +12,7 @@ public sealed class ServiceSettingsRepository : CRUDRepository<Backend.Types.Vie
             .Add(new()
             {
                 Entity = "ServiceSetting",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["ServiceSetting"] = "service_settings_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["ServiceSetting"] = "service_settings" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",
@@ -43,7 +43,7 @@ public sealed class ServiceSettingsRepository : CRUDRepository<Backend.Types.Vie
             .Add("sqlite", new()
             {
                 Entity = "ServiceSetting",
-                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["ServiceSetting"] = "service_settings_bases" }),
+                EntityMapper = new DictionaryMapper<string>(new Dictionary<string, string> { ["ServiceSetting"] = "service_settings" }),
                 PropertyMappings = new DictionaryMapper<string>(new Dictionary<string, string>
                 {
                     ["Id"] = "id",

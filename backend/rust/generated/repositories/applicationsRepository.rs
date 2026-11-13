@@ -17,7 +17,7 @@ impl ApplicationsRepository {
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "Application".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("Application".into(), "applications_bases".into()),
+            ("Application".into(), "applications".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -44,7 +44,7 @@ impl ApplicationsRepository {
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "Application".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("Application".into(), "applications_bases".into()),
+            ("Application".into(), "applications".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -77,7 +77,7 @@ impl ApplicationsRepository {
         let mut options = ReadonlyRepositoryMappingOptions::default();
         options.entity = "Application".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("Application".into(), "applications_bases".into()),
+            ("Application".into(), "applications".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -203,7 +203,7 @@ pub fn applications_row_repository(connection: Arc<dyn Connection>) -> Result<CR
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "Application".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("Application".into(), "applications_bases".into()),
+            ("Application".into(), "applications".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
@@ -230,7 +230,7 @@ pub fn applications_row_repository(connection: Arc<dyn Connection>) -> Result<CR
         let mut options = CRUDRepositoryOptions::default();
         options.entity = "Application".into();
         options.entity_mapper = Some(Arc::new(DictionaryMapper::new([
-            ("Application".into(), "applications_bases".into()),
+            ("Application".into(), "applications".into()),
         ])));
         options.schema = Schema::new(HashMap::from([
             ("id".into(), SchemaColumn { type_name: "biginteger".into(), nullable: false, has_default: false, is_id: true }),
