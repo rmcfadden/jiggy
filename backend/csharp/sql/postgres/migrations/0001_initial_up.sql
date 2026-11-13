@@ -2947,6 +2947,60 @@ GO
 INSERT INTO "template_types" ("id", "uuid", "name", "description") VALUES (1, '88ba1ed1-69f1-54cf-9b1f-0273aaa19012', 'jigsaw', 'Jigsaw template settings');
 SELECT setval(pg_get_serial_sequence('template_types', 'id'), (SELECT MAX("id") FROM "template_types"));
 GO
+-- Seeds: uri_types
+GO
+INSERT INTO "uri_types" ("id", "uuid", "name") VALUES (1, 'e1ecac1b-7ea7-5ca3-8e3d-f9a685018d0a', 'General');
+SELECT setval(pg_get_serial_sequence('uri_types', 'id'), (SELECT MAX("id") FROM "uri_types"));
+GO
+INSERT INTO "uri_types" ("id", "uuid", "name") VALUES (2, '11f71162-cf28-5a04-9239-ec0118ec5e76', 'Logo');
+SELECT setval(pg_get_serial_sequence('uri_types', 'id'), (SELECT MAX("id") FROM "uri_types"));
+GO
+INSERT INTO "uri_types" ("id", "uuid", "name") VALUES (3, '202a6f6c-8228-531e-afda-819cd765fe8c', 'Download');
+SELECT setval(pg_get_serial_sequence('uri_types', 'id'), (SELECT MAX("id") FROM "uri_types"));
+GO
+INSERT INTO "uri_types" ("id", "uuid", "name") VALUES (4, 'ea874995-b2a9-512e-aa89-c99c95bc7163', 'Image');
+SELECT setval(pg_get_serial_sequence('uri_types', 'id'), (SELECT MAX("id") FROM "uri_types"));
+GO
+INSERT INTO "uri_types" ("id", "uuid", "name") VALUES (5, '8191f5a4-e6f4-5e95-9209-7a30ead79b75', 'Application');
+SELECT setval(pg_get_serial_sequence('uri_types', 'id'), (SELECT MAX("id") FROM "uri_types"));
+GO
+INSERT INTO "uri_types" ("id", "uuid", "name") VALUES (6, 'ce727ff3-d407-5c2b-b751-2d8bfe403735', 'Service');
+SELECT setval(pg_get_serial_sequence('uri_types', 'id'), (SELECT MAX("id") FROM "uri_types"));
+GO
+INSERT INTO "uri_types" ("id", "uuid", "name") VALUES (7, '7859541b-f1f8-5ae8-9478-d2f45f04afe2', 'Authorization');
+SELECT setval(pg_get_serial_sequence('uri_types', 'id'), (SELECT MAX("id") FROM "uri_types"));
+GO
+INSERT INTO "uri_types" ("id", "uuid", "name") VALUES (8, 'd635dd52-566c-53a2-8f20-5db8c1cd51a1', 'Authentication');
+SELECT setval(pg_get_serial_sequence('uri_types', 'id'), (SELECT MAX("id") FROM "uri_types"));
+GO
+INSERT INTO "uri_types" ("id", "uuid", "name") VALUES (9, 'e0987fb7-ab4f-5abe-84d3-7500cd150c20', 'CodeLocation');
+SELECT setval(pg_get_serial_sequence('uri_types', 'id'), (SELECT MAX("id") FROM "uri_types"));
+GO
+INSERT INTO "uri_types" ("id", "uuid", "name") VALUES (10, '99478fbf-e9b3-5388-a7d7-4730308c92b5', 'CorporateWebSite');
+SELECT setval(pg_get_serial_sequence('uri_types', 'id'), (SELECT MAX("id") FROM "uri_types"));
+GO
+INSERT INTO "uri_types" ("id", "uuid", "name") VALUES (11, '86459961-5cef-5ffe-bc2d-0ee81c17a74d', 'PrivateWebSite');
+SELECT setval(pg_get_serial_sequence('uri_types', 'id'), (SELECT MAX("id") FROM "uri_types"));
+GO
+-- Seeds: application_types
+GO
+INSERT INTO "application_types" ("id", "uuid", "name", "description") VALUES (1, 'b8d670b1-4770-57f0-a87d-bb4f2e8ff134', 'Native', 'TODO');
+SELECT setval(pg_get_serial_sequence('application_types', 'id'), (SELECT MAX("id") FROM "application_types"));
+GO
+INSERT INTO "application_types" ("id", "uuid", "name") VALUES (2, '92b94f41-6d50-5ae2-bfa1-2b28aba3d1ba', 'WebApplication');
+SELECT setval(pg_get_serial_sequence('application_types', 'id'), (SELECT MAX("id") FROM "application_types"));
+GO
+INSERT INTO "application_types" ("id", "uuid", "name") VALUES (3, 'e049f490-a81c-5878-947e-8b94128e6141', 'MachineToMachine');
+SELECT setval(pg_get_serial_sequence('application_types', 'id'), (SELECT MAX("id") FROM "application_types"));
+GO
+-- Seeds: application_visibilities
+GO
+INSERT INTO "application_visibilities" ("id", "uuid", "name", "description") VALUES (1, '11c46ec0-184d-592c-82c0-0d86216a4c99', 'Public', 'TODO');
+SELECT setval(pg_get_serial_sequence('application_visibilities', 'id'), (SELECT MAX("id") FROM "application_visibilities"));
+GO
+INSERT INTO "application_visibilities" ("id", "uuid", "name", "description") VALUES (2, '4f506fbf-2bfd-5292-add4-37f8c8897eb4', 'Confidential', 'TODO');
+SELECT setval(pg_get_serial_sequence('application_visibilities', 'id'), (SELECT MAX("id") FROM "application_visibilities"));
+GO
 -- Seeds: oauth_grant_types
 GO
 INSERT INTO "oauth_grant_types" ("id", "uuid", "name", "description") VALUES (1, '28ac257b-2eb0-544f-ad7a-059baa8a0022', 'authorization_code', 'The Authorization Code grant type lets confidential and public clients exchange an authorization code for an access token after the user is redirected back to the client.');
