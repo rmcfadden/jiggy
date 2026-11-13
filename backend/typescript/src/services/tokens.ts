@@ -15,10 +15,15 @@ export type IssuedToken = { value: string; expiresIn: number }
 /** Reads JWT_SECRET (required) and the optional TTLs (seconds) from the environment. */
 export function tokenSettingsFromEnv(env: NodeJS.ProcessEnv = process.env): TokenSettings {
   if (env === process.env) {
-    try {
-      process.loadEnvFile() // .env in the working directory; never overrides variables that are already set
-    } catch {
-      /* no .env file: rely on the real environment */
+    // .env, then .env.development (test-only dev defaults, skipped in production), in the working directory.
+    // loadEnvFile never overrides a variable that is already set: the real environment wins, then .env, then .env.development.
+    const production = [env.APP_ENV, env.NODE_ENV, env.ASPNETCORE_ENVIRONMENT].some((v) => v?.toLowerCase() === 'production')
+    for (const file of production ? ['.env'] : ['.env', '.env.development']) {
+      try {
+        process.loadEnvFile(file)
+      } catch {
+        /* no such file: rely on the others */
+      }
     }
   }
   const jwtSecret = env.JWT_SECRET
