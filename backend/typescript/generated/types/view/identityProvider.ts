@@ -1,5 +1,6 @@
 // schema-version: 1.0
 /** View IdentityProvider. */
+type Dictionary<K extends PropertyKey, V> = Record<K, V>;
 export const identityProvider = (init: Partial<IdentityProvider>): IdentityProvider => Object.assign(new IdentityProvider(), init);
 export class IdentityProvider {
   id!: number;
@@ -13,4 +14,5 @@ export class IdentityProvider {
   isBuiltin: boolean = false;
   isDeleted: boolean = false;
   identityProviderTypeName: string = "";
+  settings: Dictionary<string, string> = {};
 }

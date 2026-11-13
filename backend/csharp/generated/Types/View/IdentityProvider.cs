@@ -1,4 +1,6 @@
 // schema-version: 1.0
+using System.Collections.Generic;
+
 namespace Backend.Types.View;
 
 /** View IdentityProvider. */
@@ -15,4 +17,5 @@ public class IdentityProvider
     public bool IsBuiltin { get; set; }
     public bool IsDeleted { get; set; }
     public string IdentityProviderTypeName { get; set; } = "";
+    public Dictionary<string, string> Settings { get; set; } = [];
 }

@@ -157,18 +157,8 @@ pub mod sessionStatesBase;
 pub mod setting;
 #[path = "types/datasource/appBase.rs"]
 pub mod appBase;
-#[path = "types/view/userSettingMap.rs"]
-pub mod userSettingMap;
 #[path = "types/view/user.rs"]
 pub mod user;
-#[path = "types/view/contactAttributeMap.rs"]
-pub mod contactAttributeMap;
-#[path = "types/view/addressAttributeMap.rs"]
-pub mod addressAttributeMap;
-#[path = "types/view/emailAttributeMap.rs"]
-pub mod emailAttributeMap;
-#[path = "types/view/phoneAttributeMap.rs"]
-pub mod phoneAttributeMap;
 #[path = "types/view/address.rs"]
 pub mod address;
 #[path = "types/view/email.rs"]
@@ -185,12 +175,6 @@ pub mod resource;
 pub mod template;
 #[path = "types/view/gamePlay.rs"]
 pub mod gamePlay;
-#[path = "types/view/gameParentSettingMap.rs"]
-pub mod gameParentSettingMap;
-#[path = "types/view/gameAttributeMap.rs"]
-pub mod gameAttributeMap;
-#[path = "types/view/gameSettingMap.rs"]
-pub mod gameSettingMap;
 #[path = "types/view/game.rs"]
 pub mod game;
 #[path = "types/view/gameParent.rs"]
@@ -229,8 +213,6 @@ pub mod identityProviderSigninAttempt;
 pub mod session;
 #[path = "types/view/sessionHit.rs"]
 pub mod sessionHit;
-#[path = "types/view/settingsMap.rs"]
-pub mod settingsMap;
 #[path = "types/view/app.rs"]
 pub mod app;
 pub use userBase::*;
@@ -312,12 +294,7 @@ pub use sessionHitsBase::*;
 pub use sessionStatesBase::*;
 pub use setting::*;
 pub use appBase::*;
-pub use userSettingMap::*;
 pub use user::*;
-pub use contactAttributeMap::*;
-pub use addressAttributeMap::*;
-pub use emailAttributeMap::*;
-pub use phoneAttributeMap::*;
 pub use address::*;
 pub use email::*;
 pub use phone::*;
@@ -326,9 +303,6 @@ pub use localizedString::*;
 pub use resource::*;
 pub use template::*;
 pub use gamePlay::*;
-pub use gameParentSettingMap::*;
-pub use gameAttributeMap::*;
-pub use gameSettingMap::*;
 pub use game::*;
 pub use gameParent::*;
 pub use gameSummary::*;
@@ -348,7 +322,6 @@ pub use identityProviderAuthorizeSession::*;
 pub use identityProviderSigninAttempt::*;
 pub use session::*;
 pub use sessionHit::*;
-pub use settingsMap::*;
 pub use app::*;
 mod schema_objects;
 pub mod repositories;

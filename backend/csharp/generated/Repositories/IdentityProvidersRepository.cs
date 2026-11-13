@@ -2,18 +2,23 @@ using Datasources;
 
 public sealed class IdentityProvidersRepository : CRUDRepository<Backend.Types.View.IdentityProvider>
 {
+    public IdentityProviderSettingsRepository IdentityProviderSetting { get; }
     public IdentityProviderTypesRepository IdentityProviderType { get; }
 
     public IdentityProvidersRepository(IConnection connection) : base(connection, Options(connection))
     {
+        IdentityProviderSetting = new IdentityProviderSettingsRepository(connection);
         IdentityProviderType = new IdentityProviderTypesRepository(connection);
+        AddEnriched(new("Settings", "Id", "IdentityProviderId", "Value", Type: EnrichmentPropertyType.Dictionary, DictionaryKey: "Name"), IdentityProviderSetting);
         AddEnriched(new("IdentityProviderTypeName", "IdentityProviderTypeId", "Id", "Name"), IdentityProviderType);
     }
 
     public static IReadonlyRepository<Backend.Types.View.IdentityProvider> CreateReadonly(IConnection connection)
     {
         var repo = new ReadonlyRepository<Backend.Types.View.IdentityProvider>(connection, Options(connection));
+        var IdentityProviderSetting = new IdentityProviderSettingsRepository(connection);
         var IdentityProviderType = new IdentityProviderTypesRepository(connection);
+        repo.AddEnriched(new("Settings", "Id", "IdentityProviderId", "Value", Type: EnrichmentPropertyType.Dictionary, DictionaryKey: "Name"), IdentityProviderSetting);
         repo.AddEnriched(new("IdentityProviderTypeName", "IdentityProviderTypeId", "Id", "Name"), IdentityProviderType);
         return repo;
     }

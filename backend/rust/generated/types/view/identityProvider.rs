@@ -1,6 +1,7 @@
 // schema-version: 1.0
 #[allow(unused_imports)]
 use super::*;
+use std::collections::HashMap;
 /// View IdentityProvider.
 #[derive(Clone, Debug, PartialEq, datasources::Facet)]
 #[facet(crate = ::datasources::facet)]
@@ -16,6 +17,7 @@ pub struct IdentityProvider {
     pub is_builtin: bool,
     pub is_deleted: bool,
     pub identity_provider_type_name: String,
+    pub settings: HashMap<String, String>,
 }
 impl Default for IdentityProvider {
     fn default() -> Self {
@@ -31,6 +33,7 @@ impl Default for IdentityProvider {
             is_builtin: false,
             is_deleted: false,
             identity_provider_type_name: String::new(),
+            settings: HashMap::new(),
         }
     }
 }
