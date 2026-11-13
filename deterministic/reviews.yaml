@@ -1,7 +1,7 @@
 version: 1.0.0
 includes:
   - file: base.yaml
-  - file: user-roles.yaml
+  - file: users.yaml
 
 types:
   - review:
