@@ -3,7 +3,9 @@
   "scripts": {
     "start": "cargo run",
     "setup": "cargo run -- setup",
-    "sitemap": "cargo run -- sitemap"
+    "sitemap": "cargo run -- sitemap",
+    "add-identity-provider": "cargo run -- add-identity-provider",
+    "update-identity-provider": "cargo run -- update-identity-provider"
   },
   "dependencies": {
     "@deterministic-code/datasources": "^0.1.65",

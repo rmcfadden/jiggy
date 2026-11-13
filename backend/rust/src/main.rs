@@ -1,5 +1,6 @@
 mod datasources_providers;
 mod generated;
+mod identity_providers_cli;
 mod routes;
 mod services;
 mod sitemap_cli;
@@ -16,6 +17,7 @@ use services::game_plays::GamePlaysService;
 use services::reviews::ReviewsService;
 use services::game_summaries::GameSummariesService;
 use services::games::GamesService;
+use services::identity_providers::IdentityProvidersService;
 use services::images::ImagesService;
 use services::oauth::OAuthService;
 use services::sessions::SessionService;
@@ -66,6 +68,10 @@ async fn main() {
         }
         Some("sitemap") => std::process::exit(sitemap_cli::run(&args[1..], &categories, &games).await),
         Some(command @ ("add-user" | "update-user")) => std::process::exit(users_cli::run(command, &users, &args[1..]).await),
+        Some(command @ ("add-identity-provider" | "update-identity-provider")) => {
+            let providers = IdentityProvidersService::new(ds.identity_providers(), ds.identity_provider_types(), std::env::var("SITE_BASE_URL").ok());
+            std::process::exit(identity_providers_cli::run(command, &providers, &args[1..]).await)
+        }
         _ => {}
     }
 
