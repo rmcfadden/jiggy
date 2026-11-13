@@ -10,4 +10,5 @@ export class Template {
   name: string = "";
   content: string = "";
   templateTypeName: string = "";
+  languageCode: string = "";
 }

@@ -1,0 +1,12 @@
+version: 1.0.0
+types:
+  - log_type:
+      fields:
+        - name:
+            is_unique: true
+  - log_base:
+      mapping: logs
+      indexes:
+        - log_log_type_id_index:
+            fields: [log_type_id]
+            is_unique: false

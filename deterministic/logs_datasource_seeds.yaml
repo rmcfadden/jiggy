@@ -1,0 +1,15 @@
+version: 1.0.0
+seeds:
+  - log_type:
+      - id1:
+          name: "Error"
+          description: "Something failed"
+      - id2:
+          name: "Information"
+          description: "A normal event worth recording"
+      - id3:
+          name: "Verbose"
+          description: "Detailed information for troubleshooting"
+      - id4:
+          name: "Trace"
+          description: "Step-by-step tracing of a code path"

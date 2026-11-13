@@ -9,6 +9,7 @@ pub struct TemplateBase {
     pub updated: datasources::chrono::DateTime<datasources::chrono::Utc>,
     pub version: Vec<u8>,
     pub template_type_id: i64,
+    pub language_id: i64,
     pub name: String,
     pub content: String,
 }
@@ -21,6 +22,7 @@ impl Default for TemplateBase {
             updated: datasources::chrono::Utc::now(),
             version: vec![0],
             template_type_id: 0,
+            language_id: 0,
             name: String::new(),
             content: String::new(),
         }

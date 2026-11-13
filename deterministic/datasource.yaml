@@ -7,6 +7,7 @@ includes:
   - file: sessions_datasource.yaml
   - file: games_datasource.yaml
   - file: templates_datasource.yaml
+  - file: logs_datasource.yaml
   - file: contacts_datasource.yaml
   - file: settings_datasource.yaml
   - file: applications_datasource.yaml

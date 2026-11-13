@@ -11,7 +11,7 @@ use std::sync::Arc;
 pub struct LocalizedStringsRepository {
     pub(crate) inner: Arc<CRUDRepository<LocalizedString>>,
     pub localized_string_name: LocalizedStringNamesRepository,
-    pub languages: LanguagesRepository,
+    pub language: LanguagesRepository,
 }
 
 impl LocalizedStringsRepository {
@@ -68,11 +68,11 @@ impl LocalizedStringsRepository {
     .for_connection(connection.as_ref())?;
 
         let localized_string_name = LocalizedStringNamesRepository::new(Arc::clone(&connection))?;
-        let languages = LanguagesRepository::new(Arc::clone(&connection))?;
+        let language = LanguagesRepository::new(Arc::clone(&connection))?;
         let mut repo = CRUDRepository::<LocalizedString>::new(Arc::clone(&connection), options)?;
         repo.add_enriched(Enrichment::new("name", "localized_string_name_id", "id", Some("name".into()), EnrichmentPropertyType::Object), &localized_string_name, None);
-        repo.add_enriched(Enrichment::new("language_name", "language_id", "id", Some("name".into()), EnrichmentPropertyType::Object), &languages, None);
-        Ok(Self { inner: Arc::new(repo), localized_string_name, languages })
+        repo.add_enriched(Enrichment::new("language_name", "language_id", "id", Some("name".into()), EnrichmentPropertyType::Object), &language, None);
+        Ok(Self { inner: Arc::new(repo), localized_string_name, language })
     }
 
     pub fn create_readonly(connection: Arc<dyn Connection>) -> Result<ReadonlyRepository<LocalizedString>> {
@@ -95,10 +95,10 @@ impl LocalizedStringsRepository {
         ]));
         options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "value".into(), "is_enabled".into(), "is_deleted".into(), "localized_string_name_id".into(), "language_id".into()];
         let localized_string_name = LocalizedStringNamesRepository::new(Arc::clone(&connection))?;
-        let languages = LanguagesRepository::new(Arc::clone(&connection))?;
+        let language = LanguagesRepository::new(Arc::clone(&connection))?;
         let mut repo = ReadonlyRepository::<LocalizedString>::new(connection, options)?;
         repo.add_enriched(Enrichment::new("name", "localized_string_name_id", "id", Some("name".into()), EnrichmentPropertyType::Object), &localized_string_name, None);
-        repo.add_enriched(Enrichment::new("language_name", "language_id", "id", Some("name".into()), EnrichmentPropertyType::Object), &languages, None);
+        repo.add_enriched(Enrichment::new("language_name", "language_id", "id", Some("name".into()), EnrichmentPropertyType::Object), &language, None);
         Ok(repo)
     }
 }
@@ -253,9 +253,9 @@ pub fn localized_strings_row_repository(connection: Arc<dyn Connection>) -> Resu
     .for_connection(connection.as_ref())?;
 
         let localized_string_name = Arc::new(super::localizedStringNamesRepository::localized_string_names_row_repository(Arc::clone(&connection))?);
-        let languages = Arc::new(super::languagesRepository::languages_row_repository(Arc::clone(&connection))?);
+        let language = Arc::new(super::languagesRepository::languages_row_repository(Arc::clone(&connection))?);
         let mut repo = CRUDRepository::<datasources::Row>::new(Arc::clone(&connection), options)?;
         repo.add_enriched(Enrichment::new("name", "localized_string_name_id", "id", Some("name".into()), EnrichmentPropertyType::Object), Arc::clone(&localized_string_name), None);
-        repo.add_enriched(Enrichment::new("language_name", "language_id", "id", Some("name".into()), EnrichmentPropertyType::Object), Arc::clone(&languages), None);
+        repo.add_enriched(Enrichment::new("language_name", "language_id", "id", Some("name".into()), EnrichmentPropertyType::Object), Arc::clone(&language), None);
         Ok(repo)
 }

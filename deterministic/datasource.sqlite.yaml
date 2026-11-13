@@ -126,8 +126,18 @@ types:
       mapping: templates
       indexes:
         - template_template_type_id_name:
-            fields: [template_type_id, name]
+            fields: [template_type_id, language_id, name]
             is_unique: true
+  - log_type:
+      fields:
+        - name:
+            is_unique: true
+  - log_base:
+      mapping: logs
+      indexes:
+        - log_log_type_id_index:
+            fields: [log_type_id]
+            is_unique: false
   - contact_attribute:
       indexes:
         - contact_attribute_contact_id_index:

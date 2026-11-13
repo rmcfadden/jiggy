@@ -62,6 +62,7 @@ builder.Services.AddSingleton(sp =>
     return new TokenService(
         ds.CreateRepository<Backend.Types.View.Token>("Tokens"),
         ds.CreateRepository<Backend.Types.Datasource.UserToken>("UserTokens"),
+        ds.CreateRepository<Backend.Types.Datasource.EmailToken>("EmailTokens"),
         ds.CreateReadonlyRepository<Backend.Types.Datasource.TokenType>("TokenTypes"),
         sp.GetRequiredService<TokenSettings>());
 });
@@ -83,6 +84,21 @@ builder.Services.AddSingleton(sp =>
         ds.CreateRepository<Backend.Types.View.Contact>("Contacts"),
         ds.CreateRepository<Backend.Types.View.Email>("Emails"));
 });
+builder.Services.AddSingleton(sp => new LogsService(sp.GetRequiredService<IDatasource>().CreateRepository<Backend.Types.View.Log>("Logs"), sp.GetRequiredService<ILogger<LogsService>>()));
+builder.Services.AddSingleton(sp => new EmailService(sp.GetRequiredService<IConfiguration>(), sp.GetRequiredService<LogsService>()));
+builder.Services.AddSingleton(sp =>
+{
+    var ds = sp.GetRequiredService<IDatasource>();
+    return new EmailConfirmationService(
+        sp.GetRequiredService<TokenService>(),
+        sp.GetRequiredService<UserService>(),
+        sp.GetRequiredService<TemplatesService>(),
+        ds.CreateRepository<Backend.Types.View.Email>("Emails"),
+        ds.CreateRepository<Backend.Types.View.Contact>("Contacts"),
+        sp.GetRequiredService<EmailService>(),
+        sp.GetRequiredService<LogsService>(),
+        sp.GetRequiredService<IConfiguration>());
+});
 builder.Services.AddSingleton(sp =>
 {
     var ds = sp.GetRequiredService<IDatasource>();
@@ -92,7 +108,8 @@ builder.Services.AddSingleton(sp =>
         ds.CreateRepository<Backend.Types.View.Contact>("Contacts"),
         ds.CreateRepository<Backend.Types.View.Email>("Emails"),
         ds.CreateReadonlyRepository<Backend.Types.Datasource.EmailType>("EmailTypes"),
-        ds.CreateReadonlyRepository<Backend.Types.Datasource.Gender>("Genders"));
+        ds.CreateReadonlyRepository<Backend.Types.Datasource.Gender>("Genders"),
+        sp.GetRequiredService<EmailConfirmationService>());
 });
 builder.Services.AddSingleton(sp =>
 {
@@ -179,6 +196,7 @@ app.MapTemplates();
 app.MapImages();
 app.MapSignin();
 app.MapSignup();
+app.MapEmails();
 app.MapOAuth();
 app.MapReviews();
 app.MapGamePlays();

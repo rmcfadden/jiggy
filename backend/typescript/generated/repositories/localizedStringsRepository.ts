@@ -16,20 +16,20 @@ const readonlyOptions = (connection: IConnection) =>
 
 export class LocalizedStringsRepository extends CRUDRepository<LocalizedString> {
   readonly localizedStringName: LocalizedStringNamesRepository;
-  readonly languages: LanguagesRepository;
+  readonly language: LanguagesRepository;
   constructor(connection: IConnection) {
     super(connection, options(connection));
     this.localizedStringName = new LocalizedStringNamesRepository(connection);
-    this.languages = new LanguagesRepository(connection);
+    this.language = new LanguagesRepository(connection);
     this.addEnriched({ destinationProperty: "name", sourceProperty: "localizedStringNameId", relatedKey: "id", relatedProperty: "name", type: "object" }, this.localizedStringName);
-    this.addEnriched({ destinationProperty: "languageName", sourceProperty: "languageId", relatedKey: "id", relatedProperty: "name", type: "object" }, this.languages);
+    this.addEnriched({ destinationProperty: "languageName", sourceProperty: "languageId", relatedKey: "id", relatedProperty: "name", type: "object" }, this.language);
   }
   static createReadonly(connection: IConnection) {
     const repo = new ReadonlyRepository<LocalizedString>(connection, readonlyOptions(connection));
     const localizedStringName = new LocalizedStringNamesRepository(connection);
-    const languages = new LanguagesRepository(connection);
+    const language = new LanguagesRepository(connection);
     repo.addEnriched({ destinationProperty: "name", sourceProperty: "localizedStringNameId", relatedKey: "id", relatedProperty: "name", type: "object" }, localizedStringName);
-    repo.addEnriched({ destinationProperty: "languageName", sourceProperty: "languageId", relatedKey: "id", relatedProperty: "name", type: "object" }, languages);
+    repo.addEnriched({ destinationProperty: "languageName", sourceProperty: "languageId", relatedKey: "id", relatedProperty: "name", type: "object" }, language);
     return repo;
   }
 }

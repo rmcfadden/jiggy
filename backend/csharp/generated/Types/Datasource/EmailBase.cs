@@ -9,4 +9,5 @@ public class EmailBase : Base
     public string Address { get; set; } = "";
     public string DisplayName { get; set; } = "";
     public bool IsPrimary { get; set; }
+    public bool IsVerified { get; set; }
 }

@@ -38,13 +38,14 @@ impl EmailsRepository {
             ("address".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("display_name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: true, is_id: false }),
             ("is_primary".into(), SchemaColumn { type_name: "boolean".into(), nullable: false, has_default: false, is_id: false }),
+            ("is_verified".into(), SchemaColumn { type_name: "boolean".into(), nullable: false, has_default: true, is_id: false }),
             ("email_type_name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("description".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: true, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "email_type_id".into(), "contact_id".into(), "address".into(), "display_name".into(), "is_primary".into()];
-        options.create_properties = Some(vec!["email_type_id".into(), "contact_id".into(), "address".into(), "display_name".into(), "is_primary".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "email_type_id".into(), "contact_id".into(), "address".into(), "display_name".into(), "is_primary".into()]);
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "email_type_id".into(), "contact_id".into(), "address".into(), "display_name".into(), "is_primary".into(), "is_verified".into()];
+        options.create_properties = Some(vec!["email_type_id".into(), "contact_id".into(), "address".into(), "display_name".into(), "is_primary".into(), "is_verified".into()]);
+        options.update_properties = Some(vec!["uuid".into(), "email_type_id".into(), "contact_id".into(), "address".into(), "display_name".into(), "is_primary".into(), "is_verified".into()]);
         options
     })
     .add_for("sqlite", {
@@ -64,13 +65,14 @@ impl EmailsRepository {
             ("address".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("display_name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: true, is_id: false }),
             ("is_primary".into(), SchemaColumn { type_name: "boolean".into(), nullable: false, has_default: false, is_id: false }),
+            ("is_verified".into(), SchemaColumn { type_name: "boolean".into(), nullable: false, has_default: true, is_id: false }),
             ("email_type_name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("description".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: true, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "email_type_id".into(), "contact_id".into(), "address".into(), "display_name".into(), "is_primary".into()];
-        options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "email_type_id".into(), "contact_id".into(), "address".into(), "display_name".into(), "is_primary".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "email_type_id".into(), "contact_id".into(), "address".into(), "display_name".into(), "is_primary".into()]);
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "email_type_id".into(), "contact_id".into(), "address".into(), "display_name".into(), "is_primary".into(), "is_verified".into()];
+        options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "email_type_id".into(), "contact_id".into(), "address".into(), "display_name".into(), "is_primary".into(), "is_verified".into()]);
+        options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "email_type_id".into(), "contact_id".into(), "address".into(), "display_name".into(), "is_primary".into(), "is_verified".into()]);
         options
     })
     .for_connection(connection.as_ref())?;
@@ -104,10 +106,11 @@ impl EmailsRepository {
             ("address".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("display_name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: true, is_id: false }),
             ("is_primary".into(), SchemaColumn { type_name: "boolean".into(), nullable: false, has_default: false, is_id: false }),
+            ("is_verified".into(), SchemaColumn { type_name: "boolean".into(), nullable: false, has_default: true, is_id: false }),
             ("email_type_name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("description".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: true, is_id: false }),
         ]));
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "email_type_id".into(), "contact_id".into(), "address".into(), "display_name".into(), "is_primary".into()];
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "email_type_id".into(), "contact_id".into(), "address".into(), "display_name".into(), "is_primary".into(), "is_verified".into()];
         let email_attribute = EmailAttributesRepository::new(Arc::clone(&connection))?;
         let label = LabelsRepository::new(Arc::clone(&connection))?;
         let email_type = EmailTypesRepository::new(Arc::clone(&connection))?;
@@ -236,13 +239,14 @@ pub fn emails_row_repository(connection: Arc<dyn Connection>) -> Result<CRUDRepo
             ("address".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("display_name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: true, is_id: false }),
             ("is_primary".into(), SchemaColumn { type_name: "boolean".into(), nullable: false, has_default: false, is_id: false }),
+            ("is_verified".into(), SchemaColumn { type_name: "boolean".into(), nullable: false, has_default: true, is_id: false }),
             ("email_type_name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("description".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: true, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "email_type_id".into(), "contact_id".into(), "address".into(), "display_name".into(), "is_primary".into()];
-        options.create_properties = Some(vec!["email_type_id".into(), "contact_id".into(), "address".into(), "display_name".into(), "is_primary".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "email_type_id".into(), "contact_id".into(), "address".into(), "display_name".into(), "is_primary".into()]);
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "email_type_id".into(), "contact_id".into(), "address".into(), "display_name".into(), "is_primary".into(), "is_verified".into()];
+        options.create_properties = Some(vec!["email_type_id".into(), "contact_id".into(), "address".into(), "display_name".into(), "is_primary".into(), "is_verified".into()]);
+        options.update_properties = Some(vec!["uuid".into(), "email_type_id".into(), "contact_id".into(), "address".into(), "display_name".into(), "is_primary".into(), "is_verified".into()]);
         options
     })
     .add_for("sqlite", {
@@ -262,13 +266,14 @@ pub fn emails_row_repository(connection: Arc<dyn Connection>) -> Result<CRUDRepo
             ("address".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("display_name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: true, is_id: false }),
             ("is_primary".into(), SchemaColumn { type_name: "boolean".into(), nullable: false, has_default: false, is_id: false }),
+            ("is_verified".into(), SchemaColumn { type_name: "boolean".into(), nullable: false, has_default: true, is_id: false }),
             ("email_type_name".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: false, is_id: false }),
             ("description".into(), SchemaColumn { type_name: "string".into(), nullable: false, has_default: true, is_id: false }),
         ]));
         options.ids = vec!["id".into()];
-        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "email_type_id".into(), "contact_id".into(), "address".into(), "display_name".into(), "is_primary".into()];
-        options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "email_type_id".into(), "contact_id".into(), "address".into(), "display_name".into(), "is_primary".into()]);
-        options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "email_type_id".into(), "contact_id".into(), "address".into(), "display_name".into(), "is_primary".into()]);
+        options.read_properties = vec!["id".into(), "uuid".into(), "created".into(), "updated".into(), "version".into(), "email_type_id".into(), "contact_id".into(), "address".into(), "display_name".into(), "is_primary".into(), "is_verified".into()];
+        options.create_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "email_type_id".into(), "contact_id".into(), "address".into(), "display_name".into(), "is_primary".into(), "is_verified".into()]);
+        options.update_properties = Some(vec!["uuid".into(), "created".into(), "version".into(), "email_type_id".into(), "contact_id".into(), "address".into(), "display_name".into(), "is_primary".into(), "is_verified".into()]);
         options
     })
     .for_connection(connection.as_ref())?;

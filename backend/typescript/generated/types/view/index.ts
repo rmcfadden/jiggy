@@ -13,6 +13,8 @@ export { localizedStringName, LocalizedStringName } from "./localizedStringName"
 export { localizedString, LocalizedString } from "./localizedString";
 export { resource, Resource } from "./resource";
 export { template, Template } from "./template";
+export { logAttributeMap, LogAttributeMap } from "./logAttributeMap";
+export { log, Log } from "./log";
 export { category, Category } from "./category";
 export { gamePlay, GamePlay } from "./gamePlay";
 export { gameParentSettingMap, GameParentSettingMap } from "./gameParentSettingMap";

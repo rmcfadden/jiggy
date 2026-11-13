@@ -12,4 +12,5 @@ export class EmailBase {
   address: string = "";
   displayName: string = "";
   isPrimary: boolean = false;
+  isVerified: boolean = false;
 }

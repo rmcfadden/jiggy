@@ -61,6 +61,12 @@ pub mod resourceBase;
 pub mod templateType;
 #[path = "types/datasource/templateBase.rs"]
 pub mod templateBase;
+#[path = "types/datasource/logType.rs"]
+pub mod logType;
+#[path = "types/datasource/logBase.rs"]
+pub mod logBase;
+#[path = "types/datasource/logAttribute.rs"]
+pub mod logAttribute;
 #[path = "types/datasource/category.rs"]
 pub mod category;
 #[path = "types/datasource/gameParentBase.rs"]
@@ -127,6 +133,8 @@ pub mod tokenType;
 pub mod tokensBase;
 #[path = "types/datasource/userToken.rs"]
 pub mod userToken;
+#[path = "types/datasource/emailToken.rs"]
+pub mod emailToken;
 #[path = "types/datasource/authorizationCodesBase.rs"]
 pub mod authorizationCodesBase;
 #[path = "types/datasource/authenticationMethodsBase.rs"]
@@ -183,6 +191,10 @@ pub mod localizedString;
 pub mod resource;
 #[path = "types/view/template.rs"]
 pub mod template;
+#[path = "types/view/logAttributeMap.rs"]
+pub mod logAttributeMap;
+#[path = "types/view/log.rs"]
+pub mod log;
 #[path = "types/view/gamePlay.rs"]
 pub mod gamePlay;
 #[path = "types/view/gameParentSettingMap.rs"]
@@ -266,6 +278,9 @@ pub use mimeType::*;
 pub use resourceBase::*;
 pub use templateType::*;
 pub use templateBase::*;
+pub use logType::*;
+pub use logBase::*;
+pub use logAttribute::*;
 pub use category::*;
 pub use gameParentBase::*;
 pub use gameParentConfig::*;
@@ -299,6 +314,7 @@ pub use userSecret::*;
 pub use tokenType::*;
 pub use tokensBase::*;
 pub use userToken::*;
+pub use emailToken::*;
 pub use authorizationCodesBase::*;
 pub use authenticationMethodsBase::*;
 pub use identityProviderType::*;
@@ -327,6 +343,8 @@ pub use contact::*;
 pub use localizedString::*;
 pub use resource::*;
 pub use template::*;
+pub use logAttributeMap::*;
+pub use log::*;
 pub use gamePlay::*;
 pub use gameParentSettingMap::*;
 pub use gameAttributeMap::*;

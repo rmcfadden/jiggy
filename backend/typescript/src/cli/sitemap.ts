@@ -9,6 +9,7 @@ import type { MimeType } from '../../generated/types/datasource/mimeType.ts'
 import type { Resource } from '../../generated/types/view/resource.ts'
 import type { TemplateBase } from '../../generated/types/datasource/templateBase.ts'
 import type { TemplateType } from '../../generated/types/datasource/templateType.ts'
+import type { Language } from '../../generated/types/datasource/language.ts'
 import { CategoriesService } from '../services/categories.ts'
 import { GameParentsService } from '../services/gameParents.ts'
 import { GamesService } from '../services/games.ts'
@@ -55,13 +56,14 @@ export async function sitemap(): Promise<void> {
     categories: ICRUDRepository<Category>
     templates: ICRUDRepository<TemplateBase>
     templateTypes: ICRUDRepository<TemplateType>
+    languages: ICRUDRepository<Language>
     games: ICRUDRepository<Game>
     gameCategories: ICRUDRepository<GameCategory>
     resources: ICRUDRepository<Resource>
     mimeTypes: ICRUDRepository<MimeType>
   }
   const categories = new CategoriesService(ds.categories)
-  const games = new GamesService(ds.games, ds.gameCategories, categories, new GameParentsService(ds.gameParents), new TemplatesService(ds.templates, ds.templateTypes), new ImagesService(ds.resources, ds.mimeTypes))
+  const games = new GamesService(ds.games, ds.gameCategories, categories, new GameParentsService(ds.gameParents), new TemplatesService(ds.templates, ds.templateTypes, ds.languages), new ImagesService(ds.resources, ds.mimeTypes))
 
   const pages = sitePages((await categories.flat()).map((c) => c.name), await games.list())
   const out = resolve(options.out)

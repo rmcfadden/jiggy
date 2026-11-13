@@ -10,6 +10,7 @@ import { gameParentsRouter } from './routes/gameParents.ts'
 import { GameParentsService } from './services/gameParents.ts'
 import type { TemplateBase } from '../generated/types/datasource/templateBase.ts'
 import type { TemplateType } from '../generated/types/datasource/templateType.ts'
+import type { Language } from '../generated/types/datasource/language.ts'
 import type { Game } from '../generated/types/view/game.ts'
 import type { GameCategory } from '../generated/types/datasource/gameCategory.ts'
 import type { MimeType } from '../generated/types/datasource/mimeType.ts'
@@ -25,6 +26,12 @@ import { TemplatesService } from './services/templates.ts'
 import type { Token } from '../generated/types/view/token.ts'
 import type { TokenType } from '../generated/types/datasource/tokenType.ts'
 import type { UserToken } from '../generated/types/datasource/userToken.ts'
+import type { EmailToken } from '../generated/types/datasource/emailToken.ts'
+import type { Log } from '../generated/types/view/log.ts'
+import { LogsService } from './services/logs.ts'
+import { EmailService } from './services/email.ts'
+import { EmailConfirmationService } from './services/emailConfirmation.ts'
+import { emailsRouter } from './routes/emails.ts'
 import type { Session } from '../generated/types/view/session.ts'
 import type { SessionHit } from '../generated/types/view/sessionHit.ts'
 import type { SessionType } from '../generated/types/datasource/sessionType.ts'
@@ -64,9 +71,12 @@ const ds = Datasource.default as Datasource & {
   gameParents: ICRUDRepository<GameParent>
   templates: ICRUDRepository<TemplateBase>
   templateTypes: ICRUDRepository<TemplateType>
+  languages: ICRUDRepository<Language>
   tokens: ICRUDRepository<Token>
   tokenTypes: ICRUDRepository<TokenType>
   userTokens: ICRUDRepository<UserToken>
+  emailTokens: ICRUDRepository<EmailToken>
+  logs: ICRUDRepository<Log>
   sessions: ICRUDRepository<Session>
   sessionHits: ICRUDRepository<SessionHit>
   sessionTypes: ICRUDRepository<SessionType>
@@ -83,17 +93,20 @@ const ds = Datasource.default as Datasource & {
 }
 const categories = new CategoriesService(ds.categories)
 const gameParents = new GameParentsService(ds.gameParents)
-const templates = new TemplatesService(ds.templates, ds.templateTypes)
+const templates = new TemplatesService(ds.templates, ds.templateTypes, ds.languages)
 const images = new ImagesService(ds.resources, ds.mimeTypes)
 const games = new GamesService(ds.games, ds.gameCategories, categories, gameParents, templates, images)
 
 const users = createUsersService()
 const tokenSettings = tokenSettingsFromEnv()
-const tokens = new TokenService(ds.tokens, ds.userTokens, ds.tokenTypes, tokenSettings)
+const tokens = new TokenService(ds.tokens, ds.userTokens, ds.emailTokens, ds.tokenTypes, tokenSettings)
 const sessions = new SessionService(ds.sessions, ds.sessionHits, ds.sessionTypes, tokens)
 const signin = new SigninService(users, tokens, ds.contacts, ds.emails)
 const oauth = new OAuthService(users, tokens, sessions, tokenSettings)
-const signup = new SignupService(users, tokens, ds.contacts, ds.emails, ds.emailTypes, ds.genders)
+const logs = new LogsService(ds.logs)
+const mail = new EmailService(logs)
+const confirmations = new EmailConfirmationService(tokens, users, templates, ds.emails, ds.contacts, mail, logs, process.env.SITE_BASE_URL)
+const signup = new SignupService(users, tokens, ds.contacts, ds.emails, ds.emailTypes, ds.genders, confirmations)
 
 const gamePlays = new GamePlaysService(ds.gamePlays, ds.gamePlayStates, ds.gamePlayActions, ds.gamePlayUsers, games, templates, new GameServiceRegistry())
 
@@ -118,6 +131,7 @@ app.use('/api/images', imagesRouter(images))
 app.use('/api/signin', signinRouter(signin))
 app.use('/api/oauth', oauthRouter(oauth))
 app.use('/api/signup', signupRouter(signup))
+app.use('/api/emails', emailsRouter(confirmations, requireAuth(tokens)))
 app.use('/api/reviews', reviewsRouter(reviews, requireAuth(tokens)))
 app.use('/api/game_plays', requireAuth(tokens), gamePlaysRouter(gamePlays))
 

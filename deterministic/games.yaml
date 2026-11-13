@@ -19,6 +19,10 @@ includes:
     combine_options:
       source:
         remove_types: [base]
+  - file: logs.yaml
+    combine_options:
+      source:
+        remove_types: [base]
 types:
   - category:
       tags: [datasource_type, view_type]

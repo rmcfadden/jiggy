@@ -12,4 +12,5 @@ public class Template
     public string Name { get; set; } = "";
     public string Content { get; set; } = "";
     public string TemplateTypeName { get; set; } = "";
+    public string LanguageCode { get; set; } = "";
 }

@@ -8,5 +8,5 @@ types:
       mapping: templates
       indexes:
         - template_template_type_id_name:
-            fields: [template_type_id, name]
+            fields: [template_type_id, language_id, name]
             is_unique: true

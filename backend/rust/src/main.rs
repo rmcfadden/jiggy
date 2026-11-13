@@ -24,6 +24,10 @@ use services::sessions::SessionService;
 use services::setup::SetupService;
 use services::signin::SigninService;
 use services::signup::SignupService;
+use services::email::EmailService;
+use services::email_confirmation::EmailConfirmationService;
+use services::logs::LogsService;
+use services::sso::SsoService;
 use services::templates::TemplatesService;
 use services::tokens::{TokenService, TokenSettings};
 use services::users::UsersService;
@@ -52,10 +56,24 @@ async fn main() {
     let summaries = Arc::new(GameSummariesService::new(ds.bind_connection(None), images.clone(), ds.games()).expect("game summaries"));
     let users = Arc::new(UsersService::new(ds.users(), ds.roles(), ds.groups(), ds.secrets(), ds.secret_types(), ds.user_secrets()));
     let settings = TokenSettings::from_env().expect("token settings");
-    let tokens = Arc::new(TokenService::new(ds.tokens(), ds.user_tokens(), ds.token_types(), settings.clone()));
+    let tokens = Arc::new(TokenService::new(ds.tokens(), ds.user_tokens(), ds.email_tokens(), ds.token_types(), settings.clone()));
     let sessions = Arc::new(SessionService::new(ds.sessions(), ds.session_hits(), ds.session_types(), tokens.clone()));
     let signin = Arc::new(SigninService::new(users.clone(), tokens.clone(), ds.contacts(), ds.emails()));
-    let signup = Arc::new(SignupService::new(users.clone(), tokens.clone(), ds.contacts(), ds.emails(), ds.email_types(), ds.genders()));
+    let logs = Arc::new(LogsService::new(ds.logs()));
+    let mail = Arc::new(EmailService::from_env(logs.clone()).expect("smtp settings"));
+    let confirmations = Arc::new(EmailConfirmationService::new(tokens.clone(), users.clone(), templates.clone(), ds.emails(), ds.contacts(), mail, logs.clone(), std::env::var("SITE_BASE_URL").ok()));
+    let signup = Arc::new(SignupService::new(users.clone(), tokens.clone(), ds.contacts(), ds.emails(), ds.email_types(), ds.genders(), confirmations.clone()));
+    let identity_providers = Arc::new(IdentityProvidersService::new(ds.identity_providers(), ds.identity_provider_types(), std::env::var("SITE_BASE_URL").ok()));
+    let sso = Arc::new(SsoService::new(
+        identity_providers.clone(),
+        ds.identity_provider_linked_users(),
+        ds.identity_provider_linked_user_field_types(),
+        ds.user_settings(),
+        signup.clone(),
+        users.clone(),
+        tokens.clone(),
+        settings.jwt_secret.clone(),
+    ));
     let oauth = Arc::new(OAuthService::new(users.clone(), tokens.clone(), sessions, settings));
     let game_plays = Arc::new(GamePlaysService::new(ds.game_plays(), ds.game_play_states(), ds.game_play_actions(), ds.game_play_users(), games.clone(), templates.clone()));
     let reviews = Arc::new(ReviewsService::new(ds.reviews(), ds.game_reviews(), games.clone(), users.clone()));
@@ -69,8 +87,7 @@ async fn main() {
         Some("sitemap") => std::process::exit(sitemap_cli::run(&args[1..], &categories, &games).await),
         Some(command @ ("add-user" | "update-user")) => std::process::exit(users_cli::run(command, &users, &args[1..]).await),
         Some(command @ ("add-identity-provider" | "update-identity-provider")) => {
-            let providers = IdentityProvidersService::new(ds.identity_providers(), ds.identity_provider_types(), std::env::var("SITE_BASE_URL").ok());
-            std::process::exit(identity_providers_cli::run(command, &providers, &args[1..]).await)
+            std::process::exit(identity_providers_cli::run(command, &identity_providers, &args[1..]).await)
         }
         _ => {}
     }
@@ -87,6 +104,8 @@ async fn main() {
         .merge(routes::signin::router(signin))
         .merge(routes::signup::router(signup))
         .merge(routes::oauth::router(oauth))
+        .merge(routes::sso::router(sso, tokens.clone()))
+        .merge(routes::emails::router(confirmations, tokens.clone()))
         .merge(routes::reviews::router(reviews, tokens.clone()))
         .merge(routes::game_plays::router(game_plays, tokens));
     let port = std::env::var("PORT").unwrap_or_else(|_| "3000".into());

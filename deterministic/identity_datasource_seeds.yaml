@@ -48,6 +48,9 @@ seeds:
       - id5:
           name: signin_token
           description: Single-use signin token exchanged for access and refresh tokens
+      - id6:
+          name: email_confirmation
+          description: Short-lived single-use code emailed to confirm an email address
 
   - identity_provider_type:
       - id1:

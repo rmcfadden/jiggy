@@ -23,7 +23,8 @@ public partial class SignupService(
     ICRUDRepository<Contact> contacts,
     ICRUDRepository<Email> emails,
     IReadonlyRepository<EmailType> emailTypes,
-    IReadonlyRepository<Gender> genders)
+    IReadonlyRepository<Gender> genders,
+    EmailConfirmationService confirmations)
 {
     /// <summary>Name of the email type and gender used for contacts created at signup (looked up by name, not id).</summary>
     public const string SignupEmailType = "Personal";
@@ -57,8 +58,9 @@ public partial class SignupService(
         var created = await CreateUser(requested, address, input.Password);
         try
         {
-            if (address is not null) await StoreEmail(created, address, emailTypeId, genderId);
+            var emailId = address is null ? (long?)null : await StoreEmail(created, address, emailTypeId, genderId);
             var signin = await tokens.IssueSignin(created.Id);
+            if (address is not null && emailId is { } id) await confirmations.Send(created.Id, id, created.Username, address);
             return new SignupResult(created.Username, signin);
         }
         catch
@@ -100,12 +102,13 @@ public partial class SignupService(
         Task<User> Create(string username) => users.Create(new CreateUserInput(username, password, [], [], null));
     }
 
-    async Task StoreEmail(User user, string address, long emailTypeId, long genderId)
+    /// <summary>Stores the contact and its (unverified) email; returns the email's id.</summary>
+    async Task<long> StoreEmail(User user, string address, long emailTypeId, long genderId)
     {
         var saved = await contacts.Create(new Contact { Name = user.Username, GivenName = user.Username, GenderTypeId = genderId, UserId = user.Id });
         try
         {
-            await emails.Create(new Email { EmailTypeId = emailTypeId, ContactId = saved.Id, Address = address, IsPrimary = true });
+            return (await emails.Create(new Email { EmailTypeId = emailTypeId, ContactId = saved.Id, Address = address, IsPrimary = true })).Id;
         }
         catch
         {

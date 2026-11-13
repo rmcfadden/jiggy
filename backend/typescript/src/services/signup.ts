@@ -4,6 +4,7 @@ import type { EmailType } from '../../generated/types/datasource/emailType.ts'
 import type { Gender } from '../../generated/types/datasource/gender.ts'
 import { contact, type Contact } from '../../generated/types/view/contact.ts'
 import { email, type Email } from '../../generated/types/view/email.ts'
+import type { EmailConfirmationService } from './emailConfirmation.ts'
 import type { IssuedToken, TokenService } from './tokens.ts'
 import { UserError, UserExistsError, type UsersService } from './users.ts'
 
@@ -38,6 +39,7 @@ export class SignupService {
     private readonly emails: ICRUDRepository<Email>,
     private readonly emailTypes: ICRUDRepository<EmailType>,
     private readonly genders: ICRUDRepository<Gender>,
+    private readonly confirmations: EmailConfirmationService,
   ) {}
 
   async signup(input: SignupInput): Promise<SignupResult> {
@@ -55,8 +57,9 @@ export class SignupService {
 
     const created = await this.createUser(requested, address, input.password)
     try {
-      if (address) await this.storeEmail(created.id, created.username, address, emailTypeId, genderId)
+      const emailId = address ? await this.storeEmail(created.id, created.username, address, emailTypeId, genderId) : undefined
       const signin = await this.tokens.issueSignin(Number(created.id))
+      if (address && emailId !== undefined) await this.confirmations.send(Number(created.id), emailId, created.username, address)
       return { username: created.username, signin }
     } catch (error) {
       await this.users.remove(created) // do not leave an account the caller never learned about
@@ -85,10 +88,11 @@ export class SignupService {
     }
   }
 
-  private async storeEmail(userId: number, username: string, address: string, emailTypeId: number, genderId: number): Promise<void> {
+  /** Stores the contact and its (unverified) email; returns the email's id. */
+  private async storeEmail(userId: number, username: string, address: string, emailTypeId: number, genderId: number): Promise<number> {
     const savedContact = await this.contacts.create(contact({ name: username, givenName: username, genderTypeId: genderId, userId }))
     try {
-      await this.emails.create(email({ emailTypeId, contactId: savedContact.id, address, isPrimary: true }))
+      return Number((await this.emails.create(email({ emailTypeId, contactId: savedContact.id, address, isPrimary: true }))).id)
     } catch (error) {
       await this.contacts.delete(savedContact)
       throw error
