@@ -37,16 +37,10 @@ types:
       mapping: services
   - service_settings_base:
       mapping: service_settings
-  - app_base:
-      mapping: apps
-      indexes:
-        - app_base_name:
-            fields: [name]
-            is_unique: true
   - setting:
       indexes:
-        - setting_app_id_name:
-            fields: [app_id, name]
+        - setting_name:
+            fields: [name]
             is_unique: true
   - game_setting:
       indexes:

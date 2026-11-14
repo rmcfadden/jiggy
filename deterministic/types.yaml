@@ -17,24 +17,12 @@ types:
         - datasource_type
       inherits: base
       fields:
-        - app_id:
-            references: app_base.id
         - name:
             type: string
             size: 255
         - value:
             type: string
             size: unlimited
-
-  - app_base:
-      # host row that owns the app-wide settings dictionary
-      tags:
-        - datasource_type
-      inherits: base
-      fields:
-        - name:
-            type: string
-            size: 128
 
   - settings_map:
       tags:
@@ -49,12 +37,3 @@ types:
             type: string
             size: unlimited
             references: setting.value
-
-  - app:
-      tags:
-        - view_type
-      inherits: app_base
-      fields:
-        - settings:
-            type: settings_map{}
-            references: setting.app_id
