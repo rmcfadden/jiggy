@@ -4,6 +4,7 @@ import { NavLink } from 'react-router-dom'
 const LINKS = [
   { to: '/puzzles', label: 'Puzzles', short: 'E' },
   { to: '/designer', label: 'Designer', short: 'D' },
+  { to: '/admin', label: 'Admin', short: 'A' },
 ]
 
 const STORAGE_KEY = 'jiggy.sidebar.collapsed'

@@ -65,14 +65,36 @@ export function loadMode(): Mode {
   return v === 'light' || v === 'dark' ? v : 'auto'
 }
 
+const DEFAULT_PALETTE_KEY = 'jiggy.theme.default.palette'
+const DEFAULT_BG_KEY = 'jiggy.theme.default.background'
+
+/** Admin-chosen defaults (Settings > Layout); a user's own pick overrides them. */
+export function loadDefaultPalette(): string {
+  const v = read(DEFAULT_PALETTE_KEY)
+  return PALETTES.some((p) => p.id === v) ? v! : 'amber'
+}
+
+export function loadDefaultBackground(): string {
+  const v = read(DEFAULT_BG_KEY)
+  return BACKGROUNDS.some((b) => b.id === v) ? v! : 'default'
+}
+
+export function saveDefaultPalette(id: string) {
+  write(DEFAULT_PALETTE_KEY, id)
+}
+
+export function saveDefaultBackground(id: string) {
+  write(DEFAULT_BG_KEY, id)
+}
+
 export function loadPalette(): string {
   const v = read(PALETTE_KEY)
-  return PALETTES.some((p) => p.id === v) ? v! : 'amber'
+  return PALETTES.some((p) => p.id === v) ? v! : loadDefaultPalette()
 }
 
 export function loadBackground(): string {
   const v = read(BG_KEY)
-  return BACKGROUNDS.some((b) => b.id === v) ? v! : 'default'
+  return BACKGROUNDS.some((b) => b.id === v) ? v! : loadDefaultBackground()
 }
 
 const systemDark = () => (typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null)
@@ -100,9 +122,10 @@ export function applyBackground(background: string) {
 
 /** Apply the saved theme and follow the system setting while in auto mode. */
 export function initTheme() {
-  applyMode(loadMode())
-  applyPalette(loadPalette())
-  applyBackground(loadBackground())
+  // Set the attributes directly: applying would store the defaults as the user's own pick and stop later default changes reaching them.
+  document.documentElement.dataset.theme = resolve(loadMode())
+  document.documentElement.dataset.palette = loadPalette()
+  document.documentElement.dataset.bg = loadBackground()
   systemDark()?.addEventListener('change', () => {
     if (loadMode() === 'auto') applyMode('auto')
   })
