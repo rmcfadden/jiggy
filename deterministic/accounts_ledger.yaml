@@ -9,7 +9,7 @@ types:
       inherits: base
       fields:
         - user_id:
-          references: user_base.id
+            references: user_base.id
         - name:
             type: string
             size: 128
@@ -34,7 +34,7 @@ types:
       inherits: base
       fields:
         - account_id:
-          references: account_base.id
+            references: account_base.id
 
   - currency:
       tags:
@@ -64,13 +64,14 @@ types:
       inherits: base
       fields:
         - account_id:
-          references: account_base.id
+            references: account_base.id
         - item_type_id:
-          references: item_type.id
+            references: item_type.id
         - currency_id:
-          references: currency.id
+            references: currency.id
         - amount:
-            type: double
+            type: decimal
+            size: [28, 8]
 
   - item:
       tags: [view_type]
@@ -87,7 +88,7 @@ types:
 
   - transaction:
       tags: [view_type]
-      inherits: transaction
+      inherits: transaction_base
       items:
         - type: item[]
           references: item_base.id

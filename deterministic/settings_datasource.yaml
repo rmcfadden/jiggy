@@ -1,13 +1,7 @@
 version: 1.0.0
 types:
-  - app_base:
-      mapping: apps
-      indexes:
-        - app_base_name:
-            fields: [name]
-            is_unique: true
   - setting:
       indexes:
-        - setting_app_id_name:
-            fields: [app_id, name]
+        - setting_name:
+            fields: [name]
             is_unique: true
