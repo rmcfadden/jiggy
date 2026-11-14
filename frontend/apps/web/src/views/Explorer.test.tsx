@@ -61,7 +61,7 @@ it('resizes icons across three sizes', async () => {
 
 it('shows Netflix rows with category selection and a profile list', async () => {
   await renderExplorer()
-  fireEvent.click(pressed('Layout', 'Netflix'))
+  fireEvent.click(pressed('Layout', 'Gallery'))
   expect(screen.queryByRole('region', { name: 'Top rated' })).toBeNull() // saved games have no reviews yet
   expect(screen.getByRole('region', { name: 'Animals' })).toBeTruthy()
   expect(screen.queryByRole('region', { name: 'My List' })).toBeNull()
@@ -90,7 +90,7 @@ it("continues the signed-in user's unfinished plays, one per game, each opening 
   signIn()
   serveUnfinished()
   await renderExplorer()
-  fireEvent.click(pressed('Layout', 'Netflix'))
+  fireEvent.click(pressed('Layout', 'Gallery'))
   const row = await screen.findByRole('region', { name: 'Continue playing' })
   // The card's rating is a role="link" span (no href): only the anchors open plays.
   const hrefs = within(row).getAllByRole('link').map((a) => a.getAttribute('href')).filter(Boolean)
@@ -108,7 +108,7 @@ it("shows a card's average rating from its summary, which opens that game's revi
     return new Response(JSON.stringify(rows.map((r) => ({ ...r, reviewCount: 2, averageRating: 4 }))))
   })
   await renderExplorer()
-  fireEvent.click(pressed('Layout', 'Netflix'))
+  fireEvent.click(pressed('Layout', 'Gallery'))
   const row = await screen.findByRole('region', { name: 'Continue playing' })
   const [rating] = await within(row).findAllByText('★ 4.0 (2)')
   expect(rating.getAttribute('role')).toBe('link')
@@ -116,7 +116,7 @@ it("shows a card's average rating from its summary, which opens that game's revi
 
 it("makes \"No reviews\" on an Explorer card a link to that game's reviews", async () => {
   await renderExplorer()
-  fireEvent.click(pressed('Layout', 'Netflix'))
+  fireEvent.click(pressed('Layout', 'Gallery'))
   const [none] = await screen.findAllByText('No reviews')
   expect(none.getAttribute('role')).toBe('link')
   expect(none.getAttribute('aria-label')).toMatch(/^No reviews yet\. Open reviews of /)
@@ -125,7 +125,7 @@ it("makes \"No reviews\" on an Explorer card a link to that game's reviews", asy
 it('shows no Continue playing row when signed out or with nothing unfinished', async () => {
   serveUnfinished()
   await renderExplorer()
-  fireEvent.click(pressed('Layout', 'Netflix'))
+  fireEvent.click(pressed('Layout', 'Gallery'))
   await screen.findByRole('region', { name: 'Animals' })
   expect(screen.queryByRole('region', { name: 'Continue playing' })).toBeNull()
 })

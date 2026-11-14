@@ -6,7 +6,7 @@ export type IconSize = 'small' | 'medium' | 'large'
 
 export const LAYOUTS: { id: BrowseLayout; label: string }[] = [
   { id: 'classic', label: 'Classic' },
-  { id: 'netflix', label: 'Netflix' },
+  { id: 'netflix', label: 'Gallery' },
 ]
 export const SIDES: { id: SidebarSide; label: string }[] = [
   { id: 'left', label: 'Left' },
@@ -29,36 +29,63 @@ export type BrowsePrefs = {
   layout: BrowseLayout
   side: SidebarSide
   iconSize: IconSize
-  /** Category ids shown as rows in the Netflix layout; empty means all top-level categories. */
+  /** Category ids shown as rows in the Gallery layout; empty means all top-level categories. */
   rows: string[]
 }
 
 const KEY = 'jiggy.browse.prefs'
-const DEFAULTS: BrowsePrefs = { layout: 'classic', side: 'left', iconSize: 'medium', rows: [] }
+const DEFAULTS_KEY = 'jiggy.browse.defaults'
+const FACTORY: BrowsePrefs = { layout: 'classic', side: 'left', iconSize: 'medium', rows: [] }
 
 const pick = <T extends string>(options: { id: T }[], v: unknown, fallback: T): T =>
   options.some((o) => o.id === v) ? (v as T) : fallback
 
-export function parsePrefs(text: string | null): BrowsePrefs {
-  if (!text) return DEFAULTS
+function parseWith(text: string | null, base: BrowsePrefs): BrowsePrefs {
+  if (!text) return base
   try {
     const raw = JSON.parse(text) as Partial<Record<keyof BrowsePrefs, unknown>>
     return {
-      layout: pick(LAYOUTS, raw.layout, DEFAULTS.layout),
-      side: pick(SIDES, raw.side, DEFAULTS.side),
-      iconSize: pick(ICON_SIZES, raw.iconSize, DEFAULTS.iconSize),
+      layout: pick(LAYOUTS, raw.layout, base.layout),
+      side: pick(SIDES, raw.side, base.side),
+      iconSize: pick(ICON_SIZES, raw.iconSize, base.iconSize),
       rows: Array.isArray(raw.rows) ? raw.rows.filter((r): r is string => typeof r === 'string') : [],
     }
   } catch {
-    return DEFAULTS
+    return base
   }
+}
+
+/** Parses saved defaults over the built-in ones. */
+export function parseDefaults(text: string | null): BrowsePrefs {
+  return parseWith(text, FACTORY)
+}
+
+/** The defaults an admin chose in Settings > Layout; they apply until a user picks their own. */
+export function loadDefaults(): BrowsePrefs {
+  try {
+    return parseDefaults(localStorage.getItem(DEFAULTS_KEY))
+  } catch {
+    return FACTORY
+  }
+}
+
+export function saveDefaults(d: BrowsePrefs) {
+  try {
+    localStorage.setItem(DEFAULTS_KEY, JSON.stringify(d))
+  } catch {
+    // storage unavailable; the choice still applies for this session
+  }
+}
+
+export function parsePrefs(text: string | null): BrowsePrefs {
+  return parseWith(text, loadDefaults())
 }
 
 function load(): BrowsePrefs {
   try {
     return parsePrefs(localStorage.getItem(KEY))
   } catch {
-    return DEFAULTS
+    return loadDefaults()
   }
 }
 

@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import RequireAuth from './auth/RequireAuth'
 import Layout from './Layout'
 import Designer from './designer/Designer'
+import Admin from './admin/Admin'
 import ProfilePage from './views/ProfilePage'
 import Explorer from './views/Explorer'
 import Player from './views/Player'
@@ -23,6 +24,7 @@ export default function App() {
         <Route path="puzzle" element={<Player />} />
         <Route element={<RequireAuth />}>
           <Route path="designer" element={<Designer />} />
+          <Route path="admin" element={<Admin />} />
         </Route>
         <Route path="reviews" element={<ReviewsPage />} />
         <Route path="profile" element={<ProfilePage />} />
